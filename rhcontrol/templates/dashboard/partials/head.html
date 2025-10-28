@@ -5,9 +5,20 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css" integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Roboto+Slab:wght@100..900&display=swap" rel="stylesheet">
         <title>Dashboard - RH Control</title>
 
         <style>
+            :root{
+                --primary-color: olivedrab;
+                --secondary-color: white;
+
+                --primary-font: sans-serif;
+                --secondary-font: 'Roboto Slab', serif;
+            }
             *{
                 padding: 0;
                 margin: 0;
@@ -21,6 +32,53 @@
 
             body{
                 font-size: 1.6rem;
+                font-family: var(--secondary-font);
+            }
+            
+            h1, h2, h3, h4, h5, h6{
+                font-family: var(--secondary-font);
+            }
+
+            .header-main{
+                margin: 0 auto;
+                display: flex;
+                gap: 20px;
+                align-items: center; 
+                flex-wrap: nowrap;
+            }
+
+            .header-center{
+                display: flex;
+                gap: 40px;
+                align-items: center;
+            }
+            
+            .dashboard-header { /* O que contém o título e o dropdown */
+                display: flex;
+                align-items: center;
+                flex-wrap: nowrap;
+            }
+
+            .dropdown {
+                position: relative;
+                padding: 0 10px;
+            }
+
+            .main-header-container{
+                background-color: var(--primary-color);
+                color: var(--secondary-color);
+                font-family: var(--primary-font);
+                padding: 10px 20px;
+                display: flex;
+                justify-content: flex-start;
+                gap: 40rem;
+                align-items: center;
+            }
+
+            .main-logo {
+                font-size: 3rem;
+                color: var(--secondary-color);
+                text-decoration: none;
             }
         </style>
     </head>
