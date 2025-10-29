@@ -1,0 +1,18 @@
+<!DOCTYPE>
+<html lang="pt-br">
+
+<head>
+    {% include 'dashboard/partials/head.html'%}
+    <title>{% block title%}{% endblock title %} Galva</title>
+</head> 
+
+<body>
+{% include 'dashboard/partials/header.html' %}
+
+<main>
+    {% block content %}{% endblock content %}
+</main>
+
+</body>
+
+</html>

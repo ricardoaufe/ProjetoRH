@@ -1,7 +1,8 @@
-{% include 'dashboard/partials/head.html' %}
-<body>
-    {% include 'dashboard/partials/header.html' %} 
-     
+{% extends 'global/base.html' %}
+{%block title %} Dashboard | {% endblock title %}
+
+{% block content %}
+
     {% include 'dashboard/partials/cards.html' %}
-</body>
-</html>
+
+{% endblock content %}

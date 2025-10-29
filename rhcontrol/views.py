@@ -5,3 +5,6 @@ from django.shortcuts import render
 
 def dashboard(request):
     return render(request, 'dashboard/pages/dashboard.html')
+
+def employees(request):
+    return render(request, 'dashboard/pages/employee-list.html')
