@@ -16,11 +16,11 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from rhcontrol.views import dashboard, employees
+from rhcontrol.views import dashboard, employee_view
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', dashboard, name='dashboard'),
-    path('employees/', employees, name='employees'),
+    path('employees/', employee_view, name='employee_list'),
 ]

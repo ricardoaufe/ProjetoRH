@@ -10,5 +10,5 @@ class DepartmentAdmin(admin.ModelAdmin):
 @admin.register(JobTitle)
 class JobTitleAdmin(admin.ModelAdmin):
     ...
-
+    
 admin.site.register(Employee, EmployeeAdmin)
