@@ -7,7 +7,9 @@
 </head> 
 
 <body>
-{% include 'dashboard/partials/header.html' %}
+{%block header%}
+    {% include 'dashboard/partials/header.html' %}
+{% endblock header %}
 
 <main>
     {% block content %}{% endblock content %}

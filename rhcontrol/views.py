@@ -3,8 +3,19 @@ from django.shortcuts import render
 from rhcontrol.models import Employee
 from django.db.models import Q 
 from django.core.paginator import Paginator
+from .forms import LoginForm
 
-# Create your views here.
+def login_view(request):
+    form = LoginForm()
+    return render(request, 'authors/pages/login.html', {
+        'form': form,
+        })
+
+def login_create(request):
+    form = LoginForm()
+    return render(request, 'authors/pages/login.html', {
+        'form': form,
+        })
 
 def dashboard(request):
     return render(request, 'dashboard/pages/dashboard.html')
