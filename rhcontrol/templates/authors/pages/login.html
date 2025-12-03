@@ -1,4 +1,4 @@
-{% extends 'global/base.html '%}
+{% extends 'global/base.html' %}
 
 {% block title %} Login | {% endblock title %}
 
@@ -8,27 +8,28 @@
 {% block content %}
     <div class="login-container center">
         <h2>Login</h2>
-    </div>
-
-    <div class="login-container">
-        <form action= "" method="POST">
+        <form action="" method="POST">
             {% csrf_token %}
             <div class="form-content form-content-grid">
                 {% for field in form %}
                     <div class="form-group">
-                        <label for = "{{ field.id_for_label }}">{{ field.label }}</label>
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
                         {{ field }}
 
                         {% if field.help_text %}
                             <p class="help-text">{{ field.help_text }}</p>
                         {% endif %}
 
-                        {{field.errors}}
+                        {{ field.errors }}
                     </div> 
                 {% endfor %}
             </div>
+            <div class="form-content form-content-grid">
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </div>
+            </div>
         </form>
     </div>
-
-
+</div>
 {% endblock content %}
