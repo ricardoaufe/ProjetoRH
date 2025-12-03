@@ -1,0 +1,57 @@
+{% extends 'global/base.html' %}
+
+{% block title %} Férias | {% endblock title %}
+
+{% block content %}
+<body>
+<div class= "list-container">
+
+    <div class= "page-header">
+        <h1>Registo de Férias</h1>
+        <a class="btn btn-primary">Registrar Férias</a>
+    </div>
+
+    <div class="status-filters">
+        <a href="{% url 'vacation_list' %}" class="{% if not request.GET.status %}active{% endif %}">Todos</a>
+    </div>
+
+    <div class="filter-bar">
+        <form method="GET" action= "{% url 'vacation_list' %}" style="width: 100%;">
+            <input type="text" name="search" placeholder="Pesquisar por nome" value="{{ request.GET.search }}">
+            <input type="hidden" name="status" value="{{ request.GET.status|default_if_none:'' }}">
+        </form>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th><a href="?sort=name&q={{ request.GET.search|default_if_none:''}}&start={{ request.GET.status|default_if_none:''}}"><span>Nome</span></a></th>
+                <th><a href="?sort=start_date&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Data de Início</span></a></th>
+                <th><a href="?sort=end_date&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Data de Término</span></a></th>
+                <th><a href="?sort=return_date&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Data de Retorno</span></a></th>
+                <th><a href="?sort=vacation_duration&q={{request.GET.q|default_if_none:''}}&status={{ request.GET.status|default_if_none:'' }}"><span>Duração das Férias (dias)</span></a></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for vacation in object_list %}
+            <tr>
+                <td>{{vacation.employee.name}}</td>
+                <td>{{vacation.start_date|date:"d/m/Y"}}</td>
+                <td>{{vacation.end_date|date:"d/m/Y"}}</td>
+                <td>{{vacation.return_date|date:"d/m/Y"}}</td>
+                <td>{{vacation.vacation_duration}}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center;" >Nenhum registro de férias encontrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+            
+</body>
+
+</html>
+
+{% endblock content %}

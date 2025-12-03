@@ -1,6 +1,6 @@
 from django.http import HttpResponse
 from django.shortcuts import render
-from rhcontrol.models import Employee
+from rhcontrol.models import Employee, Vacation
 from django.db.models import Q 
 from django.core.paginator import Paginator
 from .forms import LoginForm
@@ -55,3 +55,16 @@ def employee_view(request):
         'object_list': page_obj,
     }
     return render(request, 'dashboard/pages/employee-list.html', context)
+
+def vacation_view(request):
+    vacation_list = Vacation.objects.select_related('employee').all()
+
+    paginator = Paginator(vacation_list, 15)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'object_list': page_obj,
+    }
+    return render(request, 'dashboard/pages/vacation-list.html', context)
+

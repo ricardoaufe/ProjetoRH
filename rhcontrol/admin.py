@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Employee, Department, JobTitle
+from .models import Employee, Department, JobTitle, Vacation
 
 class EmployeeAdmin(admin.ModelAdmin):
     ...
@@ -12,3 +12,7 @@ class JobTitleAdmin(admin.ModelAdmin):
     ...
     
 admin.site.register(Employee, EmployeeAdmin)
+
+@admin.register(Vacation)
+class VacationAdmin(admin.ModelAdmin):
+    ...

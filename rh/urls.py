@@ -16,13 +16,16 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from rhcontrol.views import dashboard, employee_view, login_view, login_create
+from rhcontrol.views import dashboard, employee_view, login_view, login_create, vacation_view
 
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', dashboard, name='dashboard'),
     path('employees/', employee_view, name='employee_list'),
+    path('vacations/', vacation_view, name='vacation_list'),
+    #LOGIN
     path('login/', login_view, name='login'),
     path('login/create/', login_create, name='login_create'),
+    
 ]
