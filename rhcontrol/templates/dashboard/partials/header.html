@@ -16,6 +16,9 @@
             
             <h2> Administração</h2>
             <h2> Relatórios</h2>
-            <h2> Logout</h2>
+            <form action="{% url 'logout' %}" method="POST"> 
+                {% csrf_token %}
+                <button class="plaintext-button" type="submit"> Logout </button>
+            </form>
         </div>
 </header>

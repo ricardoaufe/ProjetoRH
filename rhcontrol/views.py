@@ -6,7 +6,7 @@ from django.db.models import Q
 from django.core.paginator import Paginator
 from .forms import LoginForm
 from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages 
@@ -56,6 +56,14 @@ def login_create(request):
         'form': form,
         'form_action': reverse('login_create')
     })
+
+@login_required
+def logout_view(request):
+    if request.method != 'POST':
+        return redirect('login')
+
+    logout(request)
+    return redirect('login')
         
 @login_required
 def dashboard_view(request):

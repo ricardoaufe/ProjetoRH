@@ -16,7 +16,7 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from rhcontrol.views import dashboard_view, employee_view, login_view, login_create, vacation_view, training_view
+from rhcontrol.views import dashboard_view, employee_view, login_view, login_create, vacation_view, training_view, logout_view
 
 
 urlpatterns = [
@@ -28,5 +28,6 @@ urlpatterns = [
     #LOGIN
     path('login/', login_view, name='login'),
     path('login/create/', login_create, name='login_create'),
+    path('logout/', logout_view, name='logout'),
     
 ]
