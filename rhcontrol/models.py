@@ -26,6 +26,18 @@ class Vacation(models.Model):
 
     def __str__(self):
         return f'Férias do(a) {self.employee.name} até {self.start_date} para {self.end_date}'
+    
+class Training(models.Model):
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='trainings')
+    training_name = models.CharField(max_length=200, verbose_name="Nome do Treinamento")
+    training_date = models.DateField(verbose_name="Data do Treinamento")
+    training_provider = models.CharField(max_length=200, blank=True, null=True, verbose_name="Fornecedor do Treinamento")
+    training_duration = models.IntegerField(help_text='Duração em horas', verbose_name="Duração (horas)")
+
+    def __str__(self):
+        return f'Treinamento: {self.training_name} para {self.employee.name} em {self.training_date}'
+
+
 
 class Department(models.Model):
     name = models.CharField(max_length=100)

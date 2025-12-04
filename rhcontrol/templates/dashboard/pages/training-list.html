@@ -3,4 +3,52 @@
 {% block title %} Treinamentos | {% endblock title %}
 
 {% block content %}
-{% %}
+<body>
+<div class= "list-container">
+
+    <div class= "page-header">
+        <h1>Lista de treinamentos</h1>
+        <a class="btn btn-primary">Adicionar treinamentos</a>
+    </div>
+
+    <div class="status-filters">
+        <a href="{% url 'training_list' %}" class="{% if not request.GET.status %}active{% endif %}">Todos</a>
+    </div>
+
+    <div class="filter-bar">
+        <form method="GET" action= "{% url 'vacation_list' %}" style="width: 100%;">
+            <input type="text" name="search" placeholder="Pesquisar por nome de treinamento" value="{{ request.GET.search }}">
+            <input type="hidden" name="status" value="{{ request.GET.status|default_if_none:'' }}">
+        </form>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th><a href="?sort=training_name&q={{ request.GET.search|default_if_none:''}}&start={{ request.GET.status|default_if_none:''}}"><span>Treinamento</span></a></th>
+                <th><a href="?sort=training_date&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Data do treinamento</span></a></th>
+                <th><a href="?sort=training_provider&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Ministrado por:</span></a></th>
+                <th><a href="?sort=training_duration&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Duração treinamento (horas)</span></a></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% for training in object_list %}
+            <tr>
+                <td>{{training.training_name}}</td> // Lembrar de colocar o URL de detalhes depois
+                <td>{{training.training_date|date:"d/m/Y"}}</td>
+                <td>{{training.training_provider}}</td>
+                <td>{{training.training_duration}}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" style="text-align: center;" >Nenhum treinamento cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+            
+</body>
+
+</html>
+{% endblock content%}

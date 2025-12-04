@@ -36,7 +36,7 @@
         <tbody>
             {% for vacation in object_list %}
             <tr>
-                <td>{{vacation.employee.name}}</td>
+                <td>{{vacation.employee.name}}</td> // Lembrar de colocar o URL de detalhes depois
                 <td>{{vacation.start_date|date:"d/m/Y"}}</td>
                 <td>{{vacation.end_date|date:"d/m/Y"}}</td>
                 <td>{{vacation.return_date|date:"d/m/Y"}}</td>
