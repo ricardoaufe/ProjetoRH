@@ -3,12 +3,12 @@
     <div class="cards-container">
         <div class="card" onclick="location.href='{% url 'employee_list' %}'">
             <h2 class="card-title">Funcionários Cadastrados</h2>
-            <p class="card-number"> 0 </p>
+            <p class="card-number">{{ employees_count }}</p>
             <h4 class="desc">Funcionários que estão cadastrados atualmente</h4>
         </div>
         <div class="card" onclick="location.href='{% url 'vacation_list' %}'">
             <h2 class="card-title">Férias Programadas</h2>
-            <p class="card-number"> 0 </p>
+            <p class="card-number">{{ vacation_count }}</p>
             <h4 class="desc">Quantidade de férias programadas</h4>
         </div>
         <div class="card">
