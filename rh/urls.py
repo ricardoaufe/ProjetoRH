@@ -16,18 +16,19 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from rhcontrol.views import dashboard_view, employee_view, login_view, login_create, vacation_view, training_view, logout_view
-
+from rhcontrol import views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', dashboard_view, name='dashboard'),
-    path('employees/', employee_view, name='employee_list'),
-    path('vacations/', vacation_view, name='vacation_list'),
-    path('trainings/', training_view, name='training_list'),
+    path('', views.dashboard_view, name='dashboard'),
+    path('employees/', views.employee_view, name='employee_list'),
+    path('employees/create/', views.employee_create, name='employee_create'),
+    path('vacations/', views.vacation_view, name='vacation_list'),
+    path('trainings/', views.training_view, name='training_list'),
     #LOGIN
-    path('login/', login_view, name='login'),
-    path('login/create/', login_create, name='login_create'),
-    path('logout/', logout_view, name='logout'),
-    
+    path('login/', views.login_view, name='login'),
+    path('login/create/', views.login_create, name='login_create'),
+    path('logout/', views.logout_view, name='logout'),
+
+    path('ajax/load-job-titles/', views.load_job_titles, name='ajax_load_job_titles'),
 ]

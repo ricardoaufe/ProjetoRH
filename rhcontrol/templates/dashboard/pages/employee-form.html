@@ -1,0 +1,79 @@
+{% extends 'global/base.html' %}
+
+{% block title %} Registar Funcionário | {% endblock title %}
+
+{% block content %}
+    <div class="form-container">
+        <h2>Cadastrar Funcionário</h2>
+
+        <form method="POST" id="employeeForm" data-jobs-url="{% url 'ajax_load_job_titles' %}">
+            {% csrf_token %}
+            
+            <div class="form-content">
+                {% for field in form %}
+                    <div class="form-group">
+                        <laber class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</laber>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="message.error">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+
+            
+            <button type="submit">Salvar</button>
+        </form>
+    </div>
+
+{% endblock%}
+
+<script>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const departmentSelect = document.getElementById('id_department');
+        const jobTitleSelect = document.getElementById('id_job_title');
+        const salaryInput = document.getElementById('id_current_salary');
+        const url = document.getElementById('employeeForm').getAttribute('data-jobs-url');
+
+        departmentSelect.addEventListener('change', function() {
+            const departmentId = this.value;
+
+            salaryInput.value = '';
+
+            if (!departmentId) {
+                jobTitleSelect.innerHTML = '<option value="">---------</option>';
+                return;
+            }
+
+            fetch(`${url}?department_id=${departmentId}`)
+                .then(response => response.json())
+                .then(data => {
+                    jobTitleSelect.innerHTML = '<option value="">---------</option>';
+                    
+                    data.forEach(job => {
+                        const option = document.createElement('option');
+                        option.value = job.id;
+                        option.textContent = job.name;
+                        option.setAttribute('data-salary', job.salary);
+                        jobTitleSelect.appendChild(option);
+                    });
+                })
+                .catch(error => console.error('Erro:', error));
+        });
+
+        jobTitleSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            
+            const baseSalary = selectedOption.getAttribute('data-salary');
+
+            if (baseSalary) {
+                salaryInput.value = baseSalary;
+            } else {
+                salaryInput.value = '';
+            }
+        });
+    });
+</script>

@@ -56,26 +56,26 @@ class JobTitle(models.Model):
         return self.name
 
 class Employee(models.Model):
-    name = models.CharField(max_length=100)
-    cpf = models.CharField(max_length=14, unique=True)
-    rg = models.CharField(max_length=20, blank=True, null=True)
-    rg_issue_date = models.DateField(blank=True, null=True) 
-    ctps_number = models.CharField(max_length=20, blank=True, null=True)
-    ctps_series = models.CharField(max_length=10, blank=True, null=True)
-    ctps_issue_date = models.DateField(blank=True, null=True) 
-    pis = models.CharField(max_length=20, blank=True, null=True)
-    ethnicity = models.CharField(max_length=50, blank=True, null=True)
-    mother_name = models.CharField(max_length=100, blank=True, null=True)
-    birth_city = models.CharField(max_length=100, blank=True, null=True) 
-    state_birthplace_code = models.CharField(max_length=2, blank=True, null=True)
-    birth_date = models.DateField() 
+    name = models.CharField(max_length=100, verbose_name="Nome")
+    cpf = models.CharField(max_length=14, unique=True, verbose_name="CPF")
+    rg = models.CharField(max_length=20, blank=True, null=True, verbose_name="RG")
+    rg_issue_date = models.DateField(blank=True, null=True, verbose_name="Data de Emissão do RG") 
+    ctps_number = models.CharField(max_length=20, blank=True, null=True, verbose_name="Número da CTPS")
+    ctps_series = models.CharField(max_length=10, blank=True, null=True, verbose_name="Série da CTPS")
+    ctps_issue_date = models.DateField(blank=True, null=True, verbose_name="Data de Emissão da CTPS") 
+    pis = models.CharField(max_length=20, blank=True, null=True, verbose_name="PIS")
+    ethnicity = models.CharField(max_length=50, blank=True, null=True, verbose_name="Etnia")
+    mother_name = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nome da Mãe")
+    birth_city = models.CharField(max_length=100, blank=True, null=True, verbose_name="Cidade de Nascimento") 
+    state_birthplace_code = models.CharField(max_length=2, blank=True, null=True, verbose_name="UF de Nascimento")
+    birth_date = models.DateField(verbose_name="Data de Nascimento") 
 
     SEX_CHOICES = [
         ('M', 'Masculino'),
         ('F', 'Feminino'),
         ('O', 'Outro'),
     ]
-    gender = models.CharField(max_length=1, choices=SEX_CHOICES, blank=True, null=True) 
+    gender = models.CharField(max_length=1, choices=SEX_CHOICES, blank=True, null=True, verbose_name="Gênero") 
 
     EDUCATION_CHOICES = [
         ('Analfabeto(a)', 'Analfabeto'),
@@ -89,14 +89,14 @@ class Employee(models.Model):
         ('Mestrado', 'Mestrado'),
         ('Doutorado', 'Doutorado'),
     ]
-    education_level = models.CharField(max_length=22, choices=EDUCATION_CHOICES, blank=True, null=True) 
+    education_level = models.CharField(max_length=22, choices=EDUCATION_CHOICES, blank=True, null=True, verbose_name="Nível de Escolaridade") 
 
     RETIREMENT_CHOICES = [
         ('I', 'Por Idade'),
         ('T', 'Por Tempo de Contribuição'),
         ('N', 'Não recebe'),
     ]
-    retirement_status = models.CharField(max_length=1, choices=RETIREMENT_CHOICES, blank=True, null=True)
+    retirement_status = models.CharField(max_length=1, choices=RETIREMENT_CHOICES, blank=True, null=True, verbose_name="Status de Aposentadoria")
 
     CIVIL_STATUS_CHOICES = [
         ('S', 'Solteiro(a)'),
@@ -106,13 +106,13 @@ class Employee(models.Model):
         ('E', 'Separado(a)'),
         ('U', 'União Estável'),
     ]
-    marital_status = models.CharField(max_length=1, choices= CIVIL_STATUS_CHOICES, blank=True, null=True) 
+    marital_status = models.CharField(max_length=1, choices= CIVIL_STATUS_CHOICES, blank=True, null=True, verbose_name="Estado Civil") 
 
     PCD_CHOICES = [
         ('S', 'Sim'),
         ('N', 'Não'),
     ]
-    is_pcd = models.CharField(max_length=1, choices=PCD_CHOICES, blank=True, null=True) 
+    is_pcd = models.CharField(max_length=1, choices=PCD_CHOICES, blank=True, null=True, verbose_name="PCD") 
 
     TIPO_DEFICIENCIA_CHOICES = [
         ('Física', 'Física'),
@@ -122,25 +122,25 @@ class Employee(models.Model):
         ('Intelectual', 'Intelectual'),
         ('Múltipla', 'Múltipla'),
     ]
-    disability_type = models.CharField(max_length=50, choices=TIPO_DEFICIENCIA_CHOICES, blank=True, null=True) 
+    disability_type = models.CharField(max_length=50, choices=TIPO_DEFICIENCIA_CHOICES, blank=True, null=True, verbose_name="Tipo de Deficiência") 
 
     # DADOS DE CONTATO
-    address = models.CharField(max_length=200, blank=True, null=True) 
-    address_num = models.CharField(max_length=10, blank=True, null=True) 
-    complement = models.CharField(max_length=50, blank=True, null=True)
-    neighborhood = models.CharField(max_length=100, blank=True, null=True) 
-    city = models.CharField(max_length=100, blank=True, null=True)
-    state_code = models.CharField(max_length=2, blank=True, null=True)
-    zip_code = models.CharField(max_length=9, blank=True, null=True) 
-    emergency_phone = models.CharField(max_length=20, blank=True, null=True) 
-    emergency_contact_name = models.CharField(max_length=100, blank=True, null=True) 
-    mobile_phone = models.CharField(max_length=20, blank=True, null=True) 
-    email = models.EmailField(blank=True, null=True)
+    address = models.CharField(max_length=200, blank=True, null=True, verbose_name="Endereço") 
+    address_num = models.CharField(max_length=10, blank=True, null=True, verbose_name="Número") 
+    complement = models.CharField(max_length=50, blank=True, null=True, verbose_name="Complemento")
+    neighborhood = models.CharField(max_length=100, blank=True, null=True, verbose_name="Bairro") 
+    city = models.CharField(max_length=100, blank=True, null=True, verbose_name="Cidade")
+    state_code = models.CharField(max_length=2, blank=True, null=True, verbose_name="UF")
+    zip_code = models.CharField(max_length=9, blank=True, null=True, verbose_name="CEP") 
+    emergency_phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Telefone de Emergência") 
+    emergency_contact_name = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nome do Contato de Emergência") 
+    mobile_phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Celular") 
+    email = models.EmailField(blank=True, null=True, verbose_name="E-mail")
 
     # DADOS BANCÁRIOS
-    bank_name = models.CharField(max_length=100, blank=True, null=True) 
-    account_num = models.CharField(max_length=50, blank=True, null=True) 
-    bank_agency_code = models.CharField(max_length=20, blank=True, null=True) 
+    bank_name = models.CharField(max_length=100, blank=True, null=True, verbose_name="Banco") 
+    account_num = models.CharField(max_length=50, blank=True, null=True, verbose_name="Número da Conta") 
+    bank_agency_code = models.CharField(max_length=20, blank=True, null=True, verbose_name="Agência") 
 
     TIPO_CONTA_CHOICES = [
         ('Corrente', 'Corrente'),
@@ -148,38 +148,38 @@ class Employee(models.Model):
         ('Salário', 'Salário'),
         ('Conta Conjunta', 'Conta Conjunta'),
     ]
-    account_type = models.CharField(max_length=25,choices=TIPO_CONTA_CHOICES, blank=True, null=True) 
+    account_type = models.CharField(max_length=25, choices=TIPO_CONTA_CHOICES, blank=True, null=True, verbose_name="Tipo de Conta") 
 
     # DADOS DO CONTRATO
     department = models.ForeignKey(Department, on_delete=models.PROTECT, verbose_name='Setor', related_name='funcionarios_setor') 
     job_title = models.ForeignKey(JobTitle, on_delete=models.PROTECT, verbose_name='Cargo', related_name='funcionarios_cargo') 
     current_salary = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, verbose_name='Salário Atual') 
-    hire_date = models.DateField(blank=True, null=True) 
-    is_trial_contract = models.BooleanField(default=False) 
-    is_first_job = models.BooleanField(default=False) 
-    is_intermittent_contract = models.BooleanField(default=False) 
-    uses_transport_voucher = models.BooleanField(default=False) 
-    has_insalubrity_bonus = models.BooleanField(default=False) 
-    has_danger_bonus = models.BooleanField(default=False) 
-    admission_exam_date = models.DateField(blank=True, null=True) 
+    hire_date = models.DateField(blank=True, null=True, verbose_name="Data de Admissão") 
+    is_trial_contract = models.BooleanField(default=False, verbose_name="Contrato em Período de Experiência") 
+    is_first_job = models.BooleanField(default=False, verbose_name="Primeiro Emprego") 
+    is_intermittent_contract = models.BooleanField(default=False, verbose_name="Contrato Intermitente") 
+    uses_transport_voucher = models.BooleanField(default=False, verbose_name="Usa Vale Transporte") 
+    has_insalubrity_bonus = models.BooleanField(default=False, verbose_name="Recebe Adicional de Insalubridade") 
+    has_danger_bonus = models.BooleanField(default=False, verbose_name="Recebe Adicional de Periculosidade") 
+    admission_exam_date = models.DateField(blank=True, null=True, verbose_name="Data do Exame Admissional") 
     termination_date = models.DateField(blank=True, null=True, verbose_name="Data da Demissão") 
     termination_reason = models.CharField(max_length=200, blank=True, null=True, verbose_name="Motivo da Demissão")
 
     # DADOS DE ESTRANGEIROS
-    is_foreign = models.BooleanField(default=False) 
-    arrival_date = models.DateField(blank=True, null=True) 
-    naturalization_date = models.DateField(blank=True, null=True) 
-    married_to_brazilian = models.BooleanField(default=False) 
-    has_brazilian_children = models.BooleanField(default=False) 
-    rne_number = models.CharField(max_length=50, blank=True, null=True) 
-    rne_issuing_authority = models.CharField(max_length=50, blank=True, null=True) 
-    rne_issue_date = models.DateField(blank=True, null=True) 
+    is_foreign = models.BooleanField(default=False, verbose_name="É Estrangeiro") 
+    arrival_date = models.DateField(blank=True, null=True, verbose_name="Data de Chegada") 
+    naturalization_date = models.DateField(blank=True, null=True, verbose_name="Data de Naturalização") 
+    married_to_brazilian = models.BooleanField(default=False, verbose_name="Casado com Brasileiro") 
+    has_brazilian_children = models.BooleanField(default=False, verbose_name="Tem Filhos Brasileiros") 
+    rne_number = models.CharField(max_length=50, blank=True, null=True, verbose_name="Número do RNE") 
+    rne_issuing_authority = models.CharField(max_length=50, blank=True, null=True, verbose_name="Autoridade Emissora do RNE") 
+    rne_issue_date = models.DateField(blank=True, null=True, verbose_name="Data de Emissão do RNE") 
 
     # DADOS DA CIPA
     is_cipa_member = models.BooleanField(default=False, verbose_name="Integrante da CIPA") 
     cipa_mandate_start_date = models.DateField(blank=True, null=True, verbose_name="Início do Mandato na CIPA") 
     cipa_mandate_end_date = models.DateField(blank=True, null=True, verbose_name="Fim do Mandato na CIPA") 
-    cipa_role = models.CharField(max_length=100, blank=True, null=True, verbose_name="Título na CIPA") 
+    cipa_role = models.CharField(max_length=100, blank=True, null=True, verbose_name="Função na CIPA") 
 
     def __str__(self):
         return self.name

@@ -1,10 +1,10 @@
-from django.http import HttpResponse, Http404
-from django.shortcuts import render, redirect
+from django.http import HttpResponse, Http404, JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from rhcontrol.models import Employee, Vacation, Training
+from rhcontrol.models import Employee, Vacation, Training, JobTitle
 from django.db.models import Q 
 from django.core.paginator import Paginator
-from .forms import LoginForm
+from .forms import LoginForm, EmployeeForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
@@ -69,9 +69,12 @@ def logout_view(request):
 def dashboard_view(request):
     return render(request, 'dashboard/pages/dashboard.html')
 
+#Funcionários
+@login_required
 def employees(request):
     return render(request, 'dashboard/pages/employee-list.html')
 
+@login_required
 def employee_view(request):
     employee_list = Employee.objects.select_related('department').all()
 
@@ -105,6 +108,60 @@ def employee_view(request):
     }
     return render(request, 'dashboard/pages/employee-list.html', context)
 
+@login_required
+def employee_create(request):
+    if request.method == 'POST':
+        form = EmployeeForm(request.POST)
+        
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Funcionário cadastrado com sucesso!')
+            return redirect('employee_list') 
+        else:
+            messages.error(request, 'Erro ao cadastrar. Verifique os campos abaixo.')
+    
+    else:
+        form = EmployeeForm()
+
+    return render(request, 'dashboard/pages/employee-form.html', {
+        'form': form,
+        'title': 'Cadastrar Funcionário'
+    })
+
+def load_job_titles(request):
+    department_id = request.GET.get('department_id')
+    
+    # Filtra os cargos pelo setor selecionado
+    jobs = JobTitle.objects.filter(department_id=department_id).order_by('name')
+    
+    # Retorna uma lista de dicionários com ID, Nome e Salário Base
+    # O salário precisa ser convertido para float ou string para virar JSON
+    jobs_data = [
+        {
+            'id': job.id, 
+            'name': job.name, 
+            'salary': str(job.base_salary) # Enviamos como string para facilitar
+        } 
+        for job in jobs
+    ]
+    
+    return JsonResponse(jobs_data, safe=False)
+
+def load_job_titles(request):
+    department_id = request.GET.get('department_id')
+    
+    jobs = JobTitle.objects.filter(department_id=department_id).order_by('name')
+  
+    return JsonResponse(list(jobs.values('id', 'name')), safe=False)
+
+def get_salary(request):
+    job_title_id = request.GET.get('job_title_id')
+
+    JobTitle = get_object_or_404(JobTitle, pk=job_title_id)
+
+    return JsonResponse({'salary': str(JobTitle.base_salary)})
+
+#Férias
 def vacation_view(request):
     vacation_list = Vacation.objects.select_related('employee').all()
 
