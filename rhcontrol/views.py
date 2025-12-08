@@ -130,36 +130,23 @@ def employee_create(request):
 
 def load_job_titles(request):
     department_id = request.GET.get('department_id')
-    
-    # Filtra os cargos pelo setor selecionado
+
+    if not department_id:
+        return JsonResponse([], safe=False)
+
     jobs = JobTitle.objects.filter(department_id=department_id).order_by('name')
+
+    return JsonResponse(list(jobs.values('id', 'name', 'base_salary')), safe=False)
+
+def get_job_salary(request):
+    job_id = request.GET.get('job_id')
     
-    # Retorna uma lista de dicionários com ID, Nome e Salário Base
-    # O salário precisa ser convertido para float ou string para virar JSON
-    jobs_data = [
-        {
-            'id': job.id, 
-            'name': job.name, 
-            'salary': str(job.base_salary) # Enviamos como string para facilitar
-        } 
-        for job in jobs
-    ]
-    
-    return JsonResponse(jobs_data, safe=False)
+    if not job_id:
+        return JsonResponse({'salary': 0})
 
-def load_job_titles(request):
-    department_id = request.GET.get('department_id')
-    
-    jobs = JobTitle.objects.filter(department_id=department_id).order_by('name')
-  
-    return JsonResponse(list(jobs.values('id', 'name')), safe=False)
+    job = get_object_or_404(JobTitle, pk=job_id)
 
-def get_salary(request):
-    job_title_id = request.GET.get('job_title_id')
-
-    JobTitle = get_object_or_404(JobTitle, pk=job_title_id)
-
-    return JsonResponse({'salary': str(JobTitle.base_salary)})
+    return JsonResponse({'salary': job.base_salary})
 
 #Férias
 def vacation_view(request):

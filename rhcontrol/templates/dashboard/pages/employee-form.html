@@ -12,10 +12,10 @@
             <div class="form-content">
                 {% for field in form %}
                     <div class="form-group">
-                        <laber class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</laber>
+                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
                         {{ field }}
                         {% if field.errors %}
-                            <div class="message.error">
+                            <div class="message error">
                                 {{ field.errors }}
                             </div>
                         {% endif %}
@@ -23,57 +23,78 @@
                 {% endfor %}
             </div>
 
-            
             <button type="submit">Salvar</button>
         </form>
     </div>
 
-{% endblock%}
-
-<script>
     <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const departmentSelect = document.getElementById('id_department');
-        const jobTitleSelect = document.getElementById('id_job_title');
-        const salaryInput = document.getElementById('id_current_salary');
-        const url = document.getElementById('employeeForm').getAttribute('data-jobs-url');
+        document.addEventListener('DOMContentLoaded', function() {
+            // Vamos adicionar um teste para você ver no console se o script carregou
+            console.log("Script de Funcionário Carregado!"); 
 
-        departmentSelect.addEventListener('change', function() {
-            const departmentId = this.value;
+            const departmentSelect = document.getElementById('id_department');
+            const jobTitleSelect = document.getElementById('id_job_title');
+            const salaryInput = document.getElementById('id_current_salary');
+            const formElement = document.getElementById('employeeForm');
 
-            salaryInput.value = '';
-
-            if (!departmentId) {
-                jobTitleSelect.innerHTML = '<option value="">---------</option>';
+            // Proteção caso o JS não encontre o formulário
+            if (!formElement) {
+                console.error("Erro: Formulário não encontrado.");
                 return;
             }
 
-            fetch(`${url}?department_id=${departmentId}`)
-                .then(response => response.json())
-                .then(data => {
-                    jobTitleSelect.innerHTML = '<option value="">---------</option>';
-                    
-                    data.forEach(job => {
-                        const option = document.createElement('option');
-                        option.value = job.id;
-                        option.textContent = job.name;
-                        option.setAttribute('data-salary', job.salary);
-                        jobTitleSelect.appendChild(option);
-                    });
-                })
-                .catch(error => console.error('Erro:', error));
-        });
+            const url = formElement.getAttribute('data-jobs-url');
 
-        jobTitleSelect.addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            
-            const baseSalary = selectedOption.getAttribute('data-salary');
+            departmentSelect.addEventListener('change', function() {
+                const departmentId = this.value;
+                console.log("Setor alterado para ID:", departmentId); // Debug
 
-            if (baseSalary) {
-                salaryInput.value = baseSalary;
-            } else {
                 salaryInput.value = '';
-            }
+
+                if (!departmentId) {
+                    jobTitleSelect.innerHTML = '<option value="">---------</option>';
+                    return;
+                }
+
+                fetch(`${url}?department_id=${departmentId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("Erro na requisição AJAX");
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log("Cargos recebidos:", data); // Debug
+                        jobTitleSelect.innerHTML = '<option value="">---------</option>';
+                        
+                        data.forEach(job => {
+                            const option = document.createElement('option');
+                            option.value = job.id;
+                            option.textContent = job.name;
+                            
+                            // Tenta pegar 'base_salary' (novo) ou 'salary' (antigo)
+                            const salario = job.base_salary ? job.base_salary : (job.salary ? job.salary : '');
+                            option.setAttribute('data-salary', salario);
+                            
+                            jobTitleSelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Erro:', error));
+            });
+
+            jobTitleSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const baseSalary = selectedOption.getAttribute('data-salary');
+                
+                console.log("Cargo selecionado. Salário base:", baseSalary); // Debug
+
+                if (baseSalary) {
+                    salaryInput.value = baseSalary;
+                } else {
+                    salaryInput.value = '';
+                }
+            });
         });
-    });
-</script>
+    </script>
+
+{% endblock %} 

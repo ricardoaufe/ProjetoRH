@@ -31,4 +31,5 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
 
     path('ajax/load-job-titles/', views.load_job_titles, name='ajax_load_job_titles'),
+    path('ajax/get-job-salary/', views.get_job_salary, name='ajax_get_job_salary'),
 ]
