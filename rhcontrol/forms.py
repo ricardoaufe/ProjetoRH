@@ -32,4 +32,5 @@ class EmployeeForm(forms.ModelForm):
             self.fields['job_title'].queryset = self.instance.department.job_titles.order_by('name')
         else:
             self.fields['job_title'].queryset = JobTitle.objects.none()
+
         

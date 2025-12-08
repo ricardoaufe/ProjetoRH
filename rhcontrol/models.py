@@ -108,11 +108,7 @@ class Employee(models.Model):
     ]
     marital_status = models.CharField(max_length=1, choices= CIVIL_STATUS_CHOICES, blank=True, null=True, verbose_name="Estado Civil") 
 
-    PCD_CHOICES = [
-        ('S', 'Sim'),
-        ('N', 'Não'),
-    ]
-    is_pcd = models.CharField(max_length=1, choices=PCD_CHOICES, blank=True, null=True, verbose_name="PCD") 
+    is_pcd = models.BooleanField(default=False, verbose_name="Pessoa com Deficiência (PCD)")
 
     TIPO_DEFICIENCIA_CHOICES = [
         ('Física', 'Física'),

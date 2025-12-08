@@ -1,54 +1,174 @@
 {% extends 'global/base.html' %}
 
-{% block title %} Registar Funcionário | {% endblock title %}
+{% block title %} Cadastrar Funcionário | {% endblock title %}
 
 {% block content %}
-    <div class="form-container">
-        <h2>Cadastrar Funcionário</h2>
 
-        <form method="POST" id="employeeForm" data-jobs-url="{% url 'ajax_load_job_titles' %}">
-            {% csrf_token %}
+<div class="form-container">
+    <h2>{{ title|default:"Cadastrar Funcionário" }}</h2>
+
+    <form method="POST" id="employeeForm" data-jobs-url="{% url 'ajax_load_job_titles' %}">
+        {% csrf_token %}
+        
+        <div class="form-content">
             
-            <div class="form-content">
-                {% for field in form %}
-                    <div class="form-group">
-                        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-                        {{ field }}
-                        {% if field.errors %}
-                            <div class="message error">
-                                {{ field.errors }}
-                            </div>
-                        {% endif %}
-                    </div>
-                {% endfor %}
+            <h3 class="section-title">Dados Pessoais</h3>
+            
+            {% include 'partials/form_field.html' with field=form.name %}
+            {% include 'partials/form_field.html' with field=form.birth_date %}
+            
+            {% include 'partials/form_field.html' with field=form.gender %}
+            {% include 'partials/form_field.html' with field=form.ethnicity %}
+            
+            {% include 'partials/form_field.html' with field=form.marital_status %}
+            {% include 'partials/form_field.html' with field=form.education_level %}
+            
+            {% include 'partials/form_field.html' with field=form.mother_name %}
+            <div class="form-group"></div> {% include 'partials/form_field.html' with field=form.birth_city %}
+            {% include 'partials/form_field.html' with field=form.state_birthplace_code %}
+
+
+            <h3 class="section-title">Documentação</h3>
+
+            {% include 'partials/form_field.html' with field=form.cpf %}
+            {% include 'partials/form_field.html' with field=form.rg %}
+            
+            {% include 'partials/form_field.html' with field=form.rg_issue_date %}
+            {% include 'partials/form_field.html' with field=form.pis %}
+            
+            {% include 'partials/form_field.html' with field=form.ctps_number %}
+            {% include 'partials/form_field.html' with field=form.ctps_series %}
+            
+            {% include 'partials/form_field.html' with field=form.ctps_issue_date %}
+            <div class="form-group"></div>
+
+
+            <h3 class="section-title">Contato e Endereço</h3>
+
+            {% include 'partials/form_field.html' with field=form.email %}
+            {% include 'partials/form_field.html' with field=form.mobile_phone %}
+
+            {% include 'partials/form_field.html' with field=form.zip_code %}
+            <div class="form-group"></div>
+
+            {% include 'partials/form_field.html' with field=form.address %}
+            {% include 'partials/form_field.html' with field=form.address_num %}
+
+            {% include 'partials/form_field.html' with field=form.complement %}
+            {% include 'partials/form_field.html' with field=form.neighborhood %}
+
+            {% include 'partials/form_field.html' with field=form.city %}
+            {% include 'partials/form_field.html' with field=form.state_code %}
+
+            {% include 'partials/form_field.html' with field=form.emergency_contact_name %}
+            {% include 'partials/form_field.html' with field=form.emergency_phone %}
+
+
+            <h3 class="section-title">Dados do Contrato</h3>
+
+            {% include 'partials/form_field.html' with field=form.department %}
+            {% include 'partials/form_field.html' with field=form.job_title %}
+
+            {% include 'partials/form_field.html' with field=form.current_salary %}
+            {% include 'partials/form_field.html' with field=form.hire_date %}
+
+            {% include 'partials/form_field.html' with field=form.admission_exam_date %}
+            <div class="form-group"></div>
+            
+            {% include 'partials/form_field.html' with field=form.is_trial_contract %}
+            {% include 'partials/form_field.html' with field=form.is_first_job %}
+            
+            {% include 'partials/form_field.html' with field=form.is_intermittent_contract %}
+            {% include 'partials/form_field.html' with field=form.uses_transport_voucher %}
+            
+            {% include 'partials/form_field.html' with field=form.has_insalubrity_bonus %}
+            {% include 'partials/form_field.html' with field=form.has_danger_bonus %}
+
+
+            <h3 class="section-title">Dados Bancários</h3>
+
+            {% include 'partials/form_field.html' with field=form.bank_name %}
+            {% include 'partials/form_field.html' with field=form.account_type %}
+            
+            {% include 'partials/form_field.html' with field=form.bank_agency_code %}
+            {% include 'partials/form_field.html' with field=form.account_num %}
+
+
+            <h3 class="section-title">Informações de Estrangeiro</h3>
+            
+            {% include 'partials/form_field.html' with field=form.is_foreign %}
+            <div class="form-group"></div>
+
+            <div id="foreign-container" class="conditional-section hidden">
+                {% include 'partials/form_field.html' with field=form.arrival_date %}
+                {% include 'partials/form_field.html' with field=form.naturalization_date %}
+                
+                {% include 'partials/form_field.html' with field=form.rne_number %}
+                {% include 'partials/form_field.html' with field=form.rne_issue_date %}
+                
+                {% include 'partials/form_field.html' with field=form.rne_issuing_authority %}
+                <div class="form-group"></div>
+                
+                {% include 'partials/form_field.html' with field=form.married_to_brazilian %}
+                {% include 'partials/form_field.html' with field=form.has_brazilian_children %}
             </div>
 
-            <button type="submit">Salvar</button>
-        </form>
-    </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Vamos adicionar um teste para você ver no console se o script carregou
-            console.log("Script de Funcionário Carregado!"); 
+            <h3 class="section-title">Outras Informações</h3>
 
-            const departmentSelect = document.getElementById('id_department');
-            const jobTitleSelect = document.getElementById('id_job_title');
-            const salaryInput = document.getElementById('id_current_salary');
-            const formElement = document.getElementById('employeeForm');
+            {% include 'partials/form_field.html' with field=form.is_pcd %}
+            
+            <div id="pcd-container" class="conditional-section hidden" style="display: block; grid-column: span 1;">
+                {% include 'partials/form_field.html' with field=form.disability_type %}
+            </div>
+            <div class="form-group"></div>
 
-            // Proteção caso o JS não encontre o formulário
-            if (!formElement) {
-                console.error("Erro: Formulário não encontrado.");
-                return;
-            }
+            {% include 'partials/form_field.html' with field=form.retirement_status %}
+            <div class="form-group"></div>
 
+            {% include 'partials/form_field.html' with field=form.is_cipa_member %}
+            <div class="form-group"></div>
+
+            <div id="cipa-container" class="conditional-section hidden">
+                {% include 'partials/form_field.html' with field=form.cipa_role %}
+                <div class="form-group"></div>
+                
+                {% include 'partials/form_field.html' with field=form.cipa_mandate_start_date %}
+                {% include 'partials/form_field.html' with field=form.cipa_mandate_end_date %}
+            </div>
+
+            <h3 class="section-title">Desligamento</h3>
+            {% include 'partials/form_field.html' with field=form.termination_date %}
+            {% include 'partials/form_field.html' with field=form.termination_reason %}
+
+        </div>
+
+        <div class="form-buttons">
+            <button type="submit" class="btn-save">Salvar Cadastro</button>
+
+            {% if form.instance.pk %}
+                <a href="{% url 'employee_delete' pk=form.instance.pk %}" class="btn-delete">
+                    <i class="fa fa-trash"></i> Excluir Funcionário
+                </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("Script carregado!");
+
+        const departmentSelect = document.getElementById('id_department');
+        const jobTitleSelect = document.getElementById('id_job_title');
+        const salaryInput = document.getElementById('id_current_salary');
+        const formElement = document.getElementById('employeeForm');
+
+        if (formElement) {
             const url = formElement.getAttribute('data-jobs-url');
 
             departmentSelect.addEventListener('change', function() {
                 const departmentId = this.value;
-                console.log("Setor alterado para ID:", departmentId); // Debug
-
                 salaryInput.value = '';
 
                 if (!departmentId) {
@@ -57,25 +177,15 @@
                 }
 
                 fetch(`${url}?department_id=${departmentId}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            throw new Error("Erro na requisição AJAX");
-                        }
-                        return response.json();
-                    })
+                    .then(response => response.json())
                     .then(data => {
-                        console.log("Cargos recebidos:", data); // Debug
                         jobTitleSelect.innerHTML = '<option value="">---------</option>';
-                        
                         data.forEach(job => {
                             const option = document.createElement('option');
                             option.value = job.id;
                             option.textContent = job.name;
-                            
-                            // Tenta pegar 'base_salary' (novo) ou 'salary' (antigo)
                             const salario = job.base_salary ? job.base_salary : (job.salary ? job.salary : '');
                             option.setAttribute('data-salary', salario);
-                            
                             jobTitleSelect.appendChild(option);
                         });
                     })
@@ -85,16 +195,40 @@
             jobTitleSelect.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
                 const baseSalary = selectedOption.getAttribute('data-salary');
-                
-                console.log("Cargo selecionado. Salário base:", baseSalary); // Debug
-
                 if (baseSalary) {
                     salaryInput.value = baseSalary;
                 } else {
                     salaryInput.value = '';
                 }
             });
-        });
-    </script>
+        }
 
-{% endblock %} 
+        // Toggle
+        function setupToggle(checkboxId, containerId) {
+            const checkbox = document.getElementById(checkboxId);
+            const container = document.getElementById(containerId);
+
+            if (!checkbox || !container) {
+                console.warn("Elemento não encontrado:", checkboxId, containerId);
+                return; 
+            }
+
+            function toggleVisibility() {
+                if (checkbox.checked) {
+                    container.classList.remove('hidden');
+                } else {
+                    container.classList.add('hidden');
+                }
+            }
+
+            checkbox.addEventListener('change', toggleVisibility);
+            toggleVisibility();
+        }
+
+        setupToggle('id_is_foreign', 'foreign-container');
+        setupToggle('id_is_pcd', 'pcd-container');
+        setupToggle('id_is_cipa_member', 'cipa-container');
+    });
+</script>
+
+{% endblock %}

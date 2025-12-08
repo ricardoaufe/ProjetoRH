@@ -128,6 +128,35 @@ def employee_create(request):
         'title': 'Cadastrar Funcionário'
     })
 
+@login_required
+def employee_update(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    
+    form = EmployeeForm(request.POST or None, instance=employee)
+
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Funcionário atualizado com sucesso!')
+        return redirect('employee_list')
+
+    return render(request, 'dashboard/pages/employee-form.html', {
+        'form': form,
+        'title': 'Editar Funcionário'
+    })
+
+@login_required
+def employee_delete(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+
+    if request.method == 'POST':
+        employee.delete()
+        messages.success(request, 'Funcionário excluído com sucesso!')
+        return redirect('employee_list')
+
+    return render(request, 'dashboard/pages/employee-delete.html', {
+        'employee': employee
+    })
+
 def load_job_titles(request):
     department_id = request.GET.get('department_id')
 

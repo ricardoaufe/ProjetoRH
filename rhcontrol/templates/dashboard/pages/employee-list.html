@@ -28,7 +28,8 @@
         <thead>
             <tr>
                 <th>Status</th>
-                <th><a href="?sort=name&q={{ request.GET.search|default_if_none:''}}&start={{ request.GET.status|default_if_none:''}}"><span>Nome Completo</span></a></th><th><a href="?sort=cpf&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>CPF</span></a></th>
+                <th><a href="?sort=name&q={{ request.GET.search|default_if_none:''}}&start={{ request.GET.status|default_if_none:''}}"><span>Nome Completo</span></a></th>
+                <th><a href="?sort=cpf&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>CPF</span></a></th>
                 <th><a href="?sort=department&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Setor</span></a></th>
                 <th>E-mail</th>
                 <th>Celular</th>
@@ -49,7 +50,7 @@
                     </div>
                     {% endif %}
                 </td>
-                <td><a>{{ employee.name }}</a></td>
+                <td><a href="{% url 'employee_update' employee.id %}">{{ employee.name }}</a></td>
                 <td>{{ employee.cpf }}</td>
                 <td>{{ employee.department }}</td>
                 <td>{{ employee.email }}</td>

@@ -21,10 +21,19 @@ from rhcontrol import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', views.dashboard_view, name='dashboard'),
+
+    #EMPLOYEES
     path('employees/', views.employee_view, name='employee_list'),
     path('employees/create/', views.employee_create, name='employee_create'),
+    path('employees/<int:pk>/edit/', views.employee_update, name='employee_update'),
+    path('employees/<int:pk>/delete/', views.employee_delete, name='employee_delete'),
+
+    #VACATIONS
     path('vacations/', views.vacation_view, name='vacation_list'),
+    
+    #TRAININGS
     path('trainings/', views.training_view, name='training_list'),
+
     #LOGIN
     path('login/', views.login_view, name='login'),
     path('login/create/', views.login_create, name='login_create'),
