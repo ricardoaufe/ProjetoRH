@@ -1,0 +1,22 @@
+{% extends 'global/base.html' %}
+
+{% block title %} Cadastrar Férias | {% endblock title %}
+
+{% block content %}
+
+<div class="form-container">
+    <h2>{{ title|default:"Cadastrar Férias" }}</h2>
+
+    <form method="POST" id="vacationForm">
+        {% csrf_token %}
+
+        <div class="form-content">  
+            {% include 'partials/form_field.html' with field=form.employee label="Funcionário" %}
+            {% include 'partials/form_field.html' with field=form.start_date label="Data de Início" %}
+            {% include 'partials/form_field.html' with field=form.end_date label="Data de Término" %}
+            {% include 'partials/form_field.html' with field=form.return_date label="Data de Retorno" %}
+            {% include 'partials/form_field.html' with field=form.vacation_duration label="Duração das Férias (dias)" %}
+
+    
+</div>
+{% endblock content %}

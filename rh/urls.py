@@ -30,6 +30,7 @@ urlpatterns = [
 
     #VACATIONS
     path('vacations/', views.vacation_view, name='vacation_list'),
+    path('vacations/create/', views.vacation_create, name='vacation_create'),
     
     #TRAININGS
     path('trainings/', views.training_view, name='training_list'),

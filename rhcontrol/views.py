@@ -4,12 +4,13 @@ from django.urls import reverse
 from rhcontrol.models import Employee, Vacation, Training, JobTitle
 from django.db.models import Q 
 from django.core.paginator import Paginator
-from .forms import LoginForm, EmployeeForm
+from .forms import LoginForm, EmployeeForm, VacationForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages 
+from datetime import timedelta
 
 def login_view(request):
     
@@ -177,7 +178,8 @@ def get_job_salary(request):
 
     return JsonResponse({'salary': job.base_salary})
 
-#Férias
+#VACATIONS
+@login_required
 def vacation_view(request):
     vacation_list = Vacation.objects.select_related('employee').all()
 
@@ -189,6 +191,44 @@ def vacation_view(request):
         'object_list': page_obj,
     }
     return render(request, 'dashboard/pages/vacation-list.html', context)
+
+@login_required
+def vacation_create(request):
+    if request.method == 'POST':
+        form = VacationForm(request.POST)
+        
+        if form.is_valid():
+            employee = form.cleaned_data['employee']
+            start_date = form.cleaned_data['start_date']
+            duration = form.cleaned_data['vacation_duration']
+        
+            end_date = start_date + timedelta(days=duration - 1)
+
+            return_date = end_date + timedelta(days=1)
+
+            while return_date.weekday() >= 5:
+                return_date += timedelta(days=1)
+
+            Vacation.objects.create(
+                employee=employee,
+                start_date=start_date,
+                end_date=end_date,               
+                vacation_duration=duration,      
+                return_date=return_date          
+            )
+
+            messages.success(request, 'Férias cadastradas com sucesso!')
+            return redirect('vacation_list') 
+        else:
+            messages.error(request, 'Erro ao cadastrar. Verifique os campos abaixo.')
+    
+    else:
+        form = VacationForm()
+
+    return render(request, 'dashboard/pages/vacation-form.html', {
+        'form': form,
+        'title': 'Cadastrar Férias'
+    })
 
 def training_view(request):
     training_list = Training.objects.select_related('employee').all()
