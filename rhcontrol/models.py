@@ -28,16 +28,20 @@ class Vacation(models.Model):
         return f'Férias do(a) {self.employee.name} até {self.start_date} para {self.end_date}'
     
 class Training(models.Model):
-    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='trainings')
     training_name = models.CharField(max_length=200, verbose_name="Nome do Treinamento")
     training_date = models.DateField(verbose_name="Data do Treinamento")
     training_provider = models.CharField(max_length=200, blank=True, null=True, verbose_name="Fornecedor do Treinamento")
     training_duration = models.IntegerField(help_text='Duração em horas', verbose_name="Duração (horas)")
+    training_description = models.TextField(blank=True, null=True, verbose_name="Descrição do Treinamento")
+
+    is_fundamental = models.BooleanField(default=False, verbose_name="É Treinamento Fundamental?")
+    target_department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Setor Alvo (Se Fundamental)")
+    
+    scheduled_employees = models.ManyToManyField('Employee', related_name='scheduled_trainings', blank=True, verbose_name="Funcionários Previstos")
+    attended_employees = models.ManyToManyField('Employee', related_name='attended_trainings', blank=True, verbose_name="Funcionários Que Compareceram")
 
     def __str__(self):
         return f'Treinamento: {self.training_name} para {self.employee.name} em {self.training_date}'
-
-
 
 class Department(models.Model):
     name = models.CharField(max_length=100)
@@ -54,6 +58,21 @@ class JobTitle(models.Model):
 
     def __str__(self):
         return self.name
+    
+class EmployeeHistory(models.Model):
+    employee = models.ForeignKey('Employee' , on_delete=models.CASCADE, related_name='history')
+    date_changed = models.DateField(auto_now_add=True, verbose_name="Data da Mudança")
+    
+    old_job_title = models.CharField(max_length=200, null=True, verbose_name="Cargo Anterior")
+    new_job_title = models.CharField(max_length=200, null=True, verbose_name="Novo Cargo")
+    
+    old_salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, verbose_name="Salário Anterior")
+    new_salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, verbose_name="Novo Salário")
+    
+    reason = models.CharField(max_length=200, blank=True, verbose_name="Motivo")
+
+    def __str__(self):
+        return f"Histórico de {self.employee.name} - {self.date_changed}"
 
 class Employee(models.Model):
     name = models.CharField(max_length=100, verbose_name="Nome")

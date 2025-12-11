@@ -1,6 +1,6 @@
 from django import forms 
 from django.contrib.auth.models import User
-from rhcontrol.models import Employee, JobTitle
+from rhcontrol.models import Employee, JobTitle, Training
 
 class LoginForm(forms.Form):
     email = forms.CharField(label='Usuário ou Email', max_length=100, widget=forms.TextInput(attrs={
@@ -48,6 +48,14 @@ class EmployeeForm(forms.ModelForm):
         else:
             self.fields['job_title'].queryset = JobTitle.objects.none()
 
+        for field_name, field in self.fields.items():
+            if isinstance(field.widget, forms.DateInput):
+                field.widget.attrs.update({
+                    'class': 'form-control',
+                    'type': 'date'
+                })
+
+
 class VacationForm(forms.Form):
     employee = forms.ModelChoiceField(
         queryset=Employee.objects.all(), 
@@ -72,4 +80,29 @@ class VacationForm(forms.Form):
             'placeholder': 'Ex: 30'
         })
     )
+
+class TrainingForm(forms.ModelForm):
+    all_departments = forms.BooleanField(
+        required=False, 
+        label="Todos os Setores", 
+        widget=forms.CheckboxInput(attrs={'class': 'form-check-input'})
+    )
+    
+    class Meta:
+        model = Training
+        fields = '__all__'
+        widgets = {
+            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'is_fundamental': forms.CheckboxInput(attrs={'class': 'form-check-input', 'id': 'id_is_fundamental'}),
+            'target_department': forms.Select(attrs={'class': 'form-control', 'id': 'id_target_department'}),
+            
+            'scheduled_employees': forms.SelectMultiple(attrs={'class': 'form-control', 'size': '10', 'id': 'id_scheduled_employees'}),
+            'attended_employees': forms.SelectMultiple(attrs={'class': 'form-control', 'size': '10'}),
+        }
         
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance.pk:
+            self.fields['attended_employees'].queryset = self.instance.scheduled_employees.all()
+        else:
+            self.fields['attended_employees'].queryset = Employee.objects.none()

@@ -1,5 +1,24 @@
 {% extends 'global/base.html' %}
 
-{% block title %} Cadastrar Férias | {% endblock title %}
+{% block title %} Cadastrar Treinamento  | {% endblock title %}
 
 {% block content %}
+
+<div class="form-container">
+    <h2>{{  title|default:"Registrar Treinamento" }}</h2>
+
+    <form method="POST" id="trainingForm">
+        {% csrf_token %}
+
+        <div class="form-content">  
+            {% include 'partials/form_field.html' with field=form.training_name label="Nome do Treinamento" %}
+            {% include 'partials/form_field.html' with field=form.training_date label="Data do Treinamento" %}
+            {% include 'partials/form_field.html' with field=form.training_provider label="Fornecedor do Treinamento" %}
+            {% include 'partials/form_field.html' with field=form.training_duration label="Duração do Treinamento (horas)" %}
+            {% include 'partials/form_field.html' with field=form.training_description label="Descrição do Treinamento" %}
+
+            <button type="submit" class="btn-save">Salvar Treinamento</button>
+        </div>
+    </form>
+</div>
+{% endblock content %}

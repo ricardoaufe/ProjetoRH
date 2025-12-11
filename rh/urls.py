@@ -34,6 +34,7 @@ urlpatterns = [
     
     #TRAININGS
     path('trainings/', views.training_view, name='training_list'),
+    path('trainings/create/', views.training_create, name='training_create'),
 
     #LOGIN
     path('login/', views.login_view, name='login'),

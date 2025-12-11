@@ -4,7 +4,7 @@ from django.urls import reverse
 from rhcontrol.models import Employee, Vacation, Training, JobTitle
 from django.db.models import Q 
 from django.core.paginator import Paginator
-from .forms import LoginForm, EmployeeForm, VacationForm
+from .forms import LoginForm, EmployeeForm, VacationForm, TrainingForm
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.models import User
@@ -132,17 +132,27 @@ def employee_create(request):
 @login_required
 def employee_update(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
-    
     form = EmployeeForm(request.POST or None, instance=employee)
 
     if form.is_valid():
         form.save()
         messages.success(request, 'Funcionário atualizado com sucesso!')
         return redirect('employee_list')
+    
+    trainings = employee.attended_trainings.all().order_by('-training_date')
+    history_log = employee.history.all().order_by('-date_changed')
+    vacations = employee.vacations.all().order_by('-start_date')
+
+    total_hours = sum(t.training_duration for t in trainings)   
 
     return render(request, 'dashboard/pages/employee-form.html', {
         'form': form,
-        'title': 'Editar Funcionário'
+        'title': 'Editar Funcionário',
+        'history_enabled': True,
+        'trainings': trainings,
+        'history_log': history_log,
+        'vacations': vacations,
+        'total_hours': total_hours
     })
 
 @login_required
@@ -230,6 +240,8 @@ def vacation_create(request):
         'title': 'Cadastrar Férias'
     })
 
+#TRAINING
+@login_required
 def training_view(request):
     training_list = Training.objects.select_related('employee').all()
     paginator = Paginator(training_list, 15)
@@ -240,6 +252,38 @@ def training_view(request):
         'object_list': page_obj,
     }
     return render(request, 'dashboard/pages/training-list.html', context)
+
+def training_create(request):
+    if request.method == 'POST':
+        form = TrainingForm(request.POST)
+        if form.is_valid():
+            training = form.save(commit=False)
+            training.save() 
+            
+            is_fundamental = form.cleaned_data.get('is_fundamental')
+            all_depts = form.cleaned_data.get('all_departments')
+            target_dept = form.cleaned_data.get('target_department')
+
+            if is_fundamental:
+                if all_depts:
+                    employees_to_add = Employee.objects.filter(termination_date__isnull=True)
+                elif target_dept:
+                    employees_to_add = Employee.objects.filter(department=target_dept, termination_date__isnull=True)
+                else:
+                    employees_to_add = []
+
+                training.scheduled_employees.set(employees_to_add)
+                training.attended_employees.set(employees_to_add)
+            
+            else:
+                form.save_m2m() 
+
+            messages.success(request, 'Treinamento criado com sucesso!')
+            return redirect('training_list')
+    else:
+        form = TrainingForm()
+    
+    return render(request, 'dashboard/pages/training-form.html', {'form': form})
     
     
 
