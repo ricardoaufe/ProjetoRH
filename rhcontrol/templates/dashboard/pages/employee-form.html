@@ -156,55 +156,79 @@
 </div>
 
 {% if history_enabled %}
-    <div class="history-section">
-        <h3>Histórico do Colaborador</h3>
+    <div class="history-container">
         
-        <div >
+        <div class="history-header">
+            <h3>Histórico do Colaborador</h3>
+        </div>
+        
+        <div class="history-columns">
             
-            <div class="card" >
-                <h4>🎓 Treinamentos ({{ total_hours }} horas)</h4>
-                <ul>
-                    {% for t in trainings %}
-                        <li><strong>{{ t.date|date:"d/m/Y" }}</strong> - {{ t.name }} ({{ t.duration }}h)</li>
-                    {% empty %}
-                        <li>Nenhum treinamento realizado.</li>
-                    {% endfor %}
-                </ul>
+            <div class="history-col">
+                <h4>🎓 Treinamentos ({{ total_hours }}h)</h4>
+                <div class="history-scroll">
+                    <ul class="history-list">
+                        {% for t in trainings %}
+                            <li class="history-item">
+                                <strong>{{ t.training_date|date:"d/m/Y" }}</strong><br>
+                                {{ t.training_name }} 
+                                <span style="display:inline-block; background:#eef2ff; color:#4f46e5; padding:2px 8px; border-radius:4px; font-size:0.85em; font-weight:bold; margin-left:5px;">
+                                    {{ t.training_duration }}h
+                                </span>
+                            </li>
+                        {% empty %}
+                            <li class="history-empty">Nenhum treinamento realizado.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
 
-            <div class="card">
+            <div class="history-col">
                 <h4>💼 Evolução Profissional</h4>
-                <ul>
-                    {% for h in history_log %}
-                        <li>
-                            <small>{{ h.date_changed|date:"d/m/Y" }}</small><br>
-                            {% if h.old_job_title %}
-                                Cargo: {{ h.old_job_title }} ➝ <strong>{{ h.new_job_title }}</strong><br>
-                            {% endif %}
-                            {% if h.old_salary %}
-                                Salário: R$ {{ h.old_salary }} ➝ <strong>R$ {{ h.new_salary }}</strong>
-                            {% endif %}
-                        </li>
-                    {% empty %}
-                        <li>Nenhuma alteração registrada.</li>
-                    {% endfor %}
-                </ul>
+                <div class="history-scroll">
+                    <ul class="history-list">
+                        {% for h in history_log %}
+                            <li class="history-item">
+                                <small>{{ h.date_changed|date:"d F Y" }}</small>
+                                {% if h.old_job_title %}
+                                    <div style="margin-bottom:4px;">
+                                        Cargo: <span style="color:#666;">{{ h.old_job_title }}</span> ➝ <strong>{{ h.new_job_title }}</strong>
+                                    </div>
+                                {% endif %}
+                                {% if h.old_salary %}
+                                    <div>
+                                        Salário: <span style="color:#666;">R$ {{ h.old_salary }}</span> ➝ <strong style="color:#198754;">R$ {{ h.new_salary }}</strong>
+                                    </div>
+                                {% endif %}
+                            </li>
+                        {% empty %}
+                            <li class="history-empty">Nenhuma alteração registrada.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
 
-            <div class="card">
+            <div class="history-col">
                 <h4>🏖️ Histórico de Férias</h4>
-                <ul>
-                    {% for v in vacations %}
-                        <li>{{ v.start_date|date:"d/m/Y" }} até {{ v.end_date|date:"d/m/Y" }} ({{ v.vacation_duration }} dias)</li>
-                    {% empty %}
-                        <li>Nenhuma férias registrada.</li>
-                    {% endfor %}
-                </ul>
+                <div class="history-scroll">
+                    <ul class="history-list">
+                        {% for v in vacations %}
+                            <li class="history-item">
+                                <strong>{{ v.start_date|date:"d/m/Y" }}</strong> até <strong>{{ v.end_date|date:"d/m/Y" }}</strong>
+                                <br>
+                                <span style="color: #6c757d; font-size: 0.95em;">Duração: {{ v.vacation_duration }} dias</span>
+                            </li>
+                        {% empty %}
+                            <li class="history-empty">Nenhuma férias registrada.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
             </div>
 
         </div>
     </div>
 {% endif %}
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         console.log("Script carregado!");

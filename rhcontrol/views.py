@@ -243,7 +243,7 @@ def vacation_create(request):
 #TRAINING
 @login_required
 def training_view(request):
-    training_list = Training.objects.select_related('employee').all()
+    training_list = Training.objects.all().order_by('-training_date')
     paginator = Paginator(training_list, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)

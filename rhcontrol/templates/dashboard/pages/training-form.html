@@ -1,11 +1,11 @@
 {% extends 'global/base.html' %}
 
-{% block title %} Cadastrar Treinamento  | {% endblock title %}
+{% block title %} Registrar Treinamento | {% endblock title %}
 
 {% block content %}
 
 <div class="form-container">
-    <h2>{{  title|default:"Registrar Treinamento" }}</h2>
+    <h2>{{ title|default:"Registrar Treinamento" }}</h2>
 
     <form method="POST" id="trainingForm">
         {% csrf_token %}
@@ -13,12 +13,94 @@
         <div class="form-content">  
             {% include 'partials/form_field.html' with field=form.training_name label="Nome do Treinamento" %}
             {% include 'partials/form_field.html' with field=form.training_date label="Data do Treinamento" %}
-            {% include 'partials/form_field.html' with field=form.training_provider label="Fornecedor do Treinamento" %}
-            {% include 'partials/form_field.html' with field=form.training_duration label="Duração do Treinamento (horas)" %}
-            {% include 'partials/form_field.html' with field=form.training_description label="Descrição do Treinamento" %}
+            {% include 'partials/form_field.html' with field=form.training_provider label="Fornecedor" %}
+            {% include 'partials/form_field.html' with field=form.training_duration label="Duração (horas)" %}
+            
+            <div style="grid-column: 1 / -1;">
+                {% include 'partials/form_field.html' with field=form.training_description label="Descrição" %}
+            </div>
+        </div>
+        <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+            
+            <div style="height:100px; width:350px; background-color: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #e9ecef; margin-bottom: 20px;">
+                {% include 'partials/form_field.html' with field=form.is_fundamental label="É Treinamento Fundamental?" %}
+            </div>
 
+            <div id="div_target_department" class="hidden conditional-box">
+                <h4 style="margin-top: 0; color: #495057;">Configuração de Setor</h4>
+                <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">
+                    Todos os funcionários ativos deste setor serão inscritos automaticamente.
+                </p>
+                
+                <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 250px;">
+                        {% include 'partials/form_field.html' with field=form.target_department label="Selecione o Setor" %}
+                    </div>
+                    <div style="padding-top: 15px;">
+                        {% include 'partials/form_field.html' with field=form.all_departments %}
+                    </div>
+                </div>
+            </div>
+
+            <div id="div_scheduled_employees">
+                <h4 style="margin-top: 0; color: #495057;">Seleção Manual de Participantes</h4>
+                <p style="font-size: 0.9em; color: #666; margin-bottom: 10px;">
+                    Segure a tecla <strong>Ctrl</strong> para selecionar vários funcionários.
+                </p>
+                {% include 'partials/form_field.html' with field=form.scheduled_employees %}
+            </div>
+
+        </div>
+
+        <div class="form-actions">
             <button type="submit" class="btn-save">Salvar Treinamento</button>
         </div>
+
     </form>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkFundamental = document.getElementById('id_is_fundamental');
+        const checkAllDepts = document.getElementById('id_all_departments');
+        
+        const containerSetor = document.getElementById('div_target_department');
+        const containerManual = document.getElementById('div_scheduled_employees');
+        const selectTargetDept = document.getElementById('id_target_department'); // ID padrão do Django para Select
+        
+        function toggleFields() {
+            if (checkFundamental.checked) {
+                // MODO AUTOMÁTICO (Fundamental)
+                containerSetor.classList.remove('hidden'); // Remove a classe que esconde
+                containerManual.classList.add('hidden');   // Adiciona a classe que esconde
+                
+                // Lógica "Todos os Setores"
+                if (checkAllDepts && checkAllDepts.checked) {
+                    if(selectTargetDept) {
+                        selectTargetDept.disabled = true;
+                        selectTargetDept.value = "";
+                    }
+                } else {
+                    if(selectTargetDept) selectTargetDept.disabled = false;
+                }
+            } else {
+                // MODO MANUAL
+                containerSetor.classList.add('hidden');
+                containerManual.classList.remove('hidden');
+            }
+        }
+
+        if (checkFundamental) {
+            checkFundamental.addEventListener('change', toggleFields);
+        }
+        
+        if (checkAllDepts) {
+            checkAllDepts.addEventListener('change', toggleFields);
+        }
+        
+        // Roda ao carregar a página
+        toggleFields();
+    });
+</script>
+
 {% endblock content %}
