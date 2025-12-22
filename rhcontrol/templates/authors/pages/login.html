@@ -9,17 +9,7 @@
     <div class="login-container center">
         <h2>Login</h2>
 
-        {% if messages %}
-            <div class="messages-container">
-                {% for message in messages %}
-                    <div class="message {{ message.tags }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            </div>
-        {% endif %}
-
-        <form action= "{% url 'login_create' %}" method="POST">
+        <form action= "{% url 'rhcontrol:login_create' %}" method="POST">
             {% csrf_token %}
             <div class="login-form login-form-grid">
                 {% for field in form %}

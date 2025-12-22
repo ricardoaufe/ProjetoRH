@@ -4,9 +4,9 @@ from django.urls import reverse
 from rhcontrol.models import Employee, Vacation, Training, JobTitle
 from django.db.models import Q 
 from django.core.paginator import Paginator
-from .forms import LoginForm, EmployeeForm, VacationForm, TrainingForm
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import login, authenticate, logout
+from .forms import LoginForm, EmployeeForm, VacationForm, TrainingForm, UserUpdateForm
+from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
+from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages 
@@ -15,13 +15,13 @@ from datetime import timedelta
 def login_view(request):
     
     if request.user.is_authenticated:
-        return redirect('dashboard') 
+        return redirect('rhcontrol:dashboard') 
 
     form = LoginForm()
     
     return render(request, 'authors/pages/login.html', {
         'form': form,
-        'form_action': reverse('login_create'),
+        'form_action': reverse('rhcontrol:login_create'),
     })
 
 def login_create(request):
@@ -47,7 +47,7 @@ def login_create(request):
         if user is not None:
             messages.success(request, 'Logado com sucesso!')
             login(request, user)
-            return redirect('dashboard')
+            return redirect('rhcontrol:dashboard')
         else:
             messages.error(request, 'Usuário ou senha incorretos.')
     else:
@@ -55,20 +55,57 @@ def login_create(request):
 
     return render(request, 'authors/pages/login.html', {
         'form': form,
-        'form_action': reverse('login_create')
+        'form_action': reverse('rhcontrol:login_create')
     })
 
 @login_required
 def logout_view(request):
     if request.method != 'POST':
-        return redirect('login')
+        return redirect('rhcontrol:login')
 
     logout(request)
-    return redirect('login')
+    return redirect('rhcontrol:login')
         
 @login_required
 def dashboard_view(request):
     return render(request, 'dashboard/pages/dashboard.html')
+
+@login_required
+def profile_view(request):
+    if request.method == 'POST':
+        form = UserUpdateForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Perfil atualizado com sucesso!')
+            return redirect('rhcontrol:profile')
+        else:
+            messages.error(request, 'Erro ao atualizar perfil.')
+
+    form = UserUpdateForm(instance=request.user)
+
+    return render(request, 'authors/pages/profile.html', {
+        'form': form,
+        'title': 'Meu Perfil'
+    })
+
+@login_required
+def change_password(request):
+    if request.method == 'POST':
+        form = PasswordChangeForm(request.user, request.POST)
+        if form.is_valid():
+            user = form.save()
+            update_session_auth_hash(request, user) 
+            messages.success(request, 'Sua senha foi alterada com sucesso!')
+            return redirect('rhcontrol:profile')
+        else:
+            messages.error(request, 'Erro ao alterar a senha. Verifique os campos.')
+    else:
+        form = PasswordChangeForm(request.user)
+        
+    return render(request, 'authors/pages/password_change.html', {
+        'form': form,
+        'title': 'Alterar Senha'
+    })
 
 #Funcionários
 @login_required
@@ -117,7 +154,7 @@ def employee_create(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Funcionário cadastrado com sucesso!')
-            return redirect('employee_list') 
+            return redirect('rhcontrol:employee_list') 
         else:
             messages.error(request, 'Erro ao cadastrar. Verifique os campos abaixo.')
     
@@ -137,7 +174,7 @@ def employee_update(request, pk):
     if form.is_valid():
         form.save()
         messages.success(request, 'Funcionário atualizado com sucesso!')
-        return redirect('employee_list')
+        return redirect('rhcontrol:employee_list')
     
     trainings = employee.attended_trainings.all().order_by('-training_date')
     history_log = employee.history.all().order_by('-date_changed')
@@ -162,7 +199,7 @@ def employee_delete(request, pk):
     if request.method == 'POST':
         employee.delete()
         messages.success(request, 'Funcionário excluído com sucesso!')
-        return redirect('employee_list')
+        return redirect('rhcontrol:employee_list')
 
     return render(request, 'dashboard/pages/employee-delete.html', {
         'employee': employee
@@ -228,7 +265,7 @@ def vacation_create(request):
             )
 
             messages.success(request, 'Férias cadastradas com sucesso!')
-            return redirect('vacation_list') 
+            return redirect('rhcontrol:vacation_list') 
         else:
             messages.error(request, 'Erro ao cadastrar. Verifique os campos abaixo.')
     
@@ -279,7 +316,7 @@ def training_create(request):
                 form.save_m2m() 
 
             messages.success(request, 'Treinamento criado com sucesso!')
-            return redirect('training_list')
+            return redirect('rhcontrol:training_list')
     else:
         form = TrainingForm()
     

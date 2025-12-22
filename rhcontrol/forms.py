@@ -13,6 +13,18 @@ class LoginForm(forms.Form):
         'placeholder': 'Digite sua senha',
     }))
 
+class UserUpdateForm(forms.ModelForm):
+    email = forms.EmailField(label="E-mail", required=True, widget=forms.EmailInput(attrs={'class': 'form-control'}))
+    first_name = forms.CharField(label="Nome", required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+    last_name = forms.CharField(label="Sobrenome", required=True, widget=forms.TextInput(attrs={'class': 'form-control'}))
+
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'email']
+        widgets = {
+            'username': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}), 
+        }
+
 class EmployeeForm(forms.ModelForm):
     class Meta:
         model = Employee
