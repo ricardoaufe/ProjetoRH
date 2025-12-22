@@ -8,15 +8,15 @@
 
     <div class= "page-header">
         <h1>Lista de treinamentos</h1>
-        <a href="{% url 'training_create' %}"  class="btn btn-primary">Adicionar treinamentos</a>
+        <a href="{% url 'rhcontrol:training_create' %}"  class="btn btn-primary">Adicionar treinamentos</a>
     </div>
 
     <div class="status-filters">
-        <a href="{% url 'training_list' %}" class="{% if not request.GET.status %}active{% endif %}">Todos</a>
+        <a href="{% url 'rhcontrol:training_list' %}" class="{% if not request.GET.status %}active{% endif %}">Todos</a>
     </div>
 
     <div class="filter-bar">
-        <form method="GET" action= "{% url 'vacation_list' %}" style="width: 100%;">
+        <form method="GET" action= "{% url 'rhcontrol:training_list' %}" style="width: 100%;">
             <input type="text" name="search" placeholder="Pesquisar por nome de treinamento" value="{{ request.GET.search }}">
             <input type="hidden" name="status" value="{{ request.GET.status|default_if_none:'' }}">
         </form>

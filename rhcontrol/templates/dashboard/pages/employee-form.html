@@ -7,7 +7,7 @@
 <div class="form-container">
     <h2>{{ title|default:"Cadastrar Funcionário" }}</h2>
 
-    <form method="POST" id="employeeForm" data-jobs-url="{% url 'ajax_load_job_titles' %}">
+    <form method="POST" id="employeeForm" data-jobs-url="{% url 'rhcontrol:ajax_load_job_titles' %}">
         {% csrf_token %}
         
         <div class="form-content">
@@ -147,7 +147,7 @@
             <button type="submit" class="btn-save">Salvar Cadastro</button>
 
             {% if form.instance.pk %}
-                <a href="{% url 'employee_delete' pk=form.instance.pk %}" class="btn-delete">
+                <a href="{% url 'rhcontrol:employee_delete' pk=form.instance.pk %}" class="btn-delete">
                     <i class="fa fa-trash"></i> Excluir Funcionário
                 </a>
             {% endif %}

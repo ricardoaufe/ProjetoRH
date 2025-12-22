@@ -7,16 +7,21 @@
             <div class = " menu ">
                 <h2><i class="fa-solid fa-user-plus"></i>  Cadastros</h2>
                 <div class="dropdown">
-                    <a href= "{% url 'employee_list' %}"> Funcionários </a>
-                    <a href= "{% url 'vacation_list'%}"> Férias </a>
-                    <a href= "{% url 'training_list'%}"> Treinamentos </a>
+                    <a href= "{% url 'rhcontrol:employee_list' %}"> Funcionários </a>
+                    <a href= "{% url 'rhcontrol:vacation_list'%}"> Férias </a>
+                    <a href= "{% url 'rhcontrol:training_list'%}"> Treinamentos </a>
                     <a> Setores </a>
                 </div>
             </div>
             
             <h2> Administração</h2>
             <h2> Relatórios</h2>
-            <form action="{% url 'logout' %}" method="POST"> 
+
+            <a href="{% url 'rhcontrol:profile' %}" style="text-decoration: none; color: inherit;">
+                <h2><i class="fa-solid fa-user-gear"></i> Minha Conta</h2>
+            </a>
+            
+            <form action="{% url 'rhcontrol:logout' %}" method="POST"> 
                 {% csrf_token %}
                 <button class="plaintext-button" type="submit"> Logout </button>
             </form>

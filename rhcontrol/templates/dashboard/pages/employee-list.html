@@ -8,17 +8,17 @@
 
     <div class= "page-header">
         <h1>Lista de Funcionários</h1>
-        <a href="{% url 'employee_create' %}"class="btn btn-primary">Adicionar Funcionário</a>
+        <a href="{% url 'rhcontrol:employee_create' %}"class="btn btn-primary">Adicionar Funcionário</a>
     </div>
 
     <div class="status-filters">
-        <a href="{% url 'employee_list' %}" class="{% if not request.GET.status %}active{% endif %}">Todos</a>
-        <a href="{% url 'employee_list' %}?status=active" class="{% if request.GET.status == 'active' %}active{% endif %}">Ativos</a>
-        <a href="{% url 'employee_list' %}?status=demitido" class="{% if request.GET.status == 'demitido' %}active{% endif %}">Demitidos</a>
+        <a href="{% url 'rhcontrol:employee_list' %}" class="{% if not request.GET.status %}active{% endif %}">Todos</a>
+        <a href="{% url 'rhcontrol:employee_list' %}?status=active" class="{% if request.GET.status == 'active' %}active{% endif %}">Ativos</a>
+        <a href="{% url 'rhcontrol:employee_list' %}?status=demitido" class="{% if request.GET.status == 'demitido' %}active{% endif %}">Demitidos</a>
     </div>
 
     <div class="filter-bar">
-        <form method="GET" action= "{% url 'employee_list' %}" style="width: 100%;">
+        <form method="GET" action= "{% url 'rhcontrol:employee_list' %}" style="width: 100%;">
             <input type="text" name="search" placeholder="Pesquisar por nome ou cargo" value="{{ request.GET.search }}">
             <input type="hidden" name="status" value="{{ request.GET.status|default_if_none:'' }}">
         </form>
@@ -50,7 +50,7 @@
                     </div>
                     {% endif %}
                 </td>
-                <td><a href="{% url 'employee_update' employee.id %}">{{ employee.name }}</a></td>
+                <td><a href="{% url 'rhcontrol:employee_update' employee.id %}">{{ employee.name }}</a></td>
                 <td>{{ employee.cpf }}</td>
                 <td>{{ employee.department }}</td>
                 <td>{{ employee.email }}</td>

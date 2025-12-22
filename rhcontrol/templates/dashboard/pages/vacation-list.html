@@ -8,15 +8,15 @@
 
     <div class= "page-header">
         <h1>Registo de Férias</h1>
-        <a href="{% url 'vacation_create' %}" class="btn btn-primary">Registrar Férias</a>
+        <a href="{% url 'rhcontrol:vacation_create' %}" class="btn btn-primary">Registrar Férias</a>
     </div>
 
     <div class="status-filters">
-        <a href="{% url 'vacation_list' %}" class="{% if not request.GET.status %}active{% endif %}">Todos</a>
+        <a href="{% url 'rhcontrol:vacation_list' %}" class="{% if not request.GET.status %}active{% endif %}">Todos</a>
     </div>
 
     <div class="filter-bar">
-        <form method="GET" action= "{% url 'vacation_list' %}" style="width: 100%;">
+        <form method="GET" action= "{% url 'rhcontrol:vacation_list' %}" style="width: 100%;">
             <input type="text" name="search" placeholder="Pesquisar por nome" value="{{ request.GET.search }}">
             <input type="hidden" name="status" value="{{ request.GET.status|default_if_none:'' }}">
         </form>
