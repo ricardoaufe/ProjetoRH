@@ -18,6 +18,18 @@
             {% include 'partials/form_field.html' with field=form.vacation_duration label="Duração das Férias (dias)" %}
         </div>
 
+        <div class="form-actions">
+            <button type="submit" class="btn-save">Salvar Férias</button>
+
+            {% if form.instance.pk %}
+                <a href="{% url 'rhcontrol:vacation_delete' pk=form.instance.pk %}" class="btn-delete">
+                    <i class="fa fa-trash"></i> Excluir Férias
+                </a>
+            {% endif %}
+        
+        </div>
+    </form>
+
     
 </div>
 {% endblock content %}

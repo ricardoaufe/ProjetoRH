@@ -19,12 +19,15 @@ urlpatterns = [
     #VACATIONS
     path('vacations/', views.vacation_view, name='vacation_list'),
     path('vacations/create/', views.vacation_create, name='vacation_create'),
+    path('vacations/<int:pk>/edit/', views.vacation_update, name='vacation_update'),
+    path('vacations/<int:pk>/delete/', views.vacation_delete, name='vacation_delete'),
     
     #TRAININGS
     path('trainings/', views.training_view, name='training_list'),
     path('trainings/create/', views.training_create, name='training_create'),
     path('trainings/<int:pk>/edit/', views.training_update, name='training_update'),
-
+    path('trainings/<int:pk>/delete/', views.training_delete, name='training_delete'),
+    
     #LOGIN
     path('login/', views.login_view, name='login'),
     path('login/create/', views.login_create, name='login_create'),

@@ -1,6 +1,6 @@
 from django import forms 
 from django.contrib.auth.models import User
-from rhcontrol.models import Employee, JobTitle, Training
+from rhcontrol.models import Employee, JobTitle, Training, Vacation
 
 class LoginForm(forms.Form):
     email = forms.CharField(label='Usuário ou Email', max_length=100, widget=forms.TextInput(attrs={
@@ -68,30 +68,16 @@ class EmployeeForm(forms.ModelForm):
                 })
 
 
-class VacationForm(forms.Form):
-    employee = forms.ModelChoiceField(
-        queryset=Employee.objects.all(), 
-        label="Funcionário",
-        widget=forms.Select(attrs={'class': 'form-control'})
-    )
-    
-    start_date = forms.DateField(
-        label="Data de Início",
-        widget=forms.DateInput(attrs={
-            'class': 'form-control',
-            'type': 'date',
-        })
-    )
-    
-    vacation_duration = forms.IntegerField(
-        label="Duração (em dias)",
-        min_value=1,
-        max_value=30,
-        widget=forms.NumberInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Ex: 30'
-        })
-    )
+class VacationForm(forms.ModelForm):
+    class Meta:
+        model = Vacation
+        fields = ['employee', 'start_date', 'vacation_duration']
+        
+    widgets = {
+        'employee': forms.Select(attrs={'class': 'form-control'}),
+        'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+        'vacation_duration': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 30'}),
+    }
 
 class TrainingForm(forms.ModelForm):
     all_departments = forms.BooleanField(

@@ -286,6 +286,7 @@ def vacation_create(request):
         'title': 'Cadastrar Férias'
     })
 
+@login_required
 def vacation_update(request, pk):
     vacation = get_object_or_404(Vacation, pk=pk)
     form = VacationForm(request.POST or None, instance=vacation)

@@ -54,8 +54,14 @@
 
         <div class="form-actions">
             <button type="submit" class="btn-save">Salvar Treinamento</button>
-        </div>
 
+            {% if form.instance.pk %}
+                <a href="{% url 'rhcontrol:training_delete' pk=form.instance.pk %}" class="btn-delete">
+                    <i class="fa fa-trash"></i> Excluir Treinamento
+                </a>
+            {% endif %}
+        
+        </div>
     </form>
 </div>
 
