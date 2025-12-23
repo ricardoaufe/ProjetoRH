@@ -27,7 +27,13 @@ urlpatterns = [
     path('trainings/create/', views.training_create, name='training_create'),
     path('trainings/<int:pk>/edit/', views.training_update, name='training_update'),
     path('trainings/<int:pk>/delete/', views.training_delete, name='training_delete'),
-    
+
+    #DEPARTMENTS
+    path('departments/', views.department_list, name='department_list'),
+    path('departments/create/', views.department_create, name='department_create'),
+    path('departments/<int:pk>/edit/', views.department_update, name='department_update'),
+    path('departments/<int:pk>/delete/', views.department_delete, name='department_delete'),
+
     #LOGIN
     path('login/', views.login_view, name='login'),
     path('login/create/', views.login_create, name='login_create'),

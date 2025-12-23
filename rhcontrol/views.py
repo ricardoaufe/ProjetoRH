@@ -1,10 +1,10 @@
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from rhcontrol.models import Employee, Vacation, Training, JobTitle
+from rhcontrol.models import Employee, Vacation, Training, JobTitle, Department
 from django.db.models import Q 
 from django.core.paginator import Paginator
-from .forms import LoginForm, EmployeeForm, VacationForm, TrainingForm, UserUpdateForm
+from .forms import LoginForm, EmployeeForm, VacationForm, TrainingForm, UserUpdateForm, DepartmentForm
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import User
@@ -387,5 +387,62 @@ def training_delete(request, pk):
     return render(request, 'dashboard/pages/training/delete.html', {
         'training': training
     })
+
+@login_required
+def department_list(request):
+    departments = Department.objects.all().order_by('name') 
+    
+    context = {
+        'object_list': departments, 
+        'title': 'Lista de Setores'
+    }
+    
+    return render(request, 'dashboard/pages/departments/list.html', context)
+
+@login_required
+def department_create(request):
+    if request.method == 'POST':
+        form = DepartmentForm(request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Setor criado com sucesso!')
+            return redirect('rhcontrol:department_list')
+    else:
+        form = DepartmentForm()
+
+    return render(request, 'dashboard/pages/departments/form.html', {
+        'form': form,
+        'title': 'Cadastrar Setores'
+    })
+
+@login_required
+def department_update(request, pk):
+    department = get_object_or_404(Department, pk=pk)
+    form = DepartmentForm(request.POST or None, instance=department)
+
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Setor atualizado com sucesso!')
+        return redirect('rhcontrol:department_list')
+
+    return render(request, 'dashboard/pages/departments/form.html', {
+        'form': form,
+        'title': 'Editar Setor'
+    })    
+
+@login_required
+def department_delete(request, pk):
+    department = get_object_or_404(Department, pk=pk)
+
+    if request.method == 'POST':
+        department.delete()
+        messages.success(request, 'Setor excluído com sucesso!')
+        return redirect('rhcontrol:department_list')
+
+    return render(request, 'dashboard/pages/departments/delete.html', {
+        'department': department
+    })
+
+
 
 

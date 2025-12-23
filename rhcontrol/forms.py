@@ -1,6 +1,6 @@
 from django import forms 
 from django.contrib.auth.models import User
-from rhcontrol.models import Employee, JobTitle, Training, Vacation
+from rhcontrol.models import Employee, JobTitle, Training, Vacation, Department
 
 class LoginForm(forms.Form):
     email = forms.CharField(label='Usuário ou Email', max_length=100, widget=forms.TextInput(attrs={
@@ -104,3 +104,12 @@ class TrainingForm(forms.ModelForm):
             self.fields['attended_employees'].queryset = self.instance.scheduled_employees.all()
         else:
             self.fields['attended_employees'].queryset = Employee.objects.none()
+        
+class DepartmentForm(forms.ModelForm):
+    class Meta:
+        model = Department
+        fields = ['name', 'description']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Setor'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Descrição do Setor', 'rows': 3}),
+        }

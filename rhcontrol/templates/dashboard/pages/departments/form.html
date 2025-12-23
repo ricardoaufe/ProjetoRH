@@ -1,0 +1,31 @@
+{% extends 'global/base.html' %}
+
+{% block title %} Cadastrar Setores | {% endblock title %}
+
+{% block content %}
+
+<div class="form-container">
+    <h2>{{ title|default:"Cadastrar Setores" }}</h2>
+
+    <form method="POST" id="departmentForm">
+        {% csrf_token %}
+
+        <div class="form-content">  
+            {% include 'partials/form_field.html' with field=form.name label="Nome do Setor" %}
+            {% include 'partials/form_field.html' with field=form.description label="Descrição" %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-save">Salvar Setor</button>
+            {% if form.instance.pk %}
+                <a href="{% url 'rhcontrol:department_delete' pk=form.instance.pk %}" class="btn-delete">
+                    <i class="fa fa-trash"></i> Excluir Setor
+                </a>
+            {% endif %}
+        
+        </div>
+    </form>
+
+    
+</div>
+{% endblock content %}
