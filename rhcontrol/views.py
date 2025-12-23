@@ -119,7 +119,7 @@ def change_password(request):
 #Funcionários
 @login_required
 def employees(request):
-    return render(request, 'dashboard/pages/employee-list.html')
+    return render(request, 'dashboard/pages/employee/list.html')
 
 @login_required
 def employee_view(request):
@@ -153,7 +153,7 @@ def employee_view(request):
     context = {
         'object_list': page_obj,
     }
-    return render(request, 'dashboard/pages/employee-list.html', context)
+    return render(request, 'dashboard/pages/employee/list.html', context)
 
 @login_required
 def employee_create(request):
@@ -170,7 +170,7 @@ def employee_create(request):
     else:
         form = EmployeeForm()
 
-    return render(request, 'dashboard/pages/employee-form.html', {
+    return render(request, 'dashboard/pages/employee/form.html', {
         'form': form,
         'title': 'Cadastrar Funcionário'
     })
@@ -191,7 +191,7 @@ def employee_update(request, pk):
 
     total_hours = sum(t.training_duration for t in trainings)   
 
-    return render(request, 'dashboard/pages/employee-form.html', {
+    return render(request, 'dashboard/pages/employee/form.html', {
         'form': form,
         'title': 'Editar Funcionário',
         'history_enabled': True,
@@ -210,7 +210,7 @@ def employee_delete(request, pk):
         messages.success(request, 'Funcionário excluído com sucesso!')
         return redirect('rhcontrol:employee_list')
 
-    return render(request, 'dashboard/pages/employee-delete.html', {
+    return render(request, 'dashboard/pages/employee/delete.html', {
         'employee': employee
     })
 
@@ -246,7 +246,7 @@ def vacation_view(request):
     context = {
         'object_list': page_obj,
     }
-    return render(request, 'dashboard/pages/vacation-list.html', context)
+    return render(request, 'dashboard/pages/vacation/list.html', context)
 
 @login_required
 def vacation_create(request):
@@ -281,9 +281,36 @@ def vacation_create(request):
     else:
         form = VacationForm()
 
-    return render(request, 'dashboard/pages/vacation-form.html', {
+    return render(request, 'dashboard/pages/vacation/form.html', {
         'form': form,
         'title': 'Cadastrar Férias'
+    })
+
+def vacation_update(request, pk):
+    vacation = get_object_or_404(Vacation, pk=pk)
+    form = VacationForm(request.POST or None, instance=vacation)
+
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Férias atualizadas com sucesso!')
+        return redirect('rhcontrol:vacation_list')
+
+    return render(request, 'dashboard/pages/vacation/form.html', {
+        'form': form,
+        'title': 'Editar Férias'
+    })
+
+@login_required
+def vacation_delete(request, pk):
+    vacation = get_object_or_404(Vacation, pk=pk)
+
+    if request.method == 'POST':
+        vacation.delete()
+        messages.success(request, 'Férias excluídas com sucesso!')
+        return redirect('rhcontrol:vacation_list')
+
+    return render(request, 'dashboard/pages/vacation/delete.html', {
+        'vacation': vacation
     })
 
 #TRAINING
@@ -297,8 +324,9 @@ def training_view(request):
     context = {
         'object_list': page_obj,
     }
-    return render(request, 'dashboard/pages/training-list.html', context)
+    return render(request, 'dashboard/pages/training/list.html', context)
 
+@login_required
 def training_create(request):
     if request.method == 'POST':
         form = TrainingForm(request.POST)
@@ -329,8 +357,9 @@ def training_create(request):
     else:
         form = TrainingForm()
     
-    return render(request, 'dashboard/pages/training-form.html', {'form': form})
+    return render(request, 'dashboard/pages/training/form.html', {'form': form})
 
+@login_required
 def training_update(request, pk):
     training = get_object_or_404(Training, pk=pk)
     form = TrainingForm(request.POST or None, instance=training)
@@ -340,10 +369,22 @@ def training_update(request, pk):
         messages.success(request, 'Treinamento atualizado com sucesso!')
         return redirect('rhcontrol:training_list')
 
-    return render(request, 'dashboard/pages/training-form.html', {
+    return render(request, 'dashboard/pages/training/form.html', {
         'form': form,
         'title': 'Editar Treinamento'
     })    
-    
+
+@login_required
+def training_delete(request, pk):
+    training = get_object_or_404(Training, pk=pk)
+
+    if request.method == 'POST':
+        training.delete()
+        messages.success(request, 'Treinamento excluído com sucesso!')
+        return redirect('rhcontrol:training_list')
+
+    return render(request, 'dashboard/pages/training/delete.html', {
+        'training': training
+    })
 
 
