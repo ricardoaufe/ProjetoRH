@@ -35,7 +35,7 @@
         <tbody>
             {% for training in object_list %}
             <tr>
-                <td>{{training.training_name}}</td> // Lembrar de colocar o URL de detalhes depois
+                <td><a href="{% url 'rhcontrol:training_update' training.pk %}">{{training.training_name}}</a></td>
                 <td>{{training.training_date|date:"d/m/Y"}}</td>
                 <td>{{training.training_provider}}</td>
                 <td>{{training.training_duration}}</td>

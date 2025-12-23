@@ -68,7 +68,16 @@ def logout_view(request):
         
 @login_required
 def dashboard_view(request):
-    return render(request, 'dashboard/pages/dashboard.html')
+
+    employees_count = Employee.objects.count()
+    vacations_count = Vacation.objects.count()
+
+    context = {
+        'employees_count': employees_count,
+        'vacations_count': vacations_count,
+    }
+
+    return render(request, 'dashboard/pages/dashboard.html', context)
 
 @login_required
 def profile_view(request):
@@ -321,7 +330,20 @@ def training_create(request):
         form = TrainingForm()
     
     return render(request, 'dashboard/pages/training-form.html', {'form': form})
-    
+
+def training_update(request, pk):
+    training = get_object_or_404(Training, pk=pk)
+    form = TrainingForm(request.POST or None, instance=training)
+
+    if form.is_valid():
+        form.save()
+        messages.success(request, 'Treinamento atualizado com sucesso!')
+        return redirect('rhcontrol:training_list')
+
+    return render(request, 'dashboard/pages/training-form.html', {
+        'form': form,
+        'title': 'Editar Treinamento'
+    })    
     
 
 
