@@ -128,9 +128,11 @@ def employee_view(request):
     query = request.GET.get('search', '')
     if query:
         employee_list = employee_list.filter(
-            Q(name_icontains=query) | 
+            Q(name__icontains=query) | 
             Q(cpf__icontains=query) |
-            Q(rg__icontains=query)
+            Q(email__icontains=query) |
+            Q(department__name__icontains=query) |
+            Q(mobile_phone__icontains=query)
         )
     
     status_filter = request.GET.get('status')
