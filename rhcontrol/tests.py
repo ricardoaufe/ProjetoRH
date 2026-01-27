@@ -1,6 +1,7 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
+from django.contrib.staticfiles import finders
 from rhcontrol.models import Employee, JobTitle, Training, Vacation, Department
 from rhcontrol.forms import EmployeeForm
 from datetime import datetime, timedelta
