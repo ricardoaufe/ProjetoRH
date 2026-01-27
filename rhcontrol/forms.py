@@ -109,7 +109,29 @@ class DepartmentForm(forms.ModelForm):
     class Meta:
         model = Department
         fields = ['name', 'description']
+        labels = {
+            'name': 'Nome do Setor',
+            'description': 'Descrição do Setor',
+        }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Setor'}),
             'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Descrição do Setor', 'rows': 3}),
         }
+    
+JobTitleFormSet = forms.inlineformset_factory(
+    Department,
+    JobTitle,
+    fields=['name', 'base_salary', 'description'],
+    extra=1,          
+    can_delete=True,  
+    labels={
+        'name': 'Nome do Cargo',
+        'base_salary': 'Salário Base',
+        'description': 'Descrição',
+    },
+    widgets={
+        'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Cargo'}),
+        'base_salary': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Salário Base', 'step': '0.01'}),
+        'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Descrição (Opcional)', 'rows': 1}),
+    }
+)

@@ -1,6 +1,6 @@
 {% extends 'global/base.html' %}
 
-{% block title %} Cadastrar Setores | {% endblock title %}
+{% block title %} {{ title }} | {% endblock title %}
 
 {% block content %}
 
@@ -12,20 +12,99 @@
 
         <div class="form-content">  
             {% include 'partials/form_field.html' with field=form.name label="Nome do Setor" %}
-            {% include 'partials/form_field.html' with field=form.description label="Descrição" %}
+            {% include 'partials/form_field.html' with field=form.description label="Descrição do Setor" %}
+        </div>
+
+        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
+
+        <h3>Cargos Vinculados</h3>
+        
+        {{ formset.management_form }}
+
+        <div id="job-titles-container">
+            {% for job_form in formset %}
+                <div class="job-title-row">
+                    {% for hidden in job_form.hidden_fields %}
+                        {{ hidden }}
+                    {% endfor %}
+
+                    <div class="form-content" style="border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 4px; background-color: #f9f9f9;">
+                        
+                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                            <div style="flex: 1;">
+                                {% include 'partials/form_field.html' with field=job_form.name label="Nome do Cargo" %}
+                            </div>
+                            <div style="flex: 1;">
+                                {% include 'partials/form_field.html' with field=job_form.base_salary label="Salário Base" %}
+                            </div>
+                        </div>
+                        
+                        {% include 'partials/form_field.html' with field=job_form.description label="Descrição do Cargo" %}
+
+                        {% if formset.can_delete and job_form.instance.pk %}
+                            <div style="margin-top: 10px; color: #dc3545;">
+                                {{ job_form.DELETE }} <label for="{{ job_form.DELETE.id_for_label }}">Excluir este cargo</label>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <button type="button" id="add-job-btn" style="background-color: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-bottom: 20px;">
+            + Adicionar Outro Cargo
+        </button>
+
+        <div id="empty-form" style="display:none;">
+            <div class="job-title-row">
+                <div class="form-content" style="border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 4px; background-color: #f9f9f9;">
+                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                        <div style="flex: 1;">
+                            {% include 'partials/form_field.html' with field=formset.empty_form.name label="Nome do Cargo" %}
+                        </div>
+                        <div style="flex: 1;">
+                            {% include 'partials/form_field.html' with field=formset.empty_form.base_salary label="Salário Base" %}
+                        </div>
+                    </div>
+                    {% include 'partials/form_field.html' with field=formset.empty_form.description label="Descrição do Cargo" %}
+                </div>
+            </div>
         </div>
 
         <div class="form-actions">
-            <button type="submit" class="btn-save">Salvar Setor</button>
+            <button type="submit" class="btn-save">Salvar Tudo</button>
             {% if form.instance.pk %}
                 <a href="{% url 'rhcontrol:department_delete' pk=form.instance.pk %}" class="btn-delete">
                     <i class="fa fa-trash"></i> Excluir Setor
                 </a>
             {% endif %}
-        
         </div>
     </form>
-
-    
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addBtn = document.getElementById('add-job-btn');
+        const container = document.getElementById('job-titles-container');
+        // O ID abaixo deve corresponder ao related_name do seu model. Se usou related_name='job_titles', o Django gera id_job_titles-TOTAL_FORMS
+        const totalForms = document.getElementById('id_job_titles-TOTAL_FORMS'); 
+
+        addBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            let formIdx = totalForms.value;
+            const emptyFormHtml = document.getElementById('empty-form').innerHTML;
+            
+            // Substitui o __prefix__ pelo índice numérico atual
+            const newFormHtml = emptyFormHtml.replace(/__prefix__/g, formIdx);
+            
+            const newDiv = document.createElement('div');
+            newDiv.innerHTML = newFormHtml;
+            container.appendChild(newDiv.firstElementChild);
+            
+            totalForms.value = parseInt(formIdx) + 1;
+        });
+    });
+</script>
+
 {% endblock content %}

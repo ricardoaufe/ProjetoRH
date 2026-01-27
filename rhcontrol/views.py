@@ -4,7 +4,7 @@ from django.urls import reverse
 from rhcontrol.models import Employee, Vacation, Training, JobTitle, Department
 from django.db.models import Q 
 from django.core.paginator import Paginator
-from .forms import LoginForm, EmployeeForm, VacationForm, TrainingForm, UserUpdateForm, DepartmentForm
+from .forms import LoginForm, EmployeeForm, VacationForm, TrainingForm, UserUpdateForm, DepartmentForm, JobTitleFormSet
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import User
@@ -405,30 +405,46 @@ def department_list(request):
 def department_create(request):
     if request.method == 'POST':
         form = DepartmentForm(request.POST)
+        formset = JobTitleFormSet(request.POST)
         if form.is_valid():
-            form.save()
+            department = form.save()
+
+            formset.instance = department 
+            formset.save()
+
             messages.success(request, 'Setor criado com sucesso!')
             return redirect('rhcontrol:department_list')
     else:
         form = DepartmentForm()
+        formset = JobTitleFormSet()
 
     return render(request, 'dashboard/pages/departments/form.html', {
         'form': form,
+        'formset': formset,
         'title': 'Cadastrar Setores'
     })
 
 @login_required
 def department_update(request, pk):
     department = get_object_or_404(Department, pk=pk)
-    form = DepartmentForm(request.POST or None, instance=department)
 
-    if form.is_valid():
-        form.save()
-        messages.success(request, 'Setor atualizado com sucesso!')
-        return redirect('rhcontrol:department_list')
+    if request.method == 'POST':
+        form = DepartmentForm(request.POST or None, instance=department)
+        formset = JobTitleFormSet(request.POST or None, instance=department)
+
+        if form.is_valid() and formset.is_valid():
+            form.save()
+            formset.save()
+            messages.success(request, 'Setor atualizado com sucesso!')
+            return redirect('rhcontrol:department_list')
+
+    else:
+        form = DepartmentForm(instance=department)
+        formset = JobTitleFormSet(instance=department)
 
     return render(request, 'dashboard/pages/departments/form.html', {
         'form': form,
+        'formset': formset,
         'title': 'Editar Setor'
     })    
 
@@ -444,7 +460,3 @@ def department_delete(request, pk):
     return render(request, 'dashboard/pages/departments/delete.html', {
         'department': department
     })
-
-
-
-
