@@ -113,8 +113,13 @@ LANGUAGE_CODE = 'pt-br'
 TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
-
+USE_L10N = True
 USE_TZ = True
+
+DATE_INPUT_FORMATS = [
+    '%d/%m/%Y',  # '25/10/2006' (Padrão BR)
+    '%Y-%m-%d',  # '2006-10-25' (Padrão internacional/HTML5)
+]
 
 
 # Static files (CSS, JavaScript, Images)

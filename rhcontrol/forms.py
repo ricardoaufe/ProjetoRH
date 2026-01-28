@@ -30,20 +30,20 @@ class EmployeeForm(forms.ModelForm):
         model = Employee
         fields = '__all__'
         widgets = {
-            'birth_date': forms.DateInput(attrs={'type': 'date',}),
-            'hire_date': forms.DateInput(attrs={'type': 'date',}),
-            'rg_issue_date': forms.DateInput(attrs={'type': 'date',}),
-            'ctps_issue_date': forms.DateInput(attrs={'type': 'date',}),
-            'admission_exam_date': forms.DateInput(attrs={'type': 'date',}),
-            'termination_date': forms.DateInput(attrs={'type': 'date',}),
-            'arrival_date': forms.DateInput(attrs={'type': 'date',}),
-            'naturalization_date': forms.DateInput(attrs={'type': 'date',}),
-            'rne_issue_date': forms.DateInput(attrs={'type': 'date',}),
-            'cipa_mandate_start_date': forms.DateInput(attrs={'type': 'date',}),
-            'cipa_mandate_end_date': forms.DateInput(attrs={'type': 'date',}),
-
+            'birth_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            'hire_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            'rg_issue_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            'ctps_issue_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            'admission_exam_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            'termination_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            'arrival_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            'naturalization_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            'rne_issue_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            'cipa_mandate_start_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            'cipa_mandate_end_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            
             'department': forms.Select(attrs={'class': 'form-control'}),
-            'job_title': forms.Select(attrs={'class': 'form-control'}),                      
+            'job_title': forms.Select(attrs={'class': 'form-control'}),                   
             }
 
     def __init__(self, *args, **kwargs):
@@ -73,11 +73,11 @@ class VacationForm(forms.ModelForm):
         model = Vacation
         fields = ['employee', 'start_date', 'vacation_duration']
         
-    widgets = {
-        'employee': forms.Select(attrs={'class': 'form-control'}),
-        'start_date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-        'vacation_duration': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 30'}),
-    }
+        widgets = {
+            'employee': forms.Select(attrs={'class': 'form-control'}),
+            'start_date': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'vacation_duration': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 30'}),
+        }
 
 class TrainingForm(forms.ModelForm):
     all_departments = forms.BooleanField(
@@ -89,14 +89,18 @@ class TrainingForm(forms.ModelForm):
     class Meta:
         model = Training
         fields = '__all__'
+        
         widgets = {
-            'date': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'training_date': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
             'is_fundamental': forms.CheckboxInput(attrs={'class': 'form-check-input', 'id': 'id_is_fundamental'}),
             'target_department': forms.Select(attrs={'class': 'form-control', 'id': 'id_target_department'}),
             
             'scheduled_employees': forms.SelectMultiple(attrs={'class': 'form-control', 'size': '10', 'id': 'id_scheduled_employees'}),
             'attended_employees': forms.SelectMultiple(attrs={'class': 'form-control', 'size': '10'}),
         }
+
+    
+    
         
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
