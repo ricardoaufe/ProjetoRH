@@ -1,29 +1,50 @@
-<header class= "main-header-container">
+<header class="main-header-container">
     <div class="dashboard-header">                
-        <h1><a  class = "main-logo" href="/">Dashboard</a></h1>
+        <button class="mobile-menu-btn" onclick="toggleMenu()">
+            <i class="fa-solid fa-bars"></i>
+        </button>
+        
+        <h1><a class="main-logo" href="/">Dashboard</a></h1>
     </div>                
-        <div class= "header-center">
+    
+    <div class="header-center" id="main-nav">
 
-            <div class = "menu">
-                <h2><i class="fa-solid fa-user-plus"></i>  Cadastros</h2>
-                <div class="dropdown">
-                    <a href= "{% url 'rhcontrol:employee_list' %}"> Funcionários </a>
-                    <a href= "{% url 'rhcontrol:vacation_list'%}"> Férias </a>
-                    <a href= "{% url 'rhcontrol:training_list'%}"> Treinamentos </a>
-                    <a href= "{% url 'rhcontrol:department_list'%}"> Setores </a>
-                </div>
+        <div class="menu-item dropdown-container">
+            <span class="menu-link"><i class="fa-solid fa-user-plus"></i> Cadastros <i class="fa-solid fa-caret-down"></i></span>
+            <div class="dropdown">
+                <a href="{% url 'rhcontrol:employee_list' %}">Funcionários</a>
+                <a href="{% url 'rhcontrol:vacation_list'%}">Férias</a>
+                <a href="{% url 'rhcontrol:training_list'%}">Treinamentos</a>
+                <a href="{% url 'rhcontrol:department_list'%}">Setores</a>
             </div>
-            
-            <h2> Administração</h2>
-            <h2> Relatórios</h2>
+        </div>
+        
+        <div class="menu-item">
+            <a href="#" class="menu-link">Administração</a>
+        </div>
 
-            <a href="{% url 'rhcontrol:profile' %}" style="text-decoration: none; color: inherit;">
-                <h2><i class="fa-solid fa-user-gear"></i> Minha Conta</h2>
+        <div class="menu-item">
+            <a href="#" class="menu-link">Relatórios</a>
+        </div>
+
+        <div class="menu-item">
+            <a href="{% url 'rhcontrol:profile' %}" class="menu-link">
+                <i class="fa-solid fa-user-gear"></i> Minha Conta
             </a>
-            
-            <form action="{% url 'rhcontrol:logout' %}" method="POST"> 
+        </div>
+        
+        <div class="menu-item">
+            <form action="{% url 'rhcontrol:logout' %}" method="POST" style="margin: 0;"> 
                 {% csrf_token %}
-                <button class="plaintext-button" type="submit"> Logout </button>
+                <button class="plaintext-button menu-link" type="submit">Logout</button>
             </form>
         </div>
+    </div>
 </header>
+
+<script>
+    function toggleMenu() {
+        const nav = document.getElementById('main-nav');
+        nav.classList.toggle('active');
+    }
+</script>
