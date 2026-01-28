@@ -187,17 +187,18 @@ def employee_update(request, pk):
         messages.success(request, 'Funcionário atualizado com sucesso!')
         return redirect('rhcontrol:employee_list')
     
-    trainings = employee.attended_trainings.all().order_by('-training_date')
+    scheduled = employee.scheduled_trainings.all()
+    attended = employee.attended_trainings.all().order_by('-training_date')
     history_log = employee.history.all().order_by('-date_changed')
     vacations = employee.vacations.all().order_by('-start_date')
 
-    total_hours = sum(t.training_duration for t in trainings)   
+    total_hours = sum(t.training_duration for t in scheduled | attended)
 
     return render(request, 'dashboard/pages/employee/form.html', {
         'form': form,
         'title': 'Editar Funcionário',
         'history_enabled': True,
-        'trainings': trainings,
+        'trainings': attended.distinct().order_by('-training_date'),
         'history_log': history_log,
         'vacations': vacations,
         'total_hours': total_hours

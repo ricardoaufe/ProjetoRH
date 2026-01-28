@@ -43,7 +43,9 @@ class EmployeeForm(forms.ModelForm):
             'cipa_mandate_end_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             
             'department': forms.Select(attrs={'class': 'form-control'}),
-            'job_title': forms.Select(attrs={'class': 'form-control'}),                   
+            'job_title': forms.Select(attrs={'class': 'form-control'}),        
+
+            'current_salary': forms.NumberInput(attrs={'class': 'form-control money-input', 'step': '0.01', 'placeholder': '0,00'}),           
             }
 
     def __init__(self, *args, **kwargs):
@@ -135,7 +137,7 @@ JobTitleFormSet = forms.inlineformset_factory(
     },
     widgets={
         'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Cargo'}),
-        'base_salary': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Salário Base', 'step': '0.01'}),
+        'base_salary': forms.NumberInput(attrs={'class': 'form-control money-input', 'placeholder': '0,00', 'step': '0.01'}),
         'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Descrição (Opcional)', 'rows': 1}),
     }
 )

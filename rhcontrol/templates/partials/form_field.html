@@ -5,8 +5,17 @@
     </div>
 {% else %}
     <div class="form-group">
-        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
-        {{ field }}
+        <label class="form-label" for="{{ field.id_for_label }}">{{ label|default:field.label }}</label>
+        
+        {% if is_money %}
+            <div class="input-group-custom">
+                <span class="currency-symbol">R$</span>
+                {{ field }}
+            </div>
+        {% else %}
+            {{ field }}
+        {% endif %}
+
         {% if field.errors %}
             <div class="message error">
                 {{ field.errors }}

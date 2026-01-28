@@ -4,6 +4,8 @@
 
 {% block content %}
 
+<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
 <div class="form-container">
     <h2>{{ title|default:"Registrar Treinamento" }}</h2>
 
@@ -43,11 +45,21 @@
             </div>
 
             <div id="div_scheduled_employees">
-                <h4 style="margin-top: 0; color: #495057;">Seleção Manual de Participantes</h4>
+                <h4 style="margin-top: 0; color: #495057;">Seleção de Participantes</h4>
                 <p style="font-size: 0.9em; color: #666; margin-bottom: 10px;">
-                    Segure a tecla <strong>Ctrl</strong> para selecionar vários funcionários.
+                    Pesquise pelo nome e pressione Enter para adicionar.
                 </p>
                 {% include 'partials/form_field.html' with field=form.scheduled_employees %}
+
+                {% if form.instance.pk %}
+                    <hr style="margin: 30px 0;">
+                    
+                    <h4 style="margin-top: 0; color: #28a745;">Confirmação de Presença</h4>
+                    <p style="font-size: 0.9em; color: #666; margin-bottom: 10px;">
+                        Destes previstos, quem realmente veio?
+                    </p>
+                    {% include 'partials/form_field.html' with field=form.attended_employees %}
+                {% endif %}
             </div>
 
         </div>
@@ -65,22 +77,44 @@
     </form>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        if(document.getElementById('id_scheduled_employees')) {
+            new TomSelect("#id_scheduled_employees", {
+                plugins: ['remove_button'], // 'X' to remove
+                create: false,              // Just selection from existing options
+                sortField: {
+                    field: "text",
+                    direction: "asc"
+                },
+                placeholder: "Digite o nome do funcionário...",
+                maxOptions: null            // All options shown
+            });
+        }
+
+        if(document.getElementById('id_attended_employees')) {
+            new TomSelect("#id_attended_employees", {
+                plugins: ['remove_button'],
+                create: false, 
+                sortField: { field: "text", direction: "asc" },
+                placeholder: "Selecione quem realmente compareceu...",
+                maxOptions: null
+            });
+        }
+
         const checkFundamental = document.getElementById('id_is_fundamental');
         const checkAllDepts = document.getElementById('id_all_departments');
-        
         const containerSetor = document.getElementById('div_target_department');
         const containerManual = document.getElementById('div_scheduled_employees');
-        const selectTargetDept = document.getElementById('id_target_department'); // ID padrão do Django para Select
+        const selectTargetDept = document.getElementById('id_target_department');
         
         function toggleFields() {
-            if (checkFundamental.checked) {
-                // MODO AUTOMÁTICO (Fundamental)
-                containerSetor.classList.remove('hidden'); // Remove a classe que esconde
-                containerManual.classList.add('hidden');   // Adiciona a classe que esconde
+            if (checkFundamental && checkFundamental.checked) {
+                if(containerSetor) containerSetor.classList.remove('hidden');
+                if(containerManual) containerManual.classList.add('hidden');
                 
-                // Lógica "Todos os Setores"
                 if (checkAllDepts && checkAllDepts.checked) {
                     if(selectTargetDept) {
                         selectTargetDept.disabled = true;
@@ -90,21 +124,14 @@
                     if(selectTargetDept) selectTargetDept.disabled = false;
                 }
             } else {
-                // MODO MANUAL
-                containerSetor.classList.add('hidden');
-                containerManual.classList.remove('hidden');
+                if(containerSetor) containerSetor.classList.add('hidden');
+                if(containerManual) containerManual.classList.remove('hidden');
             }
         }
 
-        if (checkFundamental) {
-            checkFundamental.addEventListener('change', toggleFields);
-        }
+        if (checkFundamental) checkFundamental.addEventListener('change', toggleFields);
+        if (checkAllDepts) checkAllDepts.addEventListener('change', toggleFields);
         
-        if (checkAllDepts) {
-            checkAllDepts.addEventListener('change', toggleFields);
-        }
-        
-        // Roda ao carregar a página
         toggleFields();
     });
 </script>

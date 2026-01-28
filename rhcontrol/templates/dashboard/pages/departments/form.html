@@ -35,7 +35,7 @@
                                 {% include 'partials/form_field.html' with field=job_form.name label="Nome do Cargo" %}
                             </div>
                             <div style="flex: 1;">
-                                {% include 'partials/form_field.html' with field=job_form.base_salary label="Salário Base" %}
+                                {% include 'partials/form_field.html' with field=job_form.base_salary label="Salário Base" is_money=True %}
                             </div>
                         </div>
                         
@@ -63,7 +63,7 @@
                             {% include 'partials/form_field.html' with field=formset.empty_form.name label="Nome do Cargo" %}
                         </div>
                         <div style="flex: 1;">
-                            {% include 'partials/form_field.html' with field=formset.empty_form.base_salary label="Salário Base" %}
+                            {% include 'partials/form_field.html' with field=formset.empty_form.base_salary label="Salário Base" is_money=True %}
                         </div>
                     </div>
                     {% include 'partials/form_field.html' with field=formset.empty_form.description label="Descrição do Cargo" %}

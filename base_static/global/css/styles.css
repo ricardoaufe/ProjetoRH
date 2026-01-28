@@ -812,3 +812,32 @@ select:focus {
     margin-top: 10px;
 }
 
+/* Style for currency input with R$ symbol */
+.input-group-custom {
+    position: relative !important;
+    display: block !important; /* Garante que o container se comporte como um bloco */
+    width: 100%;
+}
+
+/* O símbolo R$ */
+.currency-symbol {
+    position: absolute !important;
+    top: 50% !important;
+    transform: translateY(-50%) !important; /* Centraliza perfeitamente na vertical */
+    left: 12px !important; /* Distância da borda esquerda do input */
+    
+    z-index: 10; /* Garante que fique visualmente "na frente" do input */
+    pointer-events: none; /* O clique passa através dele e foca no input */
+    
+    color: black; /* Cor cinza padrão de placeholder/ícones */
+    font-weight: 500;
+    line-height: 1; /* Evita problemas de alinhamento vertical */
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.form-control.money-input {
+    padding-left: 45px !important; /* Aumentei um pouco para dar mais respiro */
+    position: relative !important;
+    z-index: 1;
+}
