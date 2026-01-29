@@ -15,6 +15,7 @@ urlpatterns = [
     path('employees/create/', views.employee_create, name='employee_create'),
     path('employees/<int:pk>/edit/', views.employee_update, name='employee_update'),
     path('employees/<int:pk>/delete/', views.employee_delete, name='employee_delete'),
+    path('employee/history/delete/<int:pk>/', views.delete_history_log, name='history_delete'),
 
     #VACATIONS
     path('vacations/', views.vacation_view, name='vacation_list'),

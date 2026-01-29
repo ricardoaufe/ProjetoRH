@@ -26,6 +26,25 @@ class UserUpdateForm(forms.ModelForm):
         }
 
 class EmployeeForm(forms.ModelForm):
+    change_date = forms.DateField(
+        label="Data da Alteração (Histórico)", 
+        required=False, 
+        widget=forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+        help_text="Se houver mudança de cargo/salário, qual a data de vigência?"
+    )
+    
+    change_reason = forms.ChoiceField(
+        label="Motivo da Alteração",
+        required=False,
+        choices=[
+            ('', '--- Selecione o Motivo ---'),
+            ('Promoção', 'Promoção'),
+            ('Mérito', 'Mérito'),
+            ('Dissídio', 'Dissídio'),
+            ('Erro de Cadastro', 'Correção de Erro'),
+        ],
+        widget=forms.Select(attrs={'class': 'form-select'})
+    )
     class Meta:
         model = Employee
         fields = '__all__'

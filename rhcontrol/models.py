@@ -1,5 +1,6 @@
 from django.db import models
-from datetime import timedelta
+from datetime import timedelta, timezone
+from django.utils import timezone
 import holidays 
 
 
@@ -61,7 +62,7 @@ class JobTitle(models.Model):
     
 class EmployeeHistory(models.Model):
     employee = models.ForeignKey('Employee' , on_delete=models.CASCADE, related_name='history')
-    date_changed = models.DateField(auto_now_add=True, verbose_name="Data da Mudança")
+    date_changed = models.DateField(default=timezone.now, verbose_name="Data da Mudança")
     
     old_job_title = models.CharField(max_length=200, null=True, verbose_name="Cargo Anterior")
     new_job_title = models.CharField(max_length=200, null=True, verbose_name="Novo Cargo")

@@ -1,7 +1,7 @@
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from rhcontrol.models import Employee, Vacation, Training, JobTitle, Department
+from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department
 from django.db.models import Q 
 from django.core.paginator import Paginator
 from .forms import LoginForm, EmployeeForm, VacationForm, TrainingForm, UserUpdateForm, DepartmentForm, JobTitleFormSet
@@ -10,7 +10,8 @@ from django.contrib.auth import login, authenticate, logout, update_session_auth
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages 
-from datetime import timedelta
+from datetime import timedelta, timezone
+from django.utils import timezone
 
 def login_view(request):
     
@@ -180,11 +181,50 @@ def employee_create(request):
 @login_required
 def employee_update(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
+
+    old_job = employee.job_title
+    old_salary = employee.current_salary
+
     form = EmployeeForm(request.POST or None, instance=employee)
 
     if form.is_valid():
-        form.save()
-        messages.success(request, 'Funcionário atualizado com sucesso!')
+        # save(commit=False) cria o objeto na memória mas não no banco ainda
+        new_employee = form.save(commit=False)
+        
+        # 2. Detectar Mudanças
+        has_job_change = str(old_job) != str(new_employee.job_title)
+        has_salary_change = old_salary != new_employee.current_salary
+        
+        if has_job_change or has_salary_change:
+            # Pegamos os dados extras do formulário
+            custom_date = form.cleaned_data.get('change_date')
+            custom_reason = form.cleaned_data.get('change_reason')
+            
+            # Lógica Automática de Motivo (se o usuário não selecionou nada)
+            auto_reason = ""
+            if custom_reason:
+                auto_reason = custom_reason
+            elif has_job_change:
+                auto_reason = "Promoção" # Assumimos Promoção se mudou cargo
+            elif has_salary_change:
+                if new_employee.current_salary > old_salary:
+                    auto_reason = "Mérito" # Aumento sem mudar cargo
+                else:
+                    auto_reason = "Reajuste"
+
+            # Criar o registro no Histórico
+            EmployeeHistory.objects.create(
+                employee=employee,
+                date_changed=custom_date if custom_date else timezone.now(),
+                old_job_title=str(old_job) if old_job else None,
+                new_job_title=str(new_employee.job_title),
+                old_salary=old_salary,
+                new_salary=new_employee.current_salary,
+                reason=auto_reason
+            )
+
+        new_employee.save()
+        messages.success(request, 'Funcionário e Histórico atualizados!')
         return redirect('rhcontrol:employee_list')
     
     scheduled = employee.scheduled_trainings.all()
@@ -203,6 +243,16 @@ def employee_update(request, pk):
         'vacations': vacations,
         'total_hours': total_hours
     })
+
+@login_required
+def delete_history_log(request, pk):
+    log = get_object_or_404(EmployeeHistory, pk=pk)
+    employee_id = log.employee.pk # Guarda o ID pra voltar pra página certa
+    log.delete()
+    messages.success(request, 'Registro de histórico removido.')
+    
+    # Redireciona de volta para a edição do funcionário
+    return redirect('rhcontrol:employee_update', pk=employee_id)
 
 @login_required
 def employee_delete(request, pk):
