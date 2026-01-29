@@ -78,7 +78,7 @@ class EmployeeHistory(models.Model):
 class Employee(models.Model):
     name = models.CharField(max_length=100, verbose_name="Nome")
     cpf = models.CharField(max_length=14, unique=True, verbose_name="CPF")
-    rg = models.CharField(max_length=9, blank=True, null=True, verbose_name="RG")
+    rg = models.CharField(max_length=20, blank=True, null=True, verbose_name="RG")
     rg_issue_date = models.DateField(blank=True, null=True, verbose_name="Emissão do RG") 
     ctps_number = models.CharField(max_length=20, blank=True, null=True, verbose_name="Número da CTPS")
     ctps_series = models.CharField(max_length=10, blank=True, null=True, verbose_name="Série")
