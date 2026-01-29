@@ -78,16 +78,25 @@ class EmployeeHistory(models.Model):
 class Employee(models.Model):
     name = models.CharField(max_length=100, verbose_name="Nome")
     cpf = models.CharField(max_length=14, unique=True, verbose_name="CPF")
-    rg = models.CharField(max_length=20, blank=True, null=True, verbose_name="RG")
-    rg_issue_date = models.DateField(blank=True, null=True, verbose_name="Data de Emissão do RG") 
+    rg = models.CharField(max_length=9, blank=True, null=True, verbose_name="RG")
+    rg_issue_date = models.DateField(blank=True, null=True, verbose_name="Emissão do RG") 
     ctps_number = models.CharField(max_length=20, blank=True, null=True, verbose_name="Número da CTPS")
-    ctps_series = models.CharField(max_length=10, blank=True, null=True, verbose_name="Série da CTPS")
-    ctps_issue_date = models.DateField(blank=True, null=True, verbose_name="Data de Emissão da CTPS") 
+    ctps_series = models.CharField(max_length=10, blank=True, null=True, verbose_name="Série")
+    ctps_issue_date = models.DateField(blank=True, null=True, verbose_name="Emissão da CTPS") 
     pis = models.CharField(max_length=20, blank=True, null=True, verbose_name="PIS")
-    ethnicity = models.CharField(max_length=50, blank=True, null=True, verbose_name="Etnia")
+
+    ETHINICITY_CHOICES = [
+        ('Branca', 'Branca'),
+        ('Preta', 'Preta'),
+        ('Parda', 'Parda'),
+        ('Amarela', 'Amarela'),
+        ('Indígena', 'Indígena'),
+    ]
+    ethnicity = models.CharField(max_length=50, choices=ETHINICITY_CHOICES, blank=True, null=True, verbose_name="Etnia")
+
     mother_name = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nome da Mãe")
     birth_city = models.CharField(max_length=100, blank=True, null=True, verbose_name="Cidade de Nascimento") 
-    birth_date = models.DateField(verbose_name="Data de Nascimento") 
+    birth_date = models.DateField(verbose_name="Data Nasc.") 
 
     UF_CHOICES = [
         ('AC', 'AC'),
@@ -118,7 +127,7 @@ class Employee(models.Model):
         ('SE', 'SE'),
         ('TO', 'TO'),
     ]
-    state_birthplace_code = models.CharField(max_length=2, choices=UF_CHOICES, blank=True, null=True, verbose_name="UF de Nascimento")
+    state_birthplace_code = models.CharField(max_length=2, choices=UF_CHOICES, blank=True, null=True, verbose_name="UF")
     
 
     SEX_CHOICES = [
@@ -140,7 +149,7 @@ class Employee(models.Model):
         ('Mestrado', 'Mestrado'),
         ('Doutorado', 'Doutorado'),
     ]
-    education_level = models.CharField(max_length=22, choices=EDUCATION_CHOICES, blank=True, null=True, verbose_name="Nível de Escolaridade") 
+    education_level = models.CharField(max_length=22, choices=EDUCATION_CHOICES, blank=True, null=True, verbose_name="Escolaridade") 
 
     RETIREMENT_CHOICES = [
         ('I', 'Por Idade'),
@@ -179,7 +188,7 @@ class Employee(models.Model):
     city = models.CharField(max_length=100, blank=True, null=True, verbose_name="Cidade")
     state_code = models.CharField(max_length=2, blank=True, null=True, verbose_name="UF")
     zip_code = models.CharField(max_length=9, blank=True, null=True, verbose_name="CEP") 
-    emergency_phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Telefone de Emergência") 
+    emergency_phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Telefone") 
     emergency_contact_name = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nome do Contato de Emergência") 
     mobile_phone = models.CharField(max_length=20, blank=True, null=True, verbose_name="Celular") 
     email = models.EmailField(blank=True, null=True, verbose_name="E-mail")

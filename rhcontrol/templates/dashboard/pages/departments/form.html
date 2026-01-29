@@ -7,7 +7,7 @@
 <div class="form-container">
     <h2>{{ title|default:"Cadastrar Setores" }}</h2>
 
-    <form method="POST" id="departmentForm">
+    <form method="POST" id="departmentForm" novalidate>
         {% csrf_token %}
 
         <div class="form-content">  
