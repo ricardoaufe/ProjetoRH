@@ -92,7 +92,7 @@ class Employee(models.Model):
         ('Amarela', 'Amarela'),
         ('Indígena', 'Indígena'),
     ]
-    ethnicity = models.CharField(max_length=50, choices=ETHINICITY_CHOICES, blank=True, null=True, verbose_name="Etnia")
+    ethnicity = models.CharField(max_length=10, choices=ETHINICITY_CHOICES, blank=True, null=True, verbose_name="Etnia")
 
     mother_name = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nome da Mãe")
     birth_city = models.CharField(max_length=100, blank=True, null=True, verbose_name="Cidade de Nascimento") 
