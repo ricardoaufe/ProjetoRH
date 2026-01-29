@@ -87,8 +87,39 @@ class Employee(models.Model):
     ethnicity = models.CharField(max_length=50, blank=True, null=True, verbose_name="Etnia")
     mother_name = models.CharField(max_length=100, blank=True, null=True, verbose_name="Nome da Mãe")
     birth_city = models.CharField(max_length=100, blank=True, null=True, verbose_name="Cidade de Nascimento") 
-    state_birthplace_code = models.CharField(max_length=2, blank=True, null=True, verbose_name="UF de Nascimento")
     birth_date = models.DateField(verbose_name="Data de Nascimento") 
+
+    UF_CHOICES = [
+        ('AC', 'AC'),
+        ('AL', 'AL'),
+        ('AP', 'AP'),
+        ('AM', 'AM'),
+        ('BA', 'BA'),
+        ('CE', 'CE'),
+        ('DF', 'DF'),
+        ('ES', 'ES'),
+        ('GO', 'GO'),
+        ('MA', 'MA'),
+        ('MT', 'MT'),
+        ('MS', 'MS'),
+        ('MG', 'MG'),
+        ('PA', 'PA'),
+        ('PB', 'PB'),
+        ('PR', 'PR'),
+        ('PE', 'PE'),
+        ('PI', 'PI'),
+        ('RJ', 'RJ'),
+        ('RN', 'RN'),
+        ('RS', 'RS'),
+        ('RO', 'RO'),
+        ('RR', 'RR'),
+        ('SC', 'SC'),
+        ('SP', 'SP'),
+        ('SE', 'SE'),
+        ('TO', 'TO'),
+    ]
+    state_birthplace_code = models.CharField(max_length=2, choices=UF_CHOICES, blank=True, null=True, verbose_name="UF de Nascimento")
+    
 
     SEX_CHOICES = [
         ('M', 'Masculino'),

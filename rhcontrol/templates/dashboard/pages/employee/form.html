@@ -2,6 +2,7 @@
 
 {% block title %} Cadastrar Funcionário | {% endblock title %}
 
+
 {% block content %}
 
 <style>
@@ -386,23 +387,81 @@
             </div>
         </div>
     </dialog>
-
+<script src="https://unpkg.com/imask"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        console.log("Script carregado!");
+        console.log("Script carregado e IMask iniciado!");
 
         const departmentSelect = document.getElementById('id_department');
         const jobTitleSelect = document.getElementById('id_job_title');
         const salaryInput = document.getElementById('id_current_salary');
         const formElement = document.getElementById('employeeForm');
-        const url = formElement.getAttribute('data-jobs-url');
 
+        // --- 1. APLICAÇÃO DAS MÁSCARAS ---
+        try {
+            // Dinheiro (Salário)
+            if (salaryInput) {
+                // Remove máscaras anteriores para evitar duplicação
+                if (salaryInput.mask) salaryInput.mask.destroy();
+                
+                IMask(salaryInput, {
+                    mask: Number,
+                    scale: 2,
+                    signed: false,
+                    thousandsSeparator: '.',  // Ponto para milhar
+                    padFractionalZeros: true, // Sempre ,00
+                    normalizeZeros: true,
+                    radix: ',',  // Vírgula decimal
+                    mapToRadix: ['.'], // Se digitar ponto, vira vírgula
+                    min: 0,
+                    max: 9999999999.99
+                });
+            }
+
+            // CPF
+            const cpfInput = document.getElementById('id_cpf');
+            if (cpfInput) IMask(cpfInput, { mask: '000.000.000-00' });
+
+            // RG (Múltiplos formatos)
+            const rgInput = document.getElementById('id_rg');
+            if (rgInput) {
+                IMask(rgInput, {
+                    mask: [
+                        { mask: '00.000.000-0' },
+                        { mask: '00.000.000-X' },
+                        { mask: '00.000.000' },
+                        { mask: /^[0-9a-zA-Z]+$/ } // Fallback
+                    ]
+                });
+            }
+
+            // Celular
+            const phoneInput = document.getElementById('id_mobile_phone');
+            if (phoneInput) {
+                IMask(phoneInput, {
+                    mask: [
+                        { mask: '(00) 0000-0000' },
+                        { mask: '(00) 00000-0000' }
+                    ]
+                });
+            }
+
+            // CEP
+            const zipInput = document.getElementById('id_zip_code');
+            if (zipInput) IMask(zipInput, { mask: '00000-000' });
+
+        } catch (e) {
+            console.error("Erro no IMask:", e);
+        }
+
+        // --- 2. LÓGICA DE CARGOS E SALÁRIO (AJAX) ---
         if (formElement) {
             const url = formElement.getAttribute('data-jobs-url');
 
+            // Mudança de Setor
             departmentSelect.addEventListener('change', function() {
                 const departmentId = this.value;
-                salaryInput.value = '';
+                if(salaryInput) salaryInput.value = ''; // Limpa salário
 
                 if (!departmentId) {
                     jobTitleSelect.innerHTML = '<option value="">---------</option>';
@@ -417,63 +476,59 @@
                             const option = document.createElement('option');
                             option.value = job.id;
                             option.textContent = job.name;
+                            // Guarda o valor cru (ex: 2500.00) no atributo data-salary
                             const salario = job.base_salary ? job.base_salary : (job.salary ? job.salary : '');
                             option.setAttribute('data-salary', salario);
                             jobTitleSelect.appendChild(option);
                         });
-                    })
-                    .catch(error => console.error('Erro:', error));
+                    });
             });
 
+            // Mudança de Cargo (CORREÇÃO DE PONTO VIRAR VÍRGULA)
             jobTitleSelect.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
-                const baseSalary = selectedOption.getAttribute('data-salary');
-                if (baseSalary) {
-                    salaryInput.value = baseSalary;
-                } else {
-                    salaryInput.value = '';
+                let baseSalary = selectedOption.getAttribute('data-salary'); // Vem como "2500.00"
+                
+                if (baseSalary && salaryInput) {
+                    // Transforma "2500.00" em "2500,00" ANTES de jogar no input
+                    let salarioFormatado = baseSalary.toString().replace('.', ',');
+                    
+                    salaryInput.value = salarioFormatado;
+                    
+                    // Dispara evento para o IMask reconhecer e formatar o milhar (2.500,00)
+                    salaryInput.dispatchEvent(new Event('input'));
                 }
             });
-        }
-
-        const initialDept = departmentSelect.value;
-        const initialJob = jobTitleSelect.value;
-        
-        if (initialDept && initialJob) {
             
-            fetch(`${url}?department_id=${initialDept}`)
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(job => {
-                        for (let i = 0; i < jobTitleSelect.options.length; i++) {
-                            if (jobTitleSelect.options[i].value == job.id) {
-                                const salario = job.base_salary ? job.base_salary : '';
-                                jobTitleSelect.options[i].setAttribute('data-salary', salario);
-                                break;
+            // Inicialização na Edição (Preenche data-salary nos campos já carregados)
+            const initialDept = departmentSelect.value;
+            if (initialDept) {
+                fetch(`${url}?department_id=${initialDept}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(job => {
+                            for (let i = 0; i < jobTitleSelect.options.length; i++) {
+                                if (jobTitleSelect.options[i].value == job.id) {
+                                    const salario = job.base_salary ? job.base_salary : (job.salary ? job.salary : '');
+                                    jobTitleSelect.options[i].setAttribute('data-salary', salario);
+                                    break;
+                                }
                             }
-                        }
+                        });
                     });
-                });
+            }
         }
 
-        // Toggle
+        // --- 3. TOGGLES DE EXIBIÇÃO ---
         function setupToggle(checkboxId, containerId) {
             const checkbox = document.getElementById(checkboxId);
             const container = document.getElementById(containerId);
-
-            if (!checkbox || !container) {
-                console.warn("Elemento não encontrado:", checkboxId, containerId);
-                return; 
-            }
+            if (!checkbox || !container) return;
 
             function toggleVisibility() {
-                if (checkbox.checked) {
-                    container.classList.remove('hidden');
-                } else {
-                    container.classList.add('hidden');
-                }
+                if (checkbox.checked) container.classList.remove('hidden');
+                else container.classList.add('hidden');
             }
-
             checkbox.addEventListener('change', toggleVisibility);
             toggleVisibility();
         }
@@ -483,18 +538,15 @@
         setupToggle('id_is_cipa_member', 'cipa-container');
     });
 
+    // --- FUNÇÕES DO MODAL (Escopo Global) ---
     function openDeleteModal(deleteUrl) {
-    const dialog = document.getElementById('deleteModal');
-    const confirmBtn = document.getElementById('btnConfirmDelete');
-    
-    if (dialog && confirmBtn) {
-        confirmBtn.href = deleteUrl; // Define o link de deletar no botão "Sim"
-        dialog.showModal(); // Abre centralizado com fundo escuro
-    } else {
-        console.error("Modal ou Botão não encontrados!");
+        const dialog = document.getElementById('deleteModal');
+        const confirmBtn = document.getElementById('btnConfirmDelete');
+        if (dialog && confirmBtn) {
+            confirmBtn.href = deleteUrl;
+            dialog.showModal();
+        }
     }
-    }
-
     function closeDeleteModal() {
         const dialog = document.getElementById('deleteModal');
         if (dialog) dialog.close();

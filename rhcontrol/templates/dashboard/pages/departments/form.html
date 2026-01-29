@@ -82,28 +82,78 @@
     </form>
 </div>
 
+<script src="https://unpkg.com/imask"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        
+        // --- 1. FUNÇÃO PARA APLICAR MÁSCARA EM UM CAMPO ---
+        function applyMoneyMask(input) {
+            // Correção do Bug 1000 -> 100.000 (Ponto vindo do banco)
+            if (input.value && input.value.includes('.')) {
+                input.value = input.value.replace('.', ',');
+            }
+
+            // Aplica a máscara
+            try {
+                IMask(input, {
+                    mask: Number,
+                    scale: 2,  // 2 casas decimais
+                    signed: false,
+                    thousandsSeparator: '.',  // Ponto no milhar
+                    padFractionalZeros: true, // Força ,00
+                    normalizeZeros: true,
+                    radix: ',',  // Vírgula decimal
+                    mapToRadix: ['.'], // Se digitar ponto, vira vírgula
+                    min: 0,
+                    max: 9999999999.99
+                });
+            } catch (e) {
+                console.error("Erro ao aplicar máscara:", e);
+            }
+        }
+
+        // --- 2. APLICAR MÁSCARAS NOS CAMPOS JÁ EXISTENTES ---
+        const existingInputs = document.querySelectorAll('.money-input');
+        existingInputs.forEach(input => applyMoneyMask(input));
+
+
+        // --- 3. LÓGICA DE ADICIONAR NOVO CARGO ---
         const addBtn = document.getElementById('add-job-btn');
         const container = document.getElementById('job-titles-container');
-        // O ID abaixo deve corresponder ao related_name do seu model. Se usou related_name='job_titles', o Django gera id_job_titles-TOTAL_FORMS
-        const totalForms = document.getElementById('id_job_titles-TOTAL_FORMS'); 
+        
+        const totalForms = document.querySelector('input[id$="-TOTAL_FORMS"]'); 
 
-        addBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            
-            let formIdx = totalForms.value;
-            const emptyFormHtml = document.getElementById('empty-form').innerHTML;
-            
-            // Substitui o __prefix__ pelo índice numérico atual
-            const newFormHtml = emptyFormHtml.replace(/__prefix__/g, formIdx);
-            
-            const newDiv = document.createElement('div');
-            newDiv.innerHTML = newFormHtml;
-            container.appendChild(newDiv.firstElementChild);
-            
-            totalForms.value = parseInt(formIdx) + 1;
-        });
+        if (addBtn && container && totalForms) {
+            addBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                let formIdx = totalForms.value;
+                const emptyFormContent = document.getElementById('empty-form');
+                
+                if (!emptyFormContent) return;
+
+                // Clona o conteúdo do template vazio
+                const newDiv = document.createElement('div');
+                // Pega o HTML de dentro e substitui __prefix__ pelo número atual
+                newDiv.innerHTML = emptyFormContent.innerHTML.replace(/__prefix__/g, formIdx);
+                
+                // Adiciona ao container visualmente
+                // O .firstElementChild garante que não adicionamos divs "fantasmas" extras
+                const newRow = newDiv.firstElementChild;
+                container.appendChild(newRow);
+                
+                // Atualiza o contador de formulários do Django
+                totalForms.value = parseInt(formIdx) + 1;
+
+                const newMoneyInput = newRow.querySelector('.money-input');
+                if (newMoneyInput) {
+                    applyMoneyMask(newMoneyInput);
+                }
+            });
+        } else {
+            console.error("Erro: Botão adicionar ou ManagementForm não encontrados.");
+        }
     });
 </script>
 
