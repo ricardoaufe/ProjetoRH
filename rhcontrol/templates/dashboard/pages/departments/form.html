@@ -28,21 +28,16 @@
                         {{ hidden }}
                     {% endfor %}
 
-                    <div class="form-content" style="border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 4px; background-color: #f9f9f9;">
+                    <div class="form-content" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 4px; background-color: #f9f9f9;">
                         
-                        <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                            <div style="flex: 1;">
-                                {% include 'partials/form_field.html' with field=job_form.name label="Nome do Cargo" %}
-                            </div>
-                            <div style="flex: 1;">
-                                {% include 'partials/form_field.html' with field=job_form.base_salary label="Salário Base" is_money=True %}
-                            </div>
-                        </div>
+                        {% include 'partials/form_field.html' with field=job_form.name label="Nome do Cargo" grid_class="col-span-2" %}
                         
-                        {% include 'partials/form_field.html' with field=job_form.description label="Descrição do Cargo" %}
+                        {% include 'partials/form_field.html' with field=job_form.base_salary label="Salário Base" is_money=True grid_class="col-span-1" %}
+                        
+                        {% include 'partials/form_field.html' with field=job_form.description label="Descrição do Cargo" grid_class="col-span-8" %}
 
                         {% if formset.can_delete and job_form.instance.pk %}
-                            <div style="margin-top: 10px; color: #dc3545;">
+                            <div class="col-span-8" style="margin-top: -10px; color: #dc3545;">
                                 {{ job_form.DELETE }} <label for="{{ job_form.DELETE.id_for_label }}">Excluir este cargo</label>
                             </div>
                         {% endif %}
@@ -57,16 +52,14 @@
 
         <div id="empty-form" style="display:none;">
             <div class="job-title-row">
-                <div class="form-content" style="border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 4px; background-color: #f9f9f9;">
-                    <div style="display: flex; gap: 15px; flex-wrap: wrap;">
-                        <div style="flex: 1;">
-                            {% include 'partials/form_field.html' with field=formset.empty_form.name label="Nome do Cargo" %}
-                        </div>
-                        <div style="flex: 1;">
-                            {% include 'partials/form_field.html' with field=formset.empty_form.base_salary label="Salário Base" is_money=True %}
-                        </div>
-                    </div>
-                    {% include 'partials/form_field.html' with field=formset.empty_form.description label="Descrição do Cargo" %}
+                <div class="form-content" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 4px; background-color: #f9f9f9;">
+                    
+                    {% include 'partials/form_field.html' with field=formset.empty_form.name label="Nome do Cargo" grid_class="col-span-6" %}
+                    
+                    {% include 'partials/form_field.html' with field=formset.empty_form.base_salary label="Salário Base" is_money=True grid_class="col-span-2" %}
+                    
+                    {% include 'partials/form_field.html' with field=formset.empty_form.description label="Descrição do Cargo" grid_class="col-span-8" %}
+                
                 </div>
             </div>
         </div>

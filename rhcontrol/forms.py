@@ -1,3 +1,4 @@
+from decimal import Decimal
 from django import forms 
 from django.contrib.auth.models import User
 from rhcontrol.models import Employee, JobTitle, Training, Vacation, Department
@@ -26,6 +27,12 @@ class UserUpdateForm(forms.ModelForm):
         }
 
 class EmployeeForm(forms.ModelForm):
+    current_salary = forms.CharField(
+        label='Salário Atual',  
+        required=False, 
+        widget=forms.TextInput(attrs={'class': 'form-control money-input', 'placeholder': '0,00'})
+    )
+    
     change_date = forms.DateField(
         label="Data da Alteração (Histórico)", 
         required=False, 
@@ -60,20 +67,39 @@ class EmployeeForm(forms.ModelForm):
             'rne_issue_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'cipa_mandate_start_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'cipa_mandate_end_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
-            
             'department': forms.Select(attrs={'class': 'form-control'}),
             'job_title': forms.Select(attrs={'class': 'form-control'}),   
-
             'cpf': forms.TextInput(attrs={'placeholder': '000.000.000-00'}),
             'mobile_phone': forms.TextInput(attrs={'placeholder': '(00) 00000-0000'}),
             'emergency_phone': forms.TextInput(attrs={'placeholder': '(00) 00000-0000'}),
-            'zip_code': forms.TextInput(attrs={'placeholder': '00000-000'}),
-            'current_salary': forms.TextInput(attrs={'class': 'form-control money-input','placeholder': '0,00'}), 
-            'old_salary': forms.TextInput(attrs={'class': 'money-input', 'placeholder': '0,00'}),          
+            'zip_code': forms.TextInput(attrs={'placeholder': '00000-000'}),        
             }
+        
+    def clean_current_salary(self):
+        salary = self.cleaned_data.get('current_salary')
+        if not salary: return None
+        # Se vier texto (1.500,00), limpamos. Se vier número, passamos direto.
+        salary_str = str(salary).replace('.', '').replace(',', '.')
+        try:
+            return Decimal(salary_str)
+        except:
+            raise forms.ValidationError("Valor inválido")
+
+    def clean_old_salary(self):
+        salary = self.cleaned_data.get('old_salary')
+        if not salary: return None
+        salary_str = str(salary).replace('.', '').replace(',', '.')
+        try:
+            return Decimal(salary_str)
+        except:
+            raise forms.ValidationError("Valor inválido")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        if self.instance and self.instance.pk:
+            if self.instance.current_salary:
+                self.initial['current_salary'] = f'{self.instance.current_salary:.2f}'.replace('.', ',')
         
         if 'department' in self.data:
             try:
@@ -148,20 +174,47 @@ class DepartmentForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Descrição do Setor', 'rows': 3}),
         }
     
+class JobTitleForm(forms.ModelForm):
+    base_salary = forms.CharField(
+        label='Salário Base',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control money-input', 'placeholder': '0,00'})
+    )
+    class Meta:
+        model = JobTitle
+        fields = ['name', 'base_salary', 'description']
+        labels = {
+            'name': 'Nome do Cargo',
+            'base_salary': 'Salário Base',
+            'description': 'Descrição',
+        }
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Cargo'}),
+            'base_salary': forms.TextInput(attrs={'class': 'form-control money-input', 'placeholder': '0,00'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Descrição (Opcional)', 'rows': 1}),
+        }
+
+    # --- NOVO: Formata o valor inicial com vírgula ao carregar a página ---
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk and self.instance.base_salary:
+            self.initial['base_salary'] = f'{self.instance.base_salary:.2f}'.replace('.', ',')
+
+    def clean_base_salary(self):
+        salary = self.cleaned_data.get('base_salary')
+        if not salary: return None
+        if isinstance(salary, (float, int, Decimal)): return salary
+        
+        salary_str = str(salary).replace('.', '').replace(',', '.')
+        try:
+            return Decimal(salary_str)
+        except Exception:
+            raise forms.ValidationError("Valor inválido")
+        
 JobTitleFormSet = forms.inlineformset_factory(
     Department,
     JobTitle,
-    fields=['name', 'base_salary', 'description'],
+    form=JobTitleForm,
     extra=1,          
-    can_delete=True,  
-    labels={
-        'name': 'Nome do Cargo',
-        'base_salary': 'Salário Base',
-        'description': 'Descrição',
-    },
-    widgets={
-        'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Cargo'}),
-        'base_salary': forms.TextInput(attrs={'class': 'form-control money-input', 'placeholder': '0,00', }),
-        'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Descrição (Opcional)', 'rows': 1}),
-    }
+    can_delete=True
 )

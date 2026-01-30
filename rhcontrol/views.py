@@ -4,7 +4,7 @@ from django.urls import reverse
 from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department
 from django.db.models import Q 
 from django.core.paginator import Paginator
-from .forms import LoginForm, EmployeeForm, VacationForm, TrainingForm, UserUpdateForm, DepartmentForm, JobTitleFormSet
+from rhcontrol.forms import LoginForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import User
@@ -164,7 +164,20 @@ def employee_create(request):
         form = EmployeeForm(request.POST)
         
         if form.is_valid():
-            form.save()
+            employee = form.save()
+            
+            data_admissao = employee.hire_date if employee.hire_date else timezone.now().date()
+            
+            EmployeeHistory.objects.create(
+                employee=employee,
+                date_changed=data_admissao,
+                old_job_title=None,    # Admissão não tem cargo anterior
+                new_job_title=str(employee.job_title),
+                old_salary=None,       # Admissão não tem salário anterior
+                new_salary=employee.current_salary,
+                reason="Admissão"      # Motivo fixo
+            )
+
             messages.success(request, 'Funcionário cadastrado com sucesso!')
             return redirect('rhcontrol:employee_list') 
         else:
@@ -457,9 +470,9 @@ def department_create(request):
     if request.method == 'POST':
         form = DepartmentForm(request.POST)
         formset = JobTitleFormSet(request.POST)
-        if form.is_valid():
-            department = form.save()
 
+        if form.is_valid() and formset.is_valid():
+            department = form.save()
             formset.instance = department 
             formset.save()
 

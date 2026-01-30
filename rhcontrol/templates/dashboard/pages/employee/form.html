@@ -323,35 +323,55 @@
                     <ul class="history-list">
                         {% for h in history_log %}
                             <li class="history-item" style="position: relative;">
+                                
                                 <button type="button" 
                                         onclick="openDeleteModal('{% url 'rhcontrol:history_delete' pk=h.pk %}')"
                                         style="position: absolute; top: 10px; right: 10px; border: none; background: none; color: #dc3545; cursor: pointer; font-size: 1.2rem;">
                                     <i class="fa fa-times"></i>
                                 </button>
 
-                                <small>{{ h.date_changed|date:"d F Y" }}</small>
+                                <div style="font-size: 1.4rem; font-weight: 800; color: #6c757d; margin-bottom: 8px; letter-spacing: 0.5px;">
+                                    {{ h.date_changed|date:"d F Y"|upper }}
+                                </div>
 
                                 {% if h.reason %}
-                                    <span style="display:inline-block; background:#e9ecef; padding:2px 8px; border-radius:4px; font-size:1.2rem; margin-bottom:5px; font-weight:bold;">
-                                        {{ h.reason }}
-                                    </span>
-                                {% endif %}
-
-                                {% if h.old_job_title != h.new_job_title %}
-                                    <div style="margin-bottom:4px;">
-                                        Cargo: <span style="color:#666;">{{ h.old_job_title }}</span> ➝ <strong>{{ h.new_job_title }}</strong>
+                                    <div style="margin-bottom: 12px;">
+                                        <span style="display:inline-block; background:#e9ecef; color: #495057; padding: 6px 12px; border-radius: 6px; font-size: 1.2rem; font-weight: 700;">
+                                            {{ h.reason }}
+                                        </span>
                                     </div>
                                 {% endif %}
-                                {% if h.old_salary %}
-                                    <div>
-                                        Salário: <span style="color:#666;">R$ {{ h.old_salary }}</span> ➝ <strong style="color:#198754;">R$ {{ h.new_salary }}</strong>
+
+                                {% if h.new_job_title %}
+                                    <div style="margin-bottom: 6px; font-size: 1.6rem;">
+                                        Cargo: 
+                                        {% if h.old_job_title and h.old_job_title != "None" %}
+                                            <span style="color:#666;">{{ h.old_job_title }}</span> 
+                                            <i class="fa fa-arrow-right" style="font-size: 0.8em; margin: 0 5px; color: #adb5bd;"></i>
+                                        {% endif %}
+                                        
+                                        <strong style="color: #0d6efd;">{{ h.new_job_title }}</strong>
+                                    </div>
+                                {% endif %}
+
+                                {% if h.new_salary %}
+                                    <div style="font-size: 1.6rem;">
+                                        Salário: 
+                                        {% if h.old_salary %}
+                                            <span style="color:#666;">R$ {{ h.old_salary|floatformat:2 }}</span> 
+                                            <i class="fa fa-arrow-right" style="font-size: 0.8em; margin: 0 5px; color: #adb5bd;"></i>
+                                        {% endif %}
+                                        
+                                        <strong style="color:#198754;">R$ {{ h.new_salary|floatformat:2 }}</strong>
                                     </div>
                                 {% endif %}
                             </li>
                         {% empty %}
-                            <li class="history-empty">Nenhuma alteração registrada.</li>
+                            <li class="history-empty" style="padding: 20px; text-align: center; color: #999;">
+                                Nenhuma alteração registrada.
+                            </li>
                         {% endfor %}
-                    </ul>
+                </ul>
                 </div>
             </div>
 
