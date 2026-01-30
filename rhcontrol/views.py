@@ -4,7 +4,7 @@ from django.urls import reverse
 from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department
 from django.db.models import Q 
 from django.core.paginator import Paginator
-from rhcontrol.forms import LoginForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet
+from rhcontrol.forms import DependentFormSet, LoginForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import User
@@ -162,12 +162,15 @@ def employee_view(request):
 def employee_create(request):
     if request.method == 'POST':
         form = EmployeeForm(request.POST)
+        formset = DependentFormSet(request.POST)
         
-        if form.is_valid():
+        if form.is_valid() and formset.is_valid():
             employee = form.save()
+
+            formset.instance = employee
+            formset.save()
             
             data_admissao = employee.hire_date if employee.hire_date else timezone.now().date()
-            
             EmployeeHistory.objects.create(
                 employee=employee,
                 date_changed=data_admissao,
@@ -185,9 +188,10 @@ def employee_create(request):
     
     else:
         form = EmployeeForm()
-
+        formset = DependentFormSet()
     return render(request, 'dashboard/pages/employee/form.html', {
         'form': form,
+        'dependent_formset': formset,
         'title': 'Cadastrar Funcionário'
     })
 
@@ -199,17 +203,18 @@ def employee_update(request, pk):
     old_salary = employee.current_salary
 
     form = EmployeeForm(request.POST or None, instance=employee)
+    formset = DependentFormSet(request.POST or None, instance=employee)
 
-    if form.is_valid():
-        # save(commit=False) cria o objeto na memória mas não no banco ainda
+    if form.is_valid() and formset.is_valid():
         new_employee = form.save(commit=False)
+
+        new_employee.save()
+        formset.save()
         
-        # 2. Detectar Mudanças
         has_job_change = str(old_job) != str(new_employee.job_title)
         has_salary_change = old_salary != new_employee.current_salary
         
         if has_job_change or has_salary_change:
-            # Pegamos os dados extras do formulário
             custom_date = form.cleaned_data.get('change_date')
             custom_reason = form.cleaned_data.get('change_reason')
             
@@ -249,6 +254,7 @@ def employee_update(request, pk):
 
     return render(request, 'dashboard/pages/employee/form.html', {
         'form': form,
+        'dependent_formset': formset,
         'title': 'Editar Funcionário',
         'history_enabled': True,
         'trainings': attended.distinct().order_by('-training_date'),

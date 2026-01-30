@@ -114,6 +114,10 @@
     }
     .btn-icon-delete:hover { color: #a71d2a; transform: scale(1.1); }
 
+    .dep-title {
+        font-size: 1.4rem;
+    }
+
     @keyframes zoomIn {
         from { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
         to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
@@ -175,6 +179,80 @@
             {% include 'partials/form_field.html' with field=form.state_code grid_class="col-span-1" %}
             
             <h3 class="section-title">Dependentes</h3>
+
+                {% include 'partials/form_field.html' with field=form.has_dependents grid_class="col-span-3" %}
+                <div class="col-span-5"></div>
+
+                <div id="dependents-container" class="hidden col-span-8">
+                    <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6;">
+                        
+                        {{ dependent_formset.management_form }}
+
+                        <div id="dependents-list">
+                            {% for dep_form in dependent_formset %}
+                                <div class="dependent-row" style="margin-bottom: 20px;">
+                                    
+                                    <h4 class="dep-title" style="color: #6c757d; margin-bottom: 10px; font-weight: bold;">
+                                        <i class="fa fa-user"></i> Dependente <span class="dep-number-js">{{ forloop.counter }}</span>
+                                    </h4>
+
+                                    {% for hidden in dep_form.hidden_fields %}
+                                        {{ hidden }}
+                                    {% endfor %}
+
+                                    <div style="display: none;">
+                                        {{ dep_form.DELETE }}
+                                    </div>
+
+                                    <div class="form-content" style="position: relative; display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 4px; background-color: #fff;">
+                                        
+                                        <button type="button" class="remove-dep-btn" style="position: absolute; top: 10px; right: 10px; border: none; background: transparent; color: #dc3545; font-size: 1.2rem; cursor: pointer; z-index: 10;">
+                                            <i class="fa fa-times"></i>
+                                        </button>
+
+                                        {% include 'partials/form_field.html' with field=dep_form.name label="Nome Completo" grid_class="col-span-4" %}
+                                        {% include 'partials/form_field.html' with field=dep_form.cpf label="CPF" grid_class="col-span-2" %}
+                                        {% include 'partials/form_field.html' with field=dep_form.birth_date label="Data Nasc." grid_class="col-span-2" %}
+                                        
+                                        {% include 'partials/form_field.html' with field=dep_form.relationship_type label="Vínculo" grid_class="col-span-3" %}
+                                        {% include 'partials/form_field.html' with field=dep_form.has_disability grid_class="col-span-5" %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <button type="button" id="add-dependent-btn" style="background-color: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer;">
+                            + Adicionar Dependente
+                        </button>
+                    </div>
+                </div>
+
+                <div id="empty-dependent-form" style="display:none;">
+                    <div class="dependent-row" style="margin-bottom: 20px;">
+                        
+                        <h4 class="dep-title" style="color: #6c757d; margin-bottom: 10px; font-weight: bold;">
+                            <i class="fa fa-user"></i> Dependente <span class="dep-number-js"></span>
+                        </h4>
+
+                        <div style="display: none;">
+                            <input type="checkbox" name="dependents-__prefix__-DELETE" id="id_dependents-__prefix__-DELETE">
+                        </div>
+
+                        <div class="form-content" style="position: relative; display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 4px; background-color: #fff;">
+                            
+                            <button type="button" class="remove-dep-btn" data-new="true" style="position: absolute; top: 10px; right: 10px; border: none; background: transparent; color: #dc3545; font-size: 1.2rem; cursor: pointer; z-index: 10;">
+                                <i class="fa fa-times"></i>
+                            </button>
+
+                            {% include 'partials/form_field.html' with field=dependent_formset.empty_form.name label="Nome Completo" grid_class="col-span-4" %}
+                            {% include 'partials/form_field.html' with field=dependent_formset.empty_form.cpf label="CPF" grid_class="col-span-2" %}
+                            {% include 'partials/form_field.html' with field=dependent_formset.empty_form.birth_date label="Data Nasc." grid_class="col-span-2" %}
+                            
+                            {% include 'partials/form_field.html' with field=dependent_formset.empty_form.relationship_type label="Vínculo" grid_class="col-span-3" %}
+                            {% include 'partials/form_field.html' with field=dependent_formset.empty_form.has_disability grid_class="col-span-5" %}
+                        </div>
+                    </div>
+                </div>
 
             <h3 class="section-title">Dados Bancários</h3>
 
@@ -413,132 +491,57 @@
     document.addEventListener('DOMContentLoaded', function() {
         console.log("Script carregado e IMask iniciado!");
 
-        const departmentSelect = document.getElementById('id_department');
-        const jobTitleSelect = document.getElementById('id_job_title');
+        // --- FUNÇÃO REUTILIZÁVEL PARA APLICAR MÁSCARA DE CPF ---
+        function applyCpfMask(element) {
+            try {
+                if (element) {
+                    // Remove máscara anterior se existir para evitar conflitos
+                    if (element.mask) element.mask.destroy();
+                    IMask(element, { mask: '000.000.000-00' });
+                }
+            } catch (e) {
+                console.error("Erro ao aplicar máscara CPF:", e);
+            }
+        }
+
+        // --- 1. APLICAÇÃO DAS MÁSCARAS NO CARREGAMENTO ---
+        
+        // Dinheiro (Salário)
         const salaryInput = document.getElementById('id_current_salary');
-        const formElement = document.getElementById('employeeForm');
+        if (salaryInput) {
+            IMask(salaryInput, {
+                mask: Number,
+                scale: 2,
+                signed: false,
+                thousandsSeparator: '.',
+                padFractionalZeros: true,
+                normalizeZeros: true,
+                radix: ',',
+                mapToRadix: ['.'],
+                min: 0,
+                max: 9999999999.99
+            });
+        }
 
-        const moneyInputs = document.querySelectorAll('.money-input');
-        moneyInputs.forEach(input => {
-            // Força bruta: Transforma o campo em TEXTO.
-            // O navegador para de validar decimais imediatamente.
-            input.setAttribute('type', 'text'); 
-        });
+        // CPF (Funcionário + Dependentes Iniciais)
+        // Seleciona tudo que tem a classe .cpf-input
+        const allCpfInputs = document.querySelectorAll('.cpf-input');
+        allCpfInputs.forEach(input => applyCpfMask(input));
 
-        // --- 1. APLICAÇÃO DAS MÁSCARAS ---
-        try {
-            // Dinheiro (Salário)
-            if (salaryInput) {
-                // Remove máscaras anteriores para evitar duplicação
-                if (salaryInput.mask) salaryInput.mask.destroy();
-                
-                IMask(salaryInput, {
-                    mask: Number,
-                    scale: 2,
-                    signed: false,
-                    thousandsSeparator: '.',  // Ponto para milhar
-                    padFractionalZeros: true, // Sempre ,00
-                    normalizeZeros: true,
-                    radix: ',',  // Vírgula decimal
-                    mapToRadix: ['.'], // Se digitar ponto, vira vírgula
-                    min: 0,
-                    max: 9999999999.99
+        // Celular
+        const phoneIds = ['id_mobile_phone', 'id_emergency_phone'];
+        phoneIds.forEach(function(id) {
+            const phoneInput = document.getElementById(id);
+            if (phoneInput) {
+                IMask(phoneInput, {
+                    mask: [
+                        { mask: '(00) 0000-0000' },   // Fixo
+                        { mask: '(00) 00000-0000' }   // Celular
+                    ]
                 });
             }
+        });
 
-            // CPF
-            const cpfInput = document.getElementById('id_cpf');
-            if (cpfInput) IMask(cpfInput, { mask: '000.000.000-00' });
-
-            // Celular
-            const phoneIds = ['id_mobile_phone', 'id_emergency_phone'];
-
-            phoneIds.forEach(function(id) {
-                const phoneInput = document.getElementById(id);
-                if (phoneInput) {
-                    IMask(phoneInput, {
-                        mask: [
-                            { mask: '(00) 0000-0000' },   // Fixo
-                            { mask: '(00) 00000-0000' }   // Celular
-                        ]
-                    });
-                }
-            });
-
-            // CEP
-            const zipInput = document.getElementById('id_zip_code');
-            if (zipInput) IMask(zipInput, { mask: '00000-000' });
-
-        } catch (e) {
-            console.error("Erro no IMask:", e);
-        }
-
-        // --- 2. LÓGICA DE CARGOS E SALÁRIO (AJAX) ---
-        if (formElement) {
-            const url = formElement.getAttribute('data-jobs-url');
-
-            // Mudança de Setor
-            departmentSelect.addEventListener('change', function() {
-                const departmentId = this.value;
-                if(salaryInput) salaryInput.value = ''; // Limpa salário
-
-                if (!departmentId) {
-                    jobTitleSelect.innerHTML = '<option value="">---------</option>';
-                    return;
-                }
-
-                fetch(`${url}?department_id=${departmentId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        jobTitleSelect.innerHTML = '<option value="">---------</option>';
-                        data.forEach(job => {
-                            const option = document.createElement('option');
-                            option.value = job.id;
-                            option.textContent = job.name;
-                            // Guarda o valor cru (ex: 2500.00) no atributo data-salary
-                            const salario = job.base_salary ? job.base_salary : (job.salary ? job.salary : '');
-                            option.setAttribute('data-salary', salario);
-                            jobTitleSelect.appendChild(option);
-                        });
-                    });
-            });
-
-            // Mudança de Cargo (CORREÇÃO DE PONTO VIRAR VÍRGULA)
-            jobTitleSelect.addEventListener('change', function() {
-                const selectedOption = this.options[this.selectedIndex];
-                let baseSalary = selectedOption.getAttribute('data-salary'); // Vem como "2500.00"
-                
-                if (baseSalary && salaryInput) {
-                    // Transforma "2500.00" em "2500,00" ANTES de jogar no input
-                    let salarioFormatado = baseSalary.toString().replace('.', ',');
-                    
-                    salaryInput.value = salarioFormatado;
-                    
-                    // Dispara evento para o IMask reconhecer e formatar o milhar (2.500,00)
-                    salaryInput.dispatchEvent(new Event('input'));
-                }
-            });
-            
-            // Inicialização na Edição (Preenche data-salary nos campos já carregados)
-            const initialDept = departmentSelect.value;
-            if (initialDept) {
-                fetch(`${url}?department_id=${initialDept}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(job => {
-                            for (let i = 0; i < jobTitleSelect.options.length; i++) {
-                                if (jobTitleSelect.options[i].value == job.id) {
-                                    const salario = job.base_salary ? job.base_salary : (job.salary ? job.salary : '');
-                                    jobTitleSelect.options[i].setAttribute('data-salary', salario);
-                                    break;
-                                }
-                            }
-                        });
-                    });
-            }
-        }
-
-        // --- 3. TOGGLES DE EXIBIÇÃO ---
         function setupToggle(checkboxId, containerId) {
             const checkbox = document.getElementById(checkboxId);
             const container = document.getElementById(containerId);
@@ -555,9 +558,86 @@
         setupToggle('id_is_foreign', 'foreign-container');
         setupToggle('id_is_pcd', 'pcd-container');
         setupToggle('id_is_cipa_member', 'cipa-container');
+        setupToggle('id_has_dependents', 'dependents-container');
+
+        const addDepBtn = document.getElementById('add-dependent-btn');
+        const depContainer = document.getElementById('dependents-list');
+        const totalDepForms = document.querySelector('input[name="dependents-TOTAL_FORMS"]');
+
+        if (addDepBtn && depContainer && totalDepForms) {
+            
+            function updateNumbers() {
+                const visibleRows = depContainer.querySelectorAll('.dependent-row');
+                let counter = 1;
+                
+                visibleRows.forEach(row => {
+                    if (row.style.display !== 'none') {
+                        const numberSpan = row.querySelector('.dep-number-js');
+                        if (numberSpan) {
+                            numberSpan.textContent = counter;
+                        }
+                        counter++;
+                    }
+                });
+            }
+
+            addDepBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                let formIdx = totalDepForms.value;
+                const emptyFormContent = document.getElementById('empty-dependent-form');
+                
+                if (!emptyFormContent) return;
+
+                const newDiv = document.createElement('div');
+                newDiv.innerHTML = emptyFormContent.innerHTML.replace(/__prefix__/g, formIdx);
+                
+                const newRow = newDiv.firstElementChild;
+                depContainer.appendChild(newRow);
+                totalDepForms.value = parseInt(formIdx) + 1;
+
+                const newCpfInput = newRow.querySelector('.cpf-input');
+                if (newCpfInput) {
+                    try { IMask(newCpfInput, { mask: '000.000.000-00' }); } catch(e){}
+                } else {
+                    const inputs = newRow.querySelectorAll('input');
+                    inputs.forEach(inp => {
+                        if (inp.id && inp.id.includes('cpf')) {
+                            try { IMask(inp, { mask: '000.000.000-00' }); } catch(e){}
+                        }
+                    });
+                }
+
+                updateNumbers();
+            });
+
+            depContainer.addEventListener('click', function(e) {
+                const btn = e.target.closest('.remove-dep-btn');
+                
+                if (btn) {
+                    e.preventDefault();
+                    const row = btn.closest('.dependent-row');
+                    
+                    if (btn.dataset.new === "true") {
+                        row.remove(); 
+                    } else {
+                        const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                        if (deleteCheckbox) {
+                            deleteCheckbox.checked = true;
+                            row.style.display = 'none'; 
+                        } else {
+                            row.style.display = 'none';
+                        }
+                    }
+                    
+                    updateNumbers();
+                }
+            });
+
+            updateNumbers();
+        }
     });
 
-    // --- FUNÇÕES DO MODAL (Escopo Global) ---
     function openDeleteModal(deleteUrl) {
         const dialog = document.getElementById('deleteModal');
         const confirmBtn = document.getElementById('btnConfirmDelete');
@@ -570,10 +650,15 @@
         const dialog = document.getElementById('deleteModal');
         if (dialog) dialog.close();
     }
+
+
 </script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+
+        const zipInput = document.getElementById('id_zip_code');
+        if (zipInput) IMask(zipInput, { mask: '00000-000' });
         
         // Mapeamento dos IDs do seu formulário
         const cepInput = document.getElementById('id_zip_code');

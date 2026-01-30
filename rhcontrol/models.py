@@ -74,7 +74,26 @@ class EmployeeHistory(models.Model):
 
     def __str__(self):
         return f"Histórico de {self.employee.name} - {self.date_changed}"
+    
+class Dependent(models.Model):
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='dependents')
+    name = models.CharField(max_length=100, verbose_name="Nome Completo")
+    cpf = models.CharField(max_length=14, unique=True, verbose_name="CPF")
+    birth_date = models.DateField(verbose_name="Data de Nascimento")
 
+    TYPE_CHOICES = [
+        ('Filho(a)', 'Filho(a)'),
+        ('Cônjuge', 'Cônjuge'),
+        ('Pai/Mãe', 'Pai/Mãe'),
+        ('Irmão(ã)', 'Irmão(ã)'),
+        ('Outro', 'Outro'),
+    ]
+    relationship_type = models.CharField(max_length=10, choices=TYPE_CHOICES, verbose_name="Parentesco")
+    has_disability = models.BooleanField(default=False, verbose_name="Possui Deficiência")
+
+    def __str__(self):
+        return self.name
+    
 class Employee(models.Model):
     name = models.CharField(max_length=100, verbose_name="Nome")
     cpf = models.CharField(max_length=14, unique=True, verbose_name="CPF")
@@ -179,6 +198,7 @@ class Employee(models.Model):
         ('Múltipla', 'Múltipla'),
     ]
     disability_type = models.CharField(max_length=50, choices=TIPO_DEFICIENCIA_CHOICES, blank=True, null=True, verbose_name="Tipo de Deficiência") 
+    has_dependents = models.BooleanField(default=False, verbose_name="Possui Dependentes")
 
     # DADOS DE CONTATO
     address = models.CharField(max_length=200, blank=True, null=True, verbose_name="Endereço") 

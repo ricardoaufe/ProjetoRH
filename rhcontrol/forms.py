@@ -1,7 +1,7 @@
 from decimal import Decimal
 from django import forms 
 from django.contrib.auth.models import User
-from rhcontrol.models import Employee, JobTitle, Training, Vacation, Department
+from rhcontrol.models import Dependent, Employee, JobTitle, Training, Vacation, Department
 
 class LoginForm(forms.Form):
     email = forms.CharField(label='Usuário ou Email', max_length=100, widget=forms.TextInput(attrs={
@@ -118,6 +118,26 @@ class EmployeeForm(forms.ModelForm):
                     'class': 'form-control',
                     'type': 'date'
                 })
+
+class DependentForm(forms.ModelForm):
+    class Meta:
+        model = Dependent
+        fields = ['name', 'cpf', 'birth_date', 'relationship_type', 'has_disability']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome Completo'}),
+            'cpf': forms.TextInput(attrs={'class': 'form-control cpf-input', 'placeholder': '000.000.000-00'}),
+            'birth_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
+            'relationship_type': forms.Select(attrs={'class': 'form-control form-select'}),
+        }
+
+DependentFormSet = forms.inlineformset_factory(
+    Employee,
+    Dependent,
+    form=DependentForm,
+    extra=1,
+    can_delete=True
+)
+        
 
 
 class VacationForm(forms.ModelForm):
