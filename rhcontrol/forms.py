@@ -26,6 +26,27 @@ class UserUpdateForm(forms.ModelForm):
             'username': forms.TextInput(attrs={'class': 'form-control', 'readonly': 'readonly'}), 
         }
 
+def validate_cpf(cpf):
+    if not cpf: return True 
+
+    clean_cpf = ''.join([c for c in cpf if c.isdigit()])
+
+    if len(clean_cpf) != 11: return False
+
+    if clean_cpf == clean_cpf[0] * 11: return False
+
+    add = sum(int(clean_cpf[i]) * (10 - i) for i in range(9))
+    rest = (add * 10) % 11
+    if rest == 10: rest = 0
+    if rest != int(clean_cpf[9]): return False
+
+    add = sum(int(clean_cpf[i]) * (11 - i) for i in range(10))
+    rest = (add * 10) % 11
+    if rest == 10: rest = 0
+    if rest != int(clean_cpf[10]): return False
+
+    return True
+
 class EmployeeForm(forms.ModelForm):
     current_salary = forms.CharField(
         label='Salário Atual',  
@@ -56,6 +77,8 @@ class EmployeeForm(forms.ModelForm):
         model = Employee
         fields = '__all__'
         widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control uppercase-input'}),
+            'mother_name': forms.TextInput(attrs={'class': 'form-control uppercase-input'}),
             'birth_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'hire_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'rg_issue_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
@@ -69,11 +92,29 @@ class EmployeeForm(forms.ModelForm):
             'cipa_mandate_end_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'department': forms.Select(attrs={'class': 'form-control'}),
             'job_title': forms.Select(attrs={'class': 'form-control'}),   
-            'cpf': forms.TextInput(attrs={'placeholder': '000.000.000-00'}),
-            'mobile_phone': forms.TextInput(attrs={'placeholder': '(00) 00000-0000'}),
-            'emergency_phone': forms.TextInput(attrs={'placeholder': '(00) 00000-0000'}),
-            'zip_code': forms.TextInput(attrs={'placeholder': '00000-000'}),        
+            'cpf': forms.TextInput(attrs={'class': 'form-control cpf-input', 'placeholder': '000.000.000-00'}),
+            'mobile_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
+            'emergency_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
+            'zip_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00000-000'}),        
             }
+        
+    def clean_cpf(self):
+        cpf = self.cleaned_data.get('cpf')
+        if not validate_cpf(cpf):
+            raise forms.ValidationError("CPF Inválido ou Inexistente.")
+        return cpf
+    
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if name:
+            return name.upper()
+        return name
+
+    def clean_mother_name(self):
+        mother_name = self.cleaned_data.get('mother_name')
+        if mother_name:
+            return mother_name.upper()
+        return mother_name
         
     def clean_current_salary(self):
         salary = self.cleaned_data.get('current_salary')
@@ -124,11 +165,22 @@ class DependentForm(forms.ModelForm):
         model = Dependent
         fields = ['name', 'cpf', 'birth_date', 'relationship_type', 'has_disability']
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome Completo'}),
-            'cpf': forms.TextInput(attrs={'class': 'form-control cpf-input', 'placeholder': '000.000.000-00'}),
+            'name': forms.TextInput(attrs={'class': 'form-control uppercase-input', 'placeholder': 'Nome Completo'}),
+            'cpf': forms.TextInput(attrs={'class': 'form-control cpf-input cpf-input', 'placeholder': '000.000.000-00'}),
             'birth_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             'relationship_type': forms.Select(attrs={'class': 'form-control form-select'}),
         }
+    def clean_name(self):
+        name = self.cleaned_data.get('name')
+        if name:
+            return name.upper()
+        return name
+    
+    def clean_cpf(self):
+        cpf = self.cleaned_data.get('cpf')
+        if not validate_cpf(cpf):
+            raise forms.ValidationError("CPF Inválido ou Inexistente.")
+        return cpf
 
 DependentFormSet = forms.inlineformset_factory(
     Employee,

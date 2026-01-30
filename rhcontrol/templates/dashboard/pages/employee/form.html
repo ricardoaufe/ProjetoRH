@@ -487,66 +487,95 @@
         </div>
     </dialog>
 <script src="https://unpkg.com/imask"></script>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        console.log("Script carregado e IMask iniciado!");
+        console.log("Sistema RH: Scripts carregados.");
+        // CPF Validation Function
+        function isValidCPF(cpf) {
+            cpf = cpf.replace(/[^\d]+/g, ''); 
+            if (cpf == '') return false;
 
-        // --- FUNÇÃO REUTILIZÁVEL PARA APLICAR MÁSCARA DE CPF ---
-        function applyCpfMask(element) {
-            try {
-                if (element) {
-                    // Remove máscara anterior se existir para evitar conflitos
-                    if (element.mask) element.mask.destroy();
-                    IMask(element, { mask: '000.000.000-00' });
-                }
-            } catch (e) {
-                console.error("Erro ao aplicar máscara CPF:", e);
-            }
+            if (cpf.length != 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+
+            let add = 0;
+            for (let i=0; i < 9; i ++) add += parseInt(cpf.charAt(i)) * (10 - i);
+            let rev = 11 - (add % 11);
+            if (rev == 10 || rev == 11) rev = 0;
+            if (rev != parseInt(cpf.charAt(9))) return false;
+
+            add = 0;
+            for (let i = 0; i < 10; i ++) add += parseInt(cpf.charAt(i)) * (11 - i);
+            rev = 11 - (add % 11);
+            if (rev == 10 || rev == 11) rev = 0;
+            if (rev != parseInt(cpf.charAt(10))) return false;
+            
+            return true;
         }
 
-        // --- 1. APLICAÇÃO DAS MÁSCARAS NO CARREGAMENTO ---
-        
-        // Dinheiro (Salário)
-        const salaryInput = document.getElementById('id_current_salary');
-        if (salaryInput) {
-            IMask(salaryInput, {
-                mask: Number,
-                scale: 2,
-                signed: false,
-                thousandsSeparator: '.',
-                padFractionalZeros: true,
-                normalizeZeros: true,
-                radix: ',',
-                mapToRadix: ['.'],
-                min: 0,
-                max: 9999999999.99
+        function setupFields(context) {
+            const upperInputs = context.querySelectorAll('.uppercase-input');
+            upperInputs.forEach(input => {
+                input.style.textTransform = 'uppercase'; 
+                input.addEventListener('input', function() {
+                    let start = this.selectionStart; 
+                    this.value = this.value.toUpperCase();
+                    this.setSelectionRange(start, start);
+                });
+            });
+
+            const cpfInputs = context.querySelectorAll('.cpf-input');
+            cpfInputs.forEach(input => {
+                try { if (!input.mask) IMask(input, { mask: '000.000.000-00' }); } catch(e){}
+
+                input.addEventListener('blur', function() {
+                    const errorContainer = this.parentNode.querySelector('.js-error-msg');
+                    const value = this.value;
+
+                    if (value.length > 0) {
+                        if (!isValidCPF(value)) {
+                            this.style.borderColor = '#dc3545';
+                            if(errorContainer) {
+                                errorContainer.innerHTML = '<i class="fa fa-times-circle"></i> CPF Inválido.';
+                                errorContainer.style.display = 'flex'; 
+                            }
+                        } else {
+                            this.style.borderColor = '#ced4da'; 
+                            if(errorContainer) errorContainer.style.display = 'none';
+                        }
+                    } else {
+                        this.style.borderColor = '#ced4da';
+                        if(errorContainer) errorContainer.style.display = 'none';
+                    }
+                });
+
+                input.addEventListener('input', function() {
+                    this.style.borderColor = '#ced4da';
+                    const errorContainer = this.parentNode.querySelector('.js-error-msg');
+                    if(errorContainer) errorContainer.style.display = 'none';
+                });
+            });
+
+            const phoneInputs = context.querySelectorAll('[id*="phone"]');
+            phoneInputs.forEach(input => {
+                 try { IMask(input, { mask: [{ mask: '(00) 0000-0000' }, { mask: '(00) 00000-0000' }] }); } catch(e){}
             });
         }
 
-        // CPF (Funcionário + Dependentes Iniciais)
-        // Seleciona tudo que tem a classe .cpf-input
-        const allCpfInputs = document.querySelectorAll('.cpf-input');
-        allCpfInputs.forEach(input => applyCpfMask(input));
+        setupFields(document);
 
-        // Celular
-        const phoneIds = ['id_mobile_phone', 'id_emergency_phone'];
-        phoneIds.forEach(function(id) {
-            const phoneInput = document.getElementById(id);
-            if (phoneInput) {
-                IMask(phoneInput, {
-                    mask: [
-                        { mask: '(00) 0000-0000' },   // Fixo
-                        { mask: '(00) 00000-0000' }   // Celular
-                    ]
-                });
-            }
-        });
+        const salaryInput = document.getElementById('id_current_salary');
+        if (salaryInput) {
+            IMask(salaryInput, {
+                mask: Number, scale: 2, signed: false, thousandsSeparator: '.', padFractionalZeros: true,
+                normalizeZeros: true, radix: ',', mapToRadix: ['.'], min: 0, max: 9999999999.99
+            });
+        }
 
         function setupToggle(checkboxId, containerId) {
             const checkbox = document.getElementById(checkboxId);
             const container = document.getElementById(containerId);
             if (!checkbox || !container) return;
-
             function toggleVisibility() {
                 if (checkbox.checked) container.classList.remove('hidden');
                 else container.classList.add('hidden');
@@ -554,7 +583,6 @@
             checkbox.addEventListener('change', toggleVisibility);
             toggleVisibility();
         }
-
         setupToggle('id_is_foreign', 'foreign-container');
         setupToggle('id_is_pcd', 'pcd-container');
         setupToggle('id_is_cipa_member', 'cipa-container');
@@ -569,13 +597,10 @@
             function updateNumbers() {
                 const visibleRows = depContainer.querySelectorAll('.dependent-row');
                 let counter = 1;
-                
                 visibleRows.forEach(row => {
                     if (row.style.display !== 'none') {
                         const numberSpan = row.querySelector('.dep-number-js');
-                        if (numberSpan) {
-                            numberSpan.textContent = counter;
-                        }
+                        if (numberSpan) numberSpan.textContent = counter;
                         counter++;
                     }
                 });
@@ -583,53 +608,34 @@
 
             addDepBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                
                 let formIdx = totalDepForms.value;
                 const emptyFormContent = document.getElementById('empty-dependent-form');
-                
                 if (!emptyFormContent) return;
 
                 const newDiv = document.createElement('div');
                 newDiv.innerHTML = emptyFormContent.innerHTML.replace(/__prefix__/g, formIdx);
-                
                 const newRow = newDiv.firstElementChild;
                 depContainer.appendChild(newRow);
                 totalDepForms.value = parseInt(formIdx) + 1;
 
-                const newCpfInput = newRow.querySelector('.cpf-input');
-                if (newCpfInput) {
-                    try { IMask(newCpfInput, { mask: '000.000.000-00' }); } catch(e){}
-                } else {
-                    const inputs = newRow.querySelectorAll('input');
-                    inputs.forEach(inp => {
-                        if (inp.id && inp.id.includes('cpf')) {
-                            try { IMask(inp, { mask: '000.000.000-00' }); } catch(e){}
-                        }
-                    });
-                }
+                setupFields(newRow);
 
                 updateNumbers();
             });
 
             depContainer.addEventListener('click', function(e) {
                 const btn = e.target.closest('.remove-dep-btn');
-                
                 if (btn) {
                     e.preventDefault();
                     const row = btn.closest('.dependent-row');
-                    
                     if (btn.dataset.new === "true") {
                         row.remove(); 
                     } else {
+
                         const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
-                        if (deleteCheckbox) {
-                            deleteCheckbox.checked = true;
-                            row.style.display = 'none'; 
-                        } else {
-                            row.style.display = 'none';
-                        }
+                        if (deleteCheckbox) deleteCheckbox.checked = true;
+                        row.style.display = 'none';
                     }
-                    
                     updateNumbers();
                 }
             });
@@ -650,24 +656,38 @@
         const dialog = document.getElementById('deleteModal');
         if (dialog) dialog.close();
     }
-
-
 </script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-
-        const zipInput = document.getElementById('id_zip_code');
-        if (zipInput) IMask(zipInput, { mask: '00000-000' });
         
-        // Mapeamento dos IDs do seu formulário
         const cepInput = document.getElementById('id_zip_code');
         const ruaInput = document.getElementById('id_address');
         const bairroInput = document.getElementById('id_neighborhood');
         const cidadeInput = document.getElementById('id_city');
         const ufInput = document.getElementById('id_state_code');
         
-        // Função para limpar os campos caso o CEP seja inválido
+        // Aplica máscara no CEP
+        if (cepInput) IMask(cepInput, { mask: '00000-000' });
+
+        // Função auxiliar para mostrar erro no CEP sem usar alert
+        function showCepError(msg) {
+            if (!cepInput) return;
+            cepInput.style.borderColor = '#dc3545';
+            const errorContainer = cepInput.parentNode.querySelector('.js-error-msg');
+            if (errorContainer) {
+                errorContainer.innerHTML = `<i class="fa fa-times-circle"></i> ${msg}`;
+                errorContainer.style.display = 'flex'; // ou block
+            }
+        }
+
+        function clearCepError() {
+            if (!cepInput) return;
+            cepInput.style.borderColor = '#ced4da';
+            const errorContainer = cepInput.parentNode.querySelector('.js-error-msg');
+            if (errorContainer) errorContainer.style.display = 'none';
+        }
+
         function limparFormulario() {
             if(ruaInput) ruaInput.value = "";
             if(bairroInput) bairroInput.value = "";
@@ -676,59 +696,52 @@
         }
 
         if (cepInput) {
-            // Evento "blur" dispara quando o usuário clica fora do campo
+            // Limpa erro ao digitar
+            cepInput.addEventListener('input', clearCepError);
+
             cepInput.addEventListener('blur', function() {
-                
-                // Remove tudo que não é número para validar
                 const cep = this.value.replace(/\D/g, '');
 
                 if (cep !== "") {
-                    // Validação simples de formato (8 dígitos)
                     const validacep = /^[0-9]{8}$/;
 
                     if(validacep.test(cep)) {
-                        
-                        // Avisa o usuário que está buscando (opcional)
                         if(ruaInput) ruaInput.value = "...";
                         
-                        // Consulta a API do ViaCEP
                         fetch(`https://viacep.com.br/ws/${cep}/json/`)
                             .then(response => response.json())
                             .then(data => {
                                 if (!("erro" in data)) {
-                                    // SUCESSO: Preenche os campos
+                                    // SUCESSO
                                     if(ruaInput) ruaInput.value = data.logradouro;
                                     if(bairroInput) bairroInput.value = data.bairro;
                                     if(cidadeInput) cidadeInput.value = data.localidade;
-                                    
-                                    // Atualiza UF (Funciona bem para Selects também se o value for a sigla)
                                     if(ufInput) {
                                         ufInput.value = data.uf;
-                                        // Se for um TomSelect ou Select2, talvez precise disparar um evento 'change'
                                         ufInput.dispatchEvent(new Event('change'));
                                     }
-                                    
-                                    // Foca no campo "Número" após achar o endereço
                                     const numeroInput = document.getElementById('id_address_num');
                                     if(numeroInput) numeroInput.focus();
-
+                                    
+                                    clearCepError(); // Garante que não tem erro
                                 } else {
-                                    // CEP não encontrado na base
+                                    // CEP NÃO ENCONTRADO
                                     limparFormulario();
-                                    alert("CEP não encontrado.");
+                                    showCepError("CEP não encontrado.");
                                 }
                             })
                             .catch(error => {
                                 limparFormulario();
-                                alert("Erro ao buscar CEP. Verifique sua conexão.");
+                                showCepError("Erro ao buscar CEP.");
                             });
                     } else {
-                        // Formato inválido
+                        // FORMATO INVÁLIDO
                         limparFormulario();
-                        alert("Formato de CEP inválido.");
+                        showCepError("CEP inválido.");
                     }
                 } else {
                     limparFormulario();
+                    clearCepError();
                 }
             });
         }
