@@ -1,5 +1,5 @@
 from django.db import models
-from datetime import timedelta, timezone
+from datetime import timedelta
 from django.utils import timezone
 import holidays 
 
@@ -69,6 +69,9 @@ class EmployeeHistory(models.Model):
     
     old_salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, verbose_name="Salário Anterior")
     new_salary = models.DecimalField(max_digits=10, decimal_places=2, null=True, verbose_name="Novo Salário")
+
+    old_cipa_role = models.CharField(max_length=50, null=True, blank=True, verbose_name="CIPA Anterior")
+    new_cipa_role = models.CharField(max_length=50, null=True, blank=True, verbose_name="CIPA Nova")
     
     reason = models.CharField(max_length=200, blank=True, verbose_name="Motivo")
 
@@ -118,33 +121,9 @@ class Employee(models.Model):
     birth_date = models.DateField(verbose_name="Data Nasc.") 
 
     UF_CHOICES = [
-        ('AC', 'AC'),
-        ('AL', 'AL'),
-        ('AP', 'AP'),
-        ('AM', 'AM'),
-        ('BA', 'BA'),
-        ('CE', 'CE'),
-        ('DF', 'DF'),
-        ('ES', 'ES'),
-        ('GO', 'GO'),
-        ('MA', 'MA'),
-        ('MT', 'MT'),
-        ('MS', 'MS'),
-        ('MG', 'MG'),
-        ('PA', 'PA'),
-        ('PB', 'PB'),
-        ('PR', 'PR'),
-        ('PE', 'PE'),
-        ('PI', 'PI'),
-        ('RJ', 'RJ'),
-        ('RN', 'RN'),
-        ('RS', 'RS'),
-        ('RO', 'RO'),
-        ('RR', 'RR'),
-        ('SC', 'SC'),
-        ('SP', 'SP'),
-        ('SE', 'SE'),
-        ('TO', 'TO'),
+        ('AC', 'AC'),('AL', 'AL'),('AP', 'AP'),('AM', 'AM'),('BA', 'BA'),('CE', 'CE'),('DF', 'DF'),('ES', 'ES'),('GO', 'GO'),
+        ('MA', 'MA'),('MT', 'MT'),('MS', 'MS'),('MG', 'MG'),('PA', 'PA'),('PB', 'PB'),('PR', 'PR'),('PE', 'PE'),('PI', 'PI'),
+        ('RJ', 'RJ'),('RN', 'RN'),('RS', 'RS'),('RO', 'RO'),('RR', 'RR'),('SC', 'SC'),('SP', 'SP'),('SE', 'SE'),('TO', 'TO'),
     ]
     state_birthplace_code = models.CharField(max_length=2, choices=UF_CHOICES, blank=True, null=True, verbose_name="UF")
     
@@ -254,8 +233,51 @@ class Employee(models.Model):
     # DADOS DA CIPA
     is_cipa_member = models.BooleanField(default=False, verbose_name="Integrante da CIPA") 
     cipa_mandate_start_date = models.DateField(blank=True, null=True, verbose_name="Início do Mandato na CIPA") 
-    cipa_mandate_end_date = models.DateField(blank=True, null=True, verbose_name="Fim do Mandato na CIPA") 
-    cipa_role = models.CharField(max_length=100, blank=True, null=True, verbose_name="Função na CIPA") 
+    cipa_mandate_end_date = models.DateField(blank=True, null=True, verbose_name="Fim do Mandato na CIPA")
+
+    ROLE_CHOICES = [
+        ('Titular', 'Titular'),
+        ('Suplente', 'Suplente'),
+    ] 
+    cipa_role = models.CharField(max_length=20, choices=ROLE_CHOICES, blank=True, null=True, verbose_name="Função na CIPA") 
+
+    @property
+    def cipa_status(self):
+
+        if not self.is_cipa_member or not self.cipa_mandate_end_date:
+            return None
+        
+        today = timezone.now().date()
+        
+        start_date = self.cipa_mandate_start_date or self.cipa_mandate_end_date - timedelta(days=365)
+        
+        if start_date <= today <= self.cipa_mandate_end_date:
+            return 'active'
+        
+        stability_end_date = self.cipa_mandate_end_date + timedelta(days=365)
+        
+        if self.cipa_mandate_end_date < today <= stability_end_date:
+            return 'stability'
+            
+        return None
+    
+    def check_cipa_expiration(self):
+        """
+        Verifies if the total time (Mandate + 1 Year Stability) has expired.
+        If it has expired, clears the fields to allow a new election.
+        """
+        if not self.is_cipa_member or not self.cipa_mandate_end_date:
+            return
+
+        today = timezone.now().date()
+        stability_end_date = self.cipa_mandate_end_date + timedelta(days=365)
+        
+        if today > stability_end_date:
+            self.is_cipa_member = False
+            self.cipa_role = None
+            self.cipa_mandate_start_date = None
+            self.cipa_mandate_end_date = None
+            self.save()
 
     def __str__(self):
         return self.name

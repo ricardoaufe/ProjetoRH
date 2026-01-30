@@ -50,7 +50,20 @@
                     </div>
                     {% endif %}
                 </td>
-                <td><a href="{% url 'rhcontrol:employee_update' employee.id %}">{{ employee.name }}</a></td>
+                <td>
+                    <a href="{% url 'rhcontrol:employee_update' employee.id %}" style="display: flex; align-items: center; gap: 8px; text-decoration: none; color: inherit;">
+        
+                        {{ employee.name }}
+
+                        {% if employee.cipa_status == 'active' %}
+                            <i class="fa fa-shield-alt" style="color: #0d6efd;" title="Cipeiro Ativo (Estabilidade)"></i>
+                        
+                        {% elif employee.cipa_status == 'stability' %}
+                            <i class="fa fa-shield-alt" style="color: #6c757d;" title="Estabilidade Pós-Mandato"></i>
+                        {% endif %}
+
+                    </a>
+                </td>
                 <td>{{ employee.cpf }}</td>
                 <td>{{ employee.department }}</td>
                 <td>{{ employee.email }}</td>

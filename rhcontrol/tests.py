@@ -5,6 +5,7 @@ from django.contrib.staticfiles import finders
 from rhcontrol.models import Employee, JobTitle, Training, Vacation, Department
 from rhcontrol.forms import EmployeeForm
 from datetime import datetime, timedelta
+from django.utils import timezone
 
 class RhcontrolTests(TestCase):
     def test_dashboard_url_working(self):
@@ -336,3 +337,83 @@ class AjaxTests(TestCase):
         )
         data = response.json()
         self.assertEqual(float(data['salary']), 3000.00)
+
+class CipaStabilityTestes(TestCase):
+    def setUp(self):
+
+        self.dept = Department.objects.create(name="Setor de Testes")
+        
+        self.job = JobTitle.objects.create(
+            name="Cargo de Teste",
+            department=self.dept,
+            base_salary=2000.00
+        )
+
+        self.employee = Employee.objects.create(
+            name="Teste CIPA",
+            cpf="12345678900", 
+            birth_date="1990-01-01",
+            department=self.dept, 
+            job_title=self.job    
+        )
+
+    def test_cipa_active_mandate(self):
+        today = timezone.now().date()
+        
+        self.employee.is_cipa_member = True
+        self.employee.cipa_role = 'Titular'
+        self.employee.cipa_mandate_start_date = today - timedelta(days=30)
+        self.employee.cipa_mandate_end_date = today + timedelta(days=335)
+        self.employee.save()
+
+        self.assertEqual(self.employee.cipa_status, 'active')
+
+    def test_cipa_stability_period(self):
+        """Testa se o status é 'stability' logo após o fim do mandato"""
+        today = timezone.now().date()
+        
+        self.employee.is_cipa_member = True
+        self.employee.cipa_role = 'Titular'
+        # Mandato acabou ontem
+        self.employee.cipa_mandate_end_date = today - timedelta(days=1)
+        self.employee.save()
+
+        # Deve estar em estabilidade (pois faz menos de 1 ano que acabou)
+        self.assertEqual(self.employee.cipa_status, 'stability')
+
+    def test_cipa_stability_expired(self):
+        today = timezone.now().date()
+        
+        self.employee.is_cipa_member = True
+        self.employee.cipa_role = 'Titular'
+        self.employee.cipa_mandate_end_date = today - timedelta(days=366)
+        self.employee.save()
+
+        self.assertIsNone(self.employee.cipa_status)
+
+    def test_not_cipa_member(self):
+        self.employee.is_cipa_member = False
+        self.employee.save()
+        self.assertIsNone(self.employee.cipa_status)
+
+    def test_cipa_fields_cleared_after_stability(self):
+        """
+        Test if the fields (is_cipa_member, cipa_role, cipa_mandate_start_date, cipa_mandate_end_date) are cleared 
+        after the total end of the period (mandate + stability).
+        """
+        today = timezone.now().date()
+        
+        self.employee.is_cipa_member = True
+        self.employee.cipa_role = 'Titular'
+        
+        self.employee.cipa_mandate_end_date = today - timedelta(days=367)
+        self.employee.save()
+
+        self.employee.check_cipa_expiration()
+        
+        self.employee.refresh_from_db()
+
+        self.assertFalse(self.employee.is_cipa_member)
+        self.assertIsNone(self.employee.cipa_role)
+        self.assertIsNone(self.employee.cipa_mandate_start_date)
+        self.assertIsNone(self.employee.cipa_mandate_end_date)

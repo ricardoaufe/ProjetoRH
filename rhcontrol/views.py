@@ -124,6 +124,16 @@ def employees(request):
 
 @login_required
 def employee_view(request):
+    limit_date = timezone.now().date() - timedelta(days=366)
+    
+    expired_employees = Employee.objects.filter(
+        is_cipa_member=True,
+        cipa_mandate_end_date__lt=limit_date # Data fim MENOR que (Hoje - 366 dias)
+    )
+    
+    for emp in expired_employees:
+        emp.check_cipa_expiration()
+
     employee_list = Employee.objects.select_related('department').all()
 
     query = request.GET.get('search', '')
@@ -199,8 +209,10 @@ def employee_create(request):
 def employee_update(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
 
+    # 1. Snapshots (Guardar estado anterior)
     old_job = employee.job_title
     old_salary = employee.current_salary
+    old_cipa_role = employee.cipa_role 
 
     form = EmployeeForm(request.POST or None, instance=employee)
     formset = DependentFormSet(request.POST or None, instance=employee)
@@ -208,48 +220,83 @@ def employee_update(request, pk):
     if form.is_valid() and formset.is_valid():
         new_employee = form.save(commit=False)
 
+        # Lógica Automática: Calcula Fim do Mandato (1 ano) se não preenchido
+        if new_employee.is_cipa_member and new_employee.cipa_mandate_start_date and not new_employee.cipa_mandate_end_date:
+            new_employee.cipa_mandate_end_date = new_employee.cipa_mandate_start_date + timedelta(days=365)
+
         new_employee.save()
         formset.save()
         
+        # 2. Detecção de Mudanças
         has_job_change = str(old_job) != str(new_employee.job_title)
         has_salary_change = old_salary != new_employee.current_salary
+        has_cipa_change = old_cipa_role != new_employee.cipa_role
         
-        if has_job_change or has_salary_change:
+        if has_job_change or has_salary_change or has_cipa_change:
             custom_date = form.cleaned_data.get('change_date')
             custom_reason = form.cleaned_data.get('change_reason')
             
-            # Lógica Automática de Motivo (se o usuário não selecionou nada)
+            # --- CORREÇÃO DA DATA ---
+            # Prioridade: 1. Data Personalizada (Se digitou) -> 2. Início do Mandato (Se for CIPA) -> 3. Hoje
+            final_date = timezone.now()
+            
+            if custom_date:
+                final_date = custom_date
+            elif has_cipa_change and new_employee.cipa_mandate_start_date:
+                # Se mudou a CIPA, a data do histórico DEVE ser o início do mandato
+                final_date = new_employee.cipa_mandate_start_date
+
+            # Lógica do Motivo
             auto_reason = ""
             if custom_reason:
                 auto_reason = custom_reason
+            elif has_cipa_change:
+                if new_employee.is_cipa_member and new_employee.cipa_role:
+                    auto_reason = f"CIPA: {new_employee.cipa_role}"
+                else:
+                    auto_reason = "Fim de CIPA"
             elif has_job_change:
-                auto_reason = "Promoção" # Assumimos Promoção se mudou cargo
+                auto_reason = "Promoção"
             elif has_salary_change:
                 if new_employee.current_salary > old_salary:
-                    auto_reason = "Mérito" # Aumento sem mudar cargo
+                    auto_reason = "Mérito"
                 else:
                     auto_reason = "Reajuste"
 
-            # Criar o registro no Histórico
+            # --- CORREÇÃO DA SUJEIRA NO HISTÓRICO ---
+            # Só preenchemos os campos no histórico se eles realmente mudaram.
+            # Se não mudaram, passamos None, e o template vai esconder automaticamente.
+
+            h_old_job = str(old_job) if (old_job and has_job_change) else None
+            h_new_job = str(new_employee.job_title) if has_job_change else None
+            
+            h_old_salary = old_salary if has_salary_change else None
+            h_new_salary = new_employee.current_salary if has_salary_change else None
+
             EmployeeHistory.objects.create(
                 employee=employee,
-                date_changed=custom_date if custom_date else timezone.now(),
-                old_job_title=str(old_job) if old_job else None,
-                new_job_title=str(new_employee.job_title),
-                old_salary=old_salary,
-                new_salary=new_employee.current_salary,
+                date_changed=final_date,
+                
+                # Campos limpos (só salva se mudou)
+                old_job_title=h_old_job,
+                new_job_title=h_new_job,
+                old_salary=h_old_salary,
+                new_salary=h_new_salary,
+                
+                old_cipa_role=old_cipa_role,
+                new_cipa_role=new_employee.cipa_role,
+                
                 reason=auto_reason
             )
 
-        new_employee.save()
-        messages.success(request, 'Funcionário e Histórico atualizados!')
+        messages.success(request, 'Funcionário atualizado com sucesso!')
         return redirect('rhcontrol:employee_list')
     
+    # Contexto para renderização (Mantido igual)
     scheduled = employee.scheduled_trainings.all()
     attended = employee.attended_trainings.all().order_by('-training_date')
     history_log = employee.history.all().order_by('-date_changed')
     vacations = employee.vacations.all().order_by('-start_date')
-
     total_hours = sum(t.training_duration for t in scheduled | attended)
 
     return render(request, 'dashboard/pages/employee/form.html', {
