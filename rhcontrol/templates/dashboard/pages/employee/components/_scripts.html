@@ -1,0 +1,312 @@
+<script src="https://unpkg.com/imask"></script>
+<script>
+    function toggleDependentBody(header) {
+        const row = header.closest('.dependent-row');
+        const body = row.querySelector('.dep-body');
+        const arrow = row.querySelector('.dep-arrow');
+
+        if (body.style.display === 'none') {
+            body.style.display = 'block';
+            arrow.classList.remove('fa-chevron-right');
+            arrow.classList.add('fa-chevron-down');
+        } else {
+            body.style.display = 'none';
+            arrow.classList.remove('fa-chevron-down');
+            arrow.classList.add('fa-chevron-right');
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log("Sistema RH: Scripts carregados.");
+
+        // --- 1. FUNÇÃO DE VALIDAÇÃO DE CPF ---
+        function isValidCPF(cpf) {
+            cpf = cpf.replace(/[^\d]+/g, ''); 
+            if (cpf == '') return false;
+            if (cpf.length != 11 || /^(\d)\1{10}$/.test(cpf)) return false;
+            
+            let add = 0;
+            for (let i=0; i < 9; i ++) add += parseInt(cpf.charAt(i)) * (10 - i);
+            let rev = 11 - (add % 11);
+            if (rev == 10 || rev == 11) rev = 0;
+            if (rev != parseInt(cpf.charAt(9))) return false;
+            
+            add = 0;
+            for (let i = 0; i < 10; i ++) add += parseInt(cpf.charAt(i)) * (11 - i);
+            rev = 11 - (add % 11);
+            if (rev == 10 || rev == 11) rev = 0;
+            if (rev != parseInt(cpf.charAt(10))) return false;
+            
+            return true;
+        }
+
+        // --- 2. CONFIGURADOR DE CAMPOS (Capslock, CPF, Listeners de Cabeçalho) ---
+        function setupFields(context) {
+            const nameInput = context.querySelector('input[name$="-name"]');
+            const relationInput = context.querySelector('select[name$="-relationship_type"]');
+            
+            if(nameInput) {
+                // Ao digitar, atualiza o título
+                nameInput.addEventListener('input', function() {
+                    const row = this.closest('.dependent-row');
+                    const display = row.querySelector('.dep-name-display');
+                    if(display) display.textContent = this.value.toUpperCase() || "Novo Dependente";
+                });
+                // Capslock visual
+                nameInput.style.textTransform = 'uppercase';
+                nameInput.addEventListener('input', function() {
+                    let start = this.selectionStart;
+                    this.value = this.value.toUpperCase();
+                    this.setSelectionRange(start, start);
+                });
+            }
+
+            if(relationInput) {
+                relationInput.addEventListener('change', function() {
+                    const row = this.closest('.dependent-row');
+                    const display = row.querySelector('.dep-relation-display');
+                    if(display) display.textContent = this.options[this.selectedIndex].text;
+                });
+            }
+
+            // B. CPF
+            const cpfInputs = context.querySelectorAll('.cpf-input');
+            cpfInputs.forEach(input => {
+                try { if (!input.mask) IMask(input, { mask: '000.000.000-00' }); } catch(e){}
+
+                input.addEventListener('blur', function() {
+                    const errorContainer = this.parentNode.querySelector('.js-error-msg');
+                    const value = this.value;
+                    if (value.length > 0) {
+                        if (!isValidCPF(value)) {
+                            this.style.borderColor = '#dc3545';
+                            if(errorContainer) {
+                                errorContainer.innerHTML = '<i class="fa fa-times-circle"></i> CPF Inválido.';
+                                errorContainer.style.display = 'flex'; 
+                            }
+                        } else {
+                            this.style.borderColor = '#ced4da'; 
+                            if(errorContainer) errorContainer.style.display = 'none';
+                        }
+                    } else {
+                        this.style.borderColor = '#ced4da';
+                        if(errorContainer) errorContainer.style.display = 'none';
+                    }
+                });
+                
+                input.addEventListener('input', function() {
+                    this.style.borderColor = '#ced4da';
+                    const errorContainer = this.parentNode.querySelector('.js-error-msg');
+                    if(errorContainer) errorContainer.style.display = 'none';
+                });
+            });
+        }
+
+        const existingRows = document.querySelectorAll('.dependent-row');
+        existingRows.forEach(row => setupFields(row));
+
+        // --- 3. MÁSCARAS GERAIS ---
+        const salaryInput = document.getElementById('id_current_salary');
+        if (salaryInput) {
+            IMask(salaryInput, {
+                mask: Number, scale: 2, signed: false, thousandsSeparator: '.', padFractionalZeros: true,
+                normalizeZeros: true, radix: ',', mapToRadix: ['.'], min: 0, max: 9999999999.99
+            });
+        }
+        
+        const departmentSelect = document.getElementById('id_department');
+        const jobTitleSelect = document.getElementById('id_job_title');
+        const formElement = document.getElementById('employeeForm');
+
+        if (formElement && departmentSelect && jobTitleSelect) {
+            const url = formElement.getAttribute('data-jobs-url');
+            departmentSelect.addEventListener('change', function() {
+                const departmentId = this.value;
+                if(salaryInput) { salaryInput.value = ''; salaryInput.dispatchEvent(new Event('input')); }
+                jobTitleSelect.innerHTML = '<option value="">---------</option>';
+                if (!departmentId) return;
+                fetch(`${url}?department_id=${departmentId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        data.forEach(job => {
+                            const option = document.createElement('option');
+                            option.value = job.id;
+                            option.textContent = job.name;
+                            const salario = job.base_salary ? job.base_salary : '';
+                            option.setAttribute('data-salary', salario);
+                            jobTitleSelect.appendChild(option);
+                        });
+                    });
+            });
+            jobTitleSelect.addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                let baseSalary = selectedOption.getAttribute('data-salary'); 
+                if (baseSalary && salaryInput) {
+                    let salarioFormatado = baseSalary.toString().replace('.', ',');
+                    salaryInput.value = salarioFormatado;
+                    salaryInput.dispatchEvent(new Event('input'));
+                }
+            });
+        }
+
+        // Toggles Normais
+        function setupToggle(checkboxId, containerId) {
+            const checkbox = document.getElementById(checkboxId);
+            const container = document.getElementById(containerId);
+            if (!checkbox || !container) return;
+            function toggleVisibility() {
+                if (checkbox.checked) container.classList.remove('hidden');
+                else container.classList.add('hidden');
+            }
+            checkbox.addEventListener('change', toggleVisibility);
+            toggleVisibility();
+        }
+        setupToggle('id_is_foreign', 'foreign-container');
+        setupToggle('id_is_pcd', 'pcd-container');
+        setupToggle('id_is_cipa_member', 'cipa-container');
+        setupToggle('id_has_dependents', 'dependents-container');
+
+        // --- 5. LÓGICA DE DEPENDENTES (ADD/REMOVE) ---
+        const addDepBtn = document.getElementById('add-dependent-btn');
+        const depContainer = document.getElementById('dependents-list');
+        const totalDepForms = document.querySelector('input[name="dependents-TOTAL_FORMS"]');
+
+        if (addDepBtn && depContainer && totalDepForms) {
+            
+            // BOTÃO ADICIONAR
+            addDepBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                let formIdx = totalDepForms.value;
+                const emptyFormContent = document.getElementById('empty-dependent-form');
+                if (!emptyFormContent) return;
+
+                // Cria o HTML
+                const newDiv = document.createElement('div');
+                newDiv.innerHTML = emptyFormContent.innerHTML.replace(/__prefix__/g, formIdx);
+                const newRow = newDiv.firstElementChild;
+                
+                // Adiciona na lista
+                depContainer.appendChild(newRow);
+                totalDepForms.value = parseInt(formIdx) + 1;
+
+                // Configura validações e ouvintes
+                setupFields(newRow);
+            });
+
+            // BOTÃO REMOVER (X)
+            depContainer.addEventListener('click', function(e) {
+                const btn = e.target.closest('.remove-dep-btn');
+                if (btn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const row = btn.closest('.dependent-row');
+                    if (btn.dataset.new === "true") {
+                        row.remove(); 
+                    } else {
+                        const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                        if (deleteCheckbox) deleteCheckbox.checked = true;
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        }
+    });
+
+    function openDeleteModal(deleteUrl) {
+        const dialog = document.getElementById('deleteModal');
+        const confirmBtn = document.getElementById('btnConfirmDelete');
+        if (dialog && confirmBtn) {
+            confirmBtn.href = deleteUrl;
+            dialog.showModal();
+        }
+    }
+    function closeDeleteModal() {
+        const dialog = document.getElementById('deleteModal');
+        if (dialog) dialog.close();
+    }
+</script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        
+        const cepInput = document.getElementById('id_zip_code');
+        const ruaInput = document.getElementById('id_address');
+        const bairroInput = document.getElementById('id_neighborhood');
+        const cidadeInput = document.getElementById('id_city');
+        const ufInput = document.getElementById('id_state_code');
+        
+        if (cepInput) IMask(cepInput, { mask: '00000-000' });
+
+        function showCepError(msg) {
+            if (!cepInput) return;
+            cepInput.style.borderColor = '#dc3545';
+            const errorContainer = cepInput.parentNode.querySelector('.js-error-msg');
+            if (errorContainer) {
+                errorContainer.innerHTML = `<i class="fa fa-times-circle"></i> ${msg}`;
+                errorContainer.style.display = 'flex'; // ou block
+            }
+        }
+
+        function clearCepError() {
+            if (!cepInput) return;
+            cepInput.style.borderColor = '#ced4da';
+            const errorContainer = cepInput.parentNode.querySelector('.js-error-msg');
+            if (errorContainer) errorContainer.style.display = 'none';
+        }
+
+        function limparFormulario() {
+            if(ruaInput) ruaInput.value = "";
+            if(bairroInput) bairroInput.value = "";
+            if(cidadeInput) cidadeInput.value = "";
+            if(ufInput) ufInput.value = "";
+        }
+
+        if (cepInput) {
+            cepInput.addEventListener('input', clearCepError);
+
+            cepInput.addEventListener('blur', function() {
+                const cep = this.value.replace(/\D/g, '');
+
+                if (cep !== "") {
+                    const validacep = /^[0-9]{8}$/;
+
+                    if(validacep.test(cep)) {
+                        if(ruaInput) ruaInput.value = "...";
+                        
+                        fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (!("erro" in data)) {
+                                    if(ruaInput) ruaInput.value = data.logradouro;
+                                    if(bairroInput) bairroInput.value = data.bairro;
+                                    if(cidadeInput) cidadeInput.value = data.localidade;
+                                    if(ufInput) {
+                                        ufInput.value = data.uf;
+                                        ufInput.dispatchEvent(new Event('change'));
+                                    }
+                                    const numeroInput = document.getElementById('id_address_num');
+                                    if(numeroInput) numeroInput.focus();
+                                    
+                                    clearCepError();
+                                } else {
+                                    limparFormulario();
+                                    showCepError("CEP não encontrado.");
+                                }
+                            })
+                            .catch(error => {
+                                limparFormulario();
+                                showCepError("Erro ao buscar CEP.");
+                            });
+                    } else {
+                        limparFormulario();
+                        showCepError("CEP inválido.");
+                    }
+                } else {
+                    limparFormulario();
+                    clearCepError();
+                }
+            });
+        }
+    });
+</script>
