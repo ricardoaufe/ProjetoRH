@@ -205,13 +205,34 @@
     </div>
 
     <h3 class="section-title">Dados do Contrato</h3>
-
-    {% include 'partials/form_field.html' with field=form.admission_exam_date grid_class="col-span-2" %}
+    
+    {% include 'partials/form_field.html' with field=form.hire_date grid_class="col-span-2" %}
     {% include 'partials/form_field.html' with field=form.department grid_class="col-span-2"%}
     {% include 'partials/form_field.html' with field=form.job_title grid_class="col-span-2"%}
 
     {% include 'partials/form_field.html' with field=form.current_salary is_money=True grid_class="col-span-1"%}
-    {% include 'partials/form_field.html' with field=form.hire_date grid_class="col-span-2" %}
+    
+    {% include 'partials/form_field.html' with field=form.admission_exam_date grid_class="col-span-2" %}
+
+    {% if form.instance.pk %}
+        <div class="conditional-section col-span-6" style="border: 1px solid #ffeeba; background-color: #fff3cd; border-radius: 6px; padding: 5px 15px; display: flex; align-items: flex-start; gap: 15px;">
+            
+            <div style="margin-top: 32px; font-weight: bold; color: #856404; white-space: nowrap; font-size: 1.5rem;">
+                <i class="fa fa-history"></i> Alteração:
+            </div>
+
+            <div style="flex: 1; min-width: 130px;">
+                {% include 'partials/form_field.html' with field=form.change_date grid_class="w-full" %}
+            </div>
+
+            <div style="flex: 2; min-width: 150px;">
+                {% include 'partials/form_field.html' with field=form.change_reason grid_class="w-full" %}
+            </div>
+
+        </div>
+    {% else %}
+        <div class="col-span-6"></div>
+    {% endif %}
 
     {% include 'partials/form_field.html' with field=form.is_trial_contract grid_class="col-span-2" %}
     {% include 'partials/form_field.html' with field=form.is_first_job grid_class="col-span-2" %}
@@ -220,28 +241,5 @@
 
     {% include 'partials/form_field.html' with field=form.has_insalubrity_bonus grid_class="col-span-2"%}
     {% include 'partials/form_field.html' with field=form.has_danger_bonus grid_class="col-span-2"%}
-
-    {% if form.instance.pk %}
-        <div class="conditional-section" style="grid-column: 1 / -1; margin-top: 30px; border-color: #ffeeba; background-color: #fff3cd;">
-            
-            <div style=" margin-bottom: 15px;">
-                <h4 style="margin:0; color:#856404; font-size: 1.6rem;">
-                    <i class="fa fa-history"></i> Alteração
-                </h4>
-                <p style="font-size:1.3rem; margin:5px 0 0 0; color: #856404;">
-                    Preencha apenas se for registrar uma mudança de Cargo ou Salário.
-                </p>
-            </div>
-            <div class="col-span-2"></div>
-
-            {% include 'partials/form_field.html' with field=form.change_date grid_class="col-span-1" %}
-            {% include 'partials/form_field.html' with field=form.change_reason grid_class="col-span-1"%}
-            
-        </div>
-    {% endif %}
-
-    <h3 class="section-title">Desligamento</h3>
-    {% include 'partials/form_field.html' with field=form.termination_date grid_class="col-span-2"%}
-    {% include 'partials/form_field.html' with field=form.termination_reason grid_class="col-span-6"%}
 
 </div>
