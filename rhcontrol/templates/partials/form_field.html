@@ -1,7 +1,7 @@
 {% if field.field.widget.input_type == 'checkbox' %}
-    <div class="checkbox-container {{ grid_class|default:'col-span-1' }}" style="display: flex; align-items: center; gap: 8px; margin-top: 30px;">
+    <div class="checkbox-container {{ grid_class|default:'col-span-1' }}" style="display: flex; flex-direction: row; align-items: center; gap: 10px; height: 100%; padding-top: 28px;">
         {{ field }}
-        <label for="{{ field.id_for_label }}" style="margin: 0; cursor: pointer;">{{ field.label }}</label>
+        <label for="{{ field.id_for_label }}" style="margin: 0; cursor: pointer; font-weight: 600; color: #495057;">{{ field.label }}</label>
     </div>
 
 {% else %}
@@ -21,14 +21,14 @@
 
         {% if field.errors %}
             {% for error in field.errors %}
-                <div style="color: #dc3545; font-size: 1.3rem; margin-top: 4px; display: flex; align-items: center; gap: 5px;">
+                <div style="color: #dc3545; font-size: 1.1rem; font-weight: 600; margin-top: 6px; display: flex; align-items: center; gap: 5px;">
                     <i class="fa fa-exclamation-circle"></i> {{ error }}
                 </div>
             {% endfor %}
         {% endif %}
 
-        <div class="js-error-msg" style="color: #dc3545; font-size: 1.3rem; margin-top: 4px; display: none; align-items: center; gap: 5px;">
-            </div>
+        <div class="js-error-msg" style="color: #dc3545; font-size: 1.1rem; font-weight: 600; margin-top: 6px; display: none; align-items: center; gap: 5px;">
+        </div>
 
         {% if field.help_text %}
             <small class="form-text text-muted" style="display: block; margin-top: 4px; color: #6c757d;">{{ field.help_text }}</small>

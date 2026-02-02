@@ -186,7 +186,7 @@ DependentFormSet = forms.inlineformset_factory(
     Employee,
     Dependent,
     form=DependentForm,
-    extra=1,
+    extra=0,
     can_delete=True
 )
         
