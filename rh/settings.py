@@ -75,6 +75,8 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'rh.wsgi.application'
 
+COMPANY_NAME = os.environ.get('COMPANY_NAME', 'RH SYSTEM DEMO') 
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases

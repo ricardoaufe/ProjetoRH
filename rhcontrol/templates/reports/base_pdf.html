@@ -136,7 +136,7 @@
             </td>
             
             <td class="header-text-cell">
-                <div class="company-name">{% block header_company %}GALVANOPLASTIA DIADEMA{% endblock %}</div>
+                <div class="company-name">{% block header_company %}{{ company_name_settings }}{% endblock %}</div>
                 <div class="report-title">{% block header_title %}Relatório Geral{% endblock %}</div>
                 <div class="meta-info">
                     Gerado em: {% now "d/m/Y \à\s H:i" %} por {{ user.get_full_name|default:user.username }}

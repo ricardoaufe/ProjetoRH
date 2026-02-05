@@ -1,4 +1,5 @@
 from pydoc import html
+from django.conf import settings
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
@@ -613,7 +614,8 @@ def create_employee_list_pdf(request):
         'status_filter': status_filter,
         'query': query,
         'generated_at': timezone.now(),
-        'user': request.user, 
+        'user': request.user,
+        'company_name_settings': settings.COMPANY_NAME,
     }
     
     html_string = render_to_string('dashboard/pages/employee/pdf/pdf_list.html', context)
@@ -633,7 +635,8 @@ def create_employee_registration_pdf(request, pk):
     context = {
         'employee': employee,
         'user': request.user,
-        'generated_at': timezone.now()
+        'generated_at': timezone.now(),
+        'company_name_settings': settings.COMPANY_NAME,
     }
     
     html_string = render_to_string('dashboard/pages/employee/pdf/pdf_registration_form.html', context)

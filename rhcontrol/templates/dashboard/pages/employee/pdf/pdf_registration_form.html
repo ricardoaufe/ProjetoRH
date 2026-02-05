@@ -152,7 +152,7 @@
                 <img src="{% static 'global/images/LOGO_GDL.png' %}" class="header-logo-img" alt="Logo">
             </td>
             <td class="header-text-cell">
-                <div class="company-name">GALVANOPLASTIA DIADEMA</div>
+                <div class="company-name">{{ company_name_settings }}</div>
                 <div class="report-title">Ficha Cadastral</div>
                 <div class="meta-info">
                     Gerado em: {% now "d/m/Y \à\s H:i" %} por {{ user.get_full_name|default:user.username }}
