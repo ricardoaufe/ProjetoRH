@@ -6,7 +6,24 @@
 {% include 'dashboard/pages/employee/components/_styles.html' %}
 
 <div class="form-container">
-    <h2>{{ title|default:"Cadastrar Funcionário" }}</h2>
+    
+    <div class="form-header">
+        <h2 style="margin: 0;">{{ title|default:"Cadastrar Funcionário" }}</h2>
+
+        {% if form.instance.pk %}
+        <div class="dropdown">
+            <button type="button" class="btn-dropdown-trigger">
+                <i class="fa fa-print"></i> Gerar Documento <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href="{% url 'rhcontrol:employee_registration_pdf' pk=form.instance.pk %}" target="_blank">
+                    <i class="fa fa-id-card-o"></i> Ficha Cadastral
+                </a>
+                
+                </div>
+        </div>
+        {% endif %}
+    </div>
 
     <form method="POST" id="employeeForm" data-jobs-url="{% url 'rhcontrol:ajax_load_job_titles' %}" novalidate>
         {% csrf_token %}
@@ -17,7 +34,7 @@
             <button type="submit" class="btn-save">Salvar Cadastro</button>
 
             {% if form.instance.pk %}
-                <a href="{% url 'rhcontrol:employee_delete' pk=form.instance.pk %}" class="btn-delete">
+                <a href="{% url 'rhcontrol:employee_delete' pk=form.instance.pk %}" class="btn-delete" onclick="event.preventDefault(); openDeleteModal(this.href);">
                     <i class="fa fa-trash"></i> Excluir Funcionário
                 </a>
             {% endif %}

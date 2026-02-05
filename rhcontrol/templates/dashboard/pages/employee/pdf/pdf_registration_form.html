@@ -1,0 +1,479 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Ficha Cadastral - {{ employee.name }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 0.5cm;
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-family: Helvetica, sans-serif;
+                font-size: 8px;
+                color: #888;
+            }
+        }
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 9pt;
+            color: #333;
+            line-height: 1.2;
+        }
+        
+        /* --- CABEÇALHO PADRÃO --- */
+        .header-table {
+            width: 100%;
+            border-bottom: 1px solid #000;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+        }
+        .header-logo-cell {
+            width: 80px;
+            vertical-align: middle;
+        }
+        .header-logo-img {
+            width: 70px;
+            height: auto;
+            object-fit: contain;
+        }
+        .header-text-cell {
+            text-align: right;
+            vertical-align: middle;
+        }
+        .company-name {
+            font-size: 14pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #000;
+            margin: 0;
+        }
+        .report-title {
+            font-size: 11pt;
+            text-transform: uppercase;
+            color: #333;
+            margin-top: 2px;
+            font-weight: 600;
+        }
+        .meta-info {
+            font-size: 8pt;
+            color: #555;
+            margin-top: 2px;
+        }
+
+        /* --- ESTILO DE CAIXA --- */
+        
+        .section-title {
+            font-size: 10pt;
+            font-weight: bold;
+            color: #fff;
+            background-color: #a3a3a3; /* Azul Suave */
+            padding: 5px 8px;
+            border-radius: 4px 4px 0 0;
+            margin-top: 15px;
+            text-transform: uppercase;
+            border: 1px solid #a3a3a3;
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #999;
+            border-top: none;
+        }
+        
+        .data-table td {
+            border: 1px solid #999;
+            padding: 5px 8px;
+            vertical-align: top;
+        }
+        
+        .data-table strong {
+            display: block;
+            font-size: 7pt;
+            color: #666;
+            text-transform: uppercase;
+            margin-bottom: 2px;
+            font-weight: bold;
+        }
+        
+        .data-table span {
+            font-size: 10pt;
+            color: #000;
+            display: block;
+            min-height: 14px;
+        }
+
+        /* ESTILO NOVO: ETIQUETAS DE CARACTERÍSTICAS */
+        .active-tag {
+            display: inline-block;   /* Ocupa apenas o espaço do texto */
+            width: auto;             /* Garante que não estique 100% */
+            background-color: #f0f0f0; 
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            padding: 2px 6px;        /* Espaçamento interno menor */
+            margin-right: 5px;       /* Espaço entre uma tag e outra */
+            margin-bottom: 2px;
+            font-size: 8pt;         
+            color: #333;
+            font-weight: bold;
+            white-space: nowrap;     
+            line-height: 1;          
+        }
+
+        /* Tabelas Secundárias */
+        .related-table {
+            width: 100%;
+            border-collapse: collapse;
+            border: 1px solid #999;
+            border-top: none;
+        }
+        .related-table th {
+            background-color: #f2f2f2;
+            border: 1px solid #999;
+            padding: 5px;
+            font-size: 8pt;
+            text-transform: uppercase;
+            text-align: left;
+        }
+        .related-table td {
+            border: 1px solid #999;
+            padding: 5px;
+            font-size: 9pt;
+        }
+    </style>
+</head>
+<body>
+
+    <table class="header-table">
+        <tr>
+            <td class="header-logo-cell">
+                <img src="{% static 'global/images/LOGO_GDL.png' %}" class="header-logo-img" alt="Logo">
+            </td>
+            <td class="header-text-cell">
+                <div class="company-name">GALVANOPLASTIA DIADEMA</div>
+                <div class="report-title">Ficha Cadastral</div>
+                <div class="meta-info">
+                    Gerado em: {% now "d/m/Y \à\s H:i" %} por {{ user.get_full_name|default:user.username }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">Dados Pessoais</div>
+    <table class="data-table">
+        <tr>
+            <td colspan="3">
+                <strong>Nome Completo</strong>
+                <span>{{ employee.name|default:"-"|upper }}</span>
+            </td>
+        </tr>
+        <tr>
+            <td width="33%">
+                <strong>CPF</strong>
+                <span>{{ employee.cpf|default:"-" }}</span>
+            </td>
+            <td width="33%">
+                <strong>Data de Nascimento</strong>
+                <span>{{ employee.birth_date|date:"d/m/Y"|default:"-" }}</span>
+            </td>
+            <td width="33%">
+                <strong>Gênero</strong>
+                <span>{{ employee.get_gender_display|default:"-" }}</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>Escolaridade</strong>
+                <span>{{ employee.get_education_level_display|default:"-" }}</span>
+            </td>
+            <td>
+                <strong>Estado Civil</strong>
+                <span>{{ employee.get_marital_status_display|default:"-" }}</span>
+            </td>
+            <td>
+                <strong>Etnia/Raça</strong>
+                <span>{{ employee.get_ethnicity_display|default:"-" }}</span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                <strong>Nome da Mãe</strong>
+                <span>{{ employee.mother_name|default:"-"|upper }}</span>
+            </td>
+            <td>
+                <strong>Aposentadoria</strong>
+                <span>{{ employee.get_retirement_status_display|default:"-" }}</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>Naturalidade (Cidade)</strong>
+                <span>{{ employee.birth_city|default:"-" }}</span>
+            </td>
+            <td colspan="2">
+                <strong>UF Nascimento</strong>
+                <span>{{ employee.get_state_birthplace_code_display|default:employee.state_birthplace_code|default:"-" }}</span>
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">Endereço e Contato</div>
+    <table class="data-table">
+        <tr>
+            <td width="50%">
+                <strong>Endereço</strong>
+                <span>{{ employee.address|default:"-" }}</span>
+            </td>
+            <td width="10%">
+                <strong>Número</strong>
+                <span>{{ employee.address_num|default:"-" }}</span>
+            </td>
+            <td width="40%">
+                <strong>Complemento</strong>
+                <span>{{ employee.complement|default:"-" }}</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>Bairro</strong>
+                <span>{{ employee.neighborhood|default:"-" }}</span>
+            </td>
+            <td>
+                <strong>Cidade / UF</strong>
+                <span>{{ employee.city|default:"-" }} / {{ employee.state_code|default:"-" }}</span>
+            </td>
+            <td>
+                <strong>CEP</strong>
+                <span>{{ employee.zip_code|default:"-" }}</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>E-mail</strong>
+                <span>{{ employee.email|default:"-"|lower }}</span>
+            </td>
+            <td>
+                <strong>Celular</strong>
+                <span>{{ employee.mobile_phone|default:"-" }}</span>
+            </td>
+            <td>
+                <strong>Contato de Emergência</strong>
+                <span>{{ employee.emergency_contact_name|default:"-" }} ({{ employee.emergency_phone|default:"-" }})</span>
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">Documentação</div>
+    <table class="data-table">
+        <tr>
+            <td width="25%">
+                <strong>RG</strong>
+                <span>{{ employee.rg|default:"-" }}</span>
+            </td>
+            <td width="25%">
+                <strong>Emissão RG</strong>
+                <span>{{ employee.rg_issue_date|date:"d/m/Y"|default:"-" }}</span>
+            </td>
+            <td width="25%">
+                <strong>PIS</strong>
+                <span>{{ employee.pis|default:"-" }}</span>
+            </td>
+            <td width="25%">
+                <strong>Emissão CTPS</strong>
+                <span>{{ employee.ctps_issue_date|date:"d/m/Y"|default:"-" }}</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>CTPS (Número)</strong>
+                <span>{{ employee.ctps_number|default:"-" }}</span>
+            </td>
+            <td>
+                <strong>CTPS (Série)</strong>
+                <span>{{ employee.ctps_series|default:"-" }}</span>
+            </td>
+            
+            <td colspan="2">
+                <strong>Estrangeiro (Dados RNE)</strong>
+                
+                {% if employee.is_foreign %}
+                    <div style="font-size: 8pt; margin-top: 3px; line-height: 1.4;">
+                        
+                        <div style="margin-bottom: 3px;">
+                            <span style="display:inline; font-weight:bold;">RNE:</span> {{ employee.rne_number|default:"-" }} 
+                            &nbsp;|&nbsp; 
+                            <span style="display:inline; font-weight:bold;">Org.:</span> {{ employee.rne_issuing_authority|default:"-" }}
+                            &nbsp;|&nbsp; 
+                            <span style="display:inline; font-weight:bold;">Emissão:</span> {{ employee.rne_issue_date|date:"d/m/Y"|default:"-" }}
+                        </div>
+
+                        <div style="margin-bottom: 5px;">
+                            <span style="display:inline; font-weight:bold;">Chegada:</span> {{ employee.arrival_date|date:"d/m/Y"|default:"-" }}
+                            &nbsp;|&nbsp; 
+                            <span style="display:inline; font-weight:bold;">Naturalização:</span> {{ employee.naturalization_date|date:"d/m/Y"|default:"-" }}
+                        </div>
+
+                        <div>
+                            {% if employee.married_to_brazilian %}
+                                <span class="active-tag">Casado(a) c/ Brasileiro</span>
+                            {% endif %}
+                            
+                            {% if employee.has_brazilian_children %}
+                                <span class="active-tag">Tem Filhos Brasileiros</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% else %}
+                    <span>Não</span>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">Dados do Contrato</div>
+    <table class="data-table">
+        <tr>
+            <td width="33%">
+                <strong>Setor</strong>
+                <span>{{ employee.department.name|default:"-"|upper }}</span>
+            </td>
+            <td width="33%">
+                <strong>Cargo</strong>
+                <span>{{ employee.job_title.name|default:"-"|upper }}</span>
+            </td>
+            <td width="33%">
+                <strong>Salário Atual</strong>
+                <span>R$ {{ employee.current_salary|default:"0,00" }}</span>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <strong>Data de Admissão</strong>
+                <span>{{ employee.hire_date|date:"d/m/Y"|default:"-" }}</span>
+            </td>
+            <td>
+                <strong>Exame Admissional</strong>
+                <span>{{ employee.admission_exam_date|date:"d/m/Y"|default:"-" }}</span>
+            </td>
+            <td>
+                <strong>Status Atual</strong>
+                <span>
+                    {% if employee.termination_date %}
+                        DESLIGADO EM {{ employee.termination_date|date:"d/m/Y" }}
+                    {% else %}
+                        ATIVO
+                    {% endif %}
+                </span>
+            </td>
+        </tr>
+        <tr>
+            <td colspan="3">
+                <strong>Características do Contrato</strong>
+                <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">
+                    
+                    {% if employee.is_trial_contract %}
+                        <span class="active-tag">Experiência</span>
+                    {% endif %}
+                    
+                    {% if employee.is_first_job %}
+                        <span class="active-tag">Primeiro Emprego</span>
+                    {% endif %}
+                    
+                    {% if employee.is_intermittent_contract %}
+                        <span class="active-tag">Intermitente</span>
+                    {% endif %}
+                    
+                    {% if employee.has_insalubrity_bonus %}
+                        <span class="active-tag">Insalubridade</span>
+                    {% endif %}
+                    
+                    {% if employee.has_danger_bonus %}
+                        <span class="active-tag">Periculosidade</span>
+                    {% endif %}
+
+                    {% if not employee.is_trial_contract and not employee.is_first_job and not employee.is_intermittent_contract and not employee.has_insalubrity_bonus and not employee.has_danger_bonus %}
+                        <span style="font-size: 8pt; color: #999;">-</span>
+                    {% endif %}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">Dados Bancários</div>
+    <table class="data-table">
+        <tr>
+            <td width="40%">
+                <strong>Banco</strong>
+                <span>{{ employee.bank_name|default:"-" }}</span>
+            </td>
+            <td width="20%">
+                <strong>Agência</strong>
+                <span>{{ employee.bank_agency_code|default:"-" }}</span>
+            </td>
+            <td width="20%">
+                <strong>Conta</strong>
+                <span>{{ employee.account_num|default:"-" }}</span>
+            </td>
+            <td width="20%">
+                <strong>Tipo</strong>
+                <span>{{ employee.account_type|default:"-" }}</span>
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">Informações Adicionais</div>
+    <table class="data-table">
+        <tr>
+            <td width="33%">
+                <strong>PCD (Pessoa com Deficiência)</strong>
+                <span>{% if employee.is_pcd %}SIM - {{ employee.disability_type|default:"-" }}{% else %}NÃO{% endif %}</span>
+            </td>
+            <td width="33%">
+                <strong>Vale Transporte</strong>
+                <span>{% if employee.uses_transport_voucher %}Optante{% else %}Não Optante{% endif %}</span>
+            </td>
+            <td width="33%">
+                <strong>CIPA</strong>
+                <span>
+                    {% if employee.is_cipa_member %}
+                        {{ employee.cipa_role }} (Fim: {{ employee.cipa_mandate_end_date|date:"d/m/Y" }})
+                    {% else %}
+                        Não Integrante
+                    {% endif %}
+                </span>
+            </td>
+        </tr>
+    </table>
+
+    <div class="section-title">Dependentes</div>
+    <table class="related-table">
+        <thead>
+            <tr>
+                <th>Nome</th>
+                <th>Nascimento</th>
+                <th>Parentesco</th>
+                <th>CPF</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for dependent in employee.dependents.all %}
+            <tr>
+                <td>{{ dependent.name|upper }}</td>
+                <td>{{ dependent.birth_date|date:"d/m/Y" }}</td>
+                <td>{{ dependent.get_relationship_type_display }}</td>
+                <td>{{ dependent.cpf|default:"-" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4" style="text-align: center; color: #666; padding: 10px;">
+                    Nenhum dependente cadastrado.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</body>
+</html>

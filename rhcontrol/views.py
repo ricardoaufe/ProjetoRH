@@ -616,7 +616,7 @@ def create_employee_list_pdf(request):
         'user': request.user, 
     }
     
-    html_string = render_to_string('dashboard/pages/employee/pdf_list.html', context)
+    html_string = render_to_string('dashboard/pages/employee/pdf/pdf_list.html', context)
     
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
     
@@ -625,3 +625,26 @@ def create_employee_list_pdf(request):
     response = HttpResponse(pdf, content_type='application/pdf')
     response['Content-Disposition'] = 'inline; filename="lista_de_funcionarios.pdf"'
     return response 
+
+@login_required
+def create_employee_registration_pdf(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    
+    context = {
+        'employee': employee,
+        'user': request.user,
+        'generated_at': timezone.now()
+    }
+    
+    html_string = render_to_string('dashboard/pages/employee/pdf/pdf_registration_form.html', context)
+    
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    pdf = html.write_pdf()
+    
+    response = HttpResponse(pdf, content_type='application/pdf')
+    
+    safe_name = employee.name.replace(' ', '_')
+    filename = f"ficha_cadastral_{employee.id}_{safe_name}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    
+    return response
