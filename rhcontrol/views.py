@@ -3,7 +3,6 @@ from django.conf import settings
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from urllib3 import request
 from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department
 from django.db.models import Q 
 from django.core.paginator import Paginator

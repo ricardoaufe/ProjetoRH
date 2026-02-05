@@ -1,7 +1,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/imask/7.1.3/imask.min.js"></script>
 
 <script>
-    // --- FUNÇÃO GLOBAL DO ACORDEÃO ---
     function toggleDependentBody(header) {
         const row = header.closest('.dependent-row');
         const body = row.querySelector('.dep-body');
@@ -154,7 +153,6 @@
             } catch(e) { console.error("Erro máscara salário:", e); }
         }
         
-        // --- 4. AJAX (CARGOS E SALÁRIOS) ---
         const departmentSelect = document.getElementById('id_department');
         const jobTitleSelect = document.getElementById('id_job_title');
         const formElement = document.getElementById('employeeForm');
