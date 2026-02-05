@@ -119,13 +119,16 @@
             });
 
             // C. MÁSCARA TELEFONE (Busca pela classe .phone-input)
-            const phoneInputs = context.querySelectorAll('.phone-input');
+            const phoneInputs = context.querySelectorAll('.phone-input, #id_mobile_phone, #id_emergency_phone, #id_phone');
+            
             phoneInputs.forEach(input => {
                  try { 
+                     if (input.mask) return;
+
                      IMask(input, { 
                          mask: [
-                             { mask: '(00) 0000-0000' }, 
-                             { mask: '(00) 00000-0000' }
+                             { mask: '(00) 0000-0000' },   // Fixo
+                             { mask: '(00) 00000-0000' }   // Celular
                          ] 
                      }); 
                  } catch(e){ console.error("Erro ao aplicar máscara Telefone:", e); }

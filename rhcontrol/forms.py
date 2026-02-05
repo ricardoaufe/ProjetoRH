@@ -93,8 +93,8 @@ class EmployeeForm(forms.ModelForm):
             'department': forms.Select(attrs={'class': 'form-control'}),
             'job_title': forms.Select(attrs={'class': 'form-control'}),   
             'cpf': forms.TextInput(attrs={'class': 'form-control cpf-input', 'placeholder': '000.000.000-00'}),
-            'mobile_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
-            'emergency_phone': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(00) 00000-0000'}),
+            'mobile_phone': forms.TextInput(attrs={'class': 'form-control phone-input', 'placeholder': '(00) 00000-0000'}),
+            'emergency_phone': forms.TextInput(attrs={'class': 'form-control phone-input', 'placeholder': '(00) 00000-0000'}),
             'zip_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00000-000'}),        
             }
         
