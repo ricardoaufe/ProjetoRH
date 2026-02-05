@@ -1,0 +1,53 @@
+{% extends 'reports/base_pdf.html' %}
+
+{% block header_title %}Relatório de Funcionários{% endblock %}
+
+{% block content %}
+
+    <div style="margin-bottom: 15px; font-size: 11px;">
+        <strong>Filtros Aplicados:</strong><br>
+        Status: {{ status_filter|title }} <br>
+        {% if query %}Busca: "{{ query }}"{% endif %}
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th width="35%">Colaborador</th>
+                <th width="15%">CPF</th>
+                <th width="20%">Setor</th>
+                <th width="20%">Cargo</th>
+                <th width="10%">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for employee in employees %}
+            <tr>
+                <td>
+                    <strong>{{ employee.name }}</strong>
+                    {% if employee.is_cipa_member %}
+                        <br><span style="font-size:9px; color:blue;">(CIPA)</span>
+                    {% endif %}
+                </td>
+                <td>{{ employee.cpf }}</td>
+                <td>{{ employee.department.name|default:"-" }}</td>
+                <td>{{ employee.job_title.name|default:"-" }}</td>
+                <td>
+                    {% if employee.termination_date %}
+                        <span class="status-badge status-inativo">INATIVO</span>
+                    {% else %}
+                        <span class="status-badge status-ativo">ATIVO</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 20px;">
+                    Nenhum registro encontrado.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+{% endblock %}

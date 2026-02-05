@@ -42,4 +42,7 @@ urlpatterns = [
 
     path('ajax/load-job-titles/', views.load_job_titles, name='ajax_load_job_titles'),
     path('ajax/get-job-salary/', views.get_job_salary, name='ajax_get_job_salary'),
+
+    #PDFs
+    path('employees/pdf/', views.create_employee_list_pdf, name='employee_list_pdf'),
 ]

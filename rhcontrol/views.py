@@ -1,6 +1,8 @@
+from pydoc import html
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from urllib3 import request
 from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department
 from django.db.models import Q 
 from django.core.paginator import Paginator
@@ -12,6 +14,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages 
 from datetime import timedelta, timezone
 from django.utils import timezone
+from django.template.loader import render_to_string
+from weasyprint import HTML
 
 def login_view(request):
     
@@ -577,3 +581,47 @@ def department_delete(request, pk):
     return render(request, 'dashboard/pages/departments/delete.html', {
         'department': department
     })
+
+#PDFs
+def create_employee_list_pdf(request):
+    employee_list = Employee.objects.select_related('department').all()
+    
+    query = request.GET.get('search', '')
+    if query:
+        employee_list = employee_list.filter(
+            Q(name__icontains=query) | 
+            Q(cpf__icontains=query) | 
+            Q(email__icontains=query)
+        )
+    
+    status_filter = request.GET.get('status', 'todos')
+    if status_filter == 'ativo':
+        employee_list = employee_list.filter(termination_date__isnull=True)
+    elif status_filter == 'demitido':
+        employee_list = employee_list.filter(termination_date__isnull=False)
+    
+    sort_by = request.GET.get('sort', 'name')
+    valid_sort_fields = ['name', 'cpf', 'department__name']
+    
+    if sort_by in valid_sort_fields:
+        employee_list = employee_list.order_by(sort_by)
+    else:
+        employee_list = employee_list.order_by('name')
+
+    context = {
+        'employees': employee_list,
+        'status_filter': status_filter,
+        'query': query,
+        'generated_at': timezone.now(),
+        'user': request.user, 
+    }
+    
+    html_string = render_to_string('dashboard/pages/employee/pdf_list.html', context)
+    
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    
+    pdf = html.write_pdf()
+    
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="lista_de_funcionarios.pdf"'
+    return response 

@@ -6,9 +6,18 @@
 <body>
 <div class= "list-container">
 
-    <div class= "page-header">
-        <h1>Lista de Funcionários</h1>
-        <a href="{% url 'rhcontrol:employee_create' %}"class="btn btn-primary">Adicionar Funcionário</a>
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1 style="margin: 0;">Lista de Funcionários</h1>
+        <div class="header-actions" style="display: flex; gap: 10px;">
+            
+            <a href="{% url 'rhcontrol:employee_list_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-danger" target="_blank">
+                <i class="fa fa-file-pdf"></i> Gerar PDF
+            </a>
+            <a href="{% url 'rhcontrol:employee_create' %}" class="btn btn-primary">
+                <i class="fa fa-plus"></i> Adicionar Funcionário
+            </a>
+            
+        </div>
     </div>
 
     <div class="status-filters">

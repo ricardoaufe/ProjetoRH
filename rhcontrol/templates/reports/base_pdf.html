@@ -1,0 +1,144 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Relatório{% endblock %}</title>
+    
+    <style>
+        /* --- CONFIGURAÇÃO DA PÁGINA --- */
+        @page {
+            size: A4;
+            margin: 1cm;
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-family: Helvetica, sans-serif;
+                font-size: 9px;
+                color: #888;
+            }
+        }
+
+        body {
+            font-family: 'Helvetica', 'Arial', sans-serif;
+            font-size: 11px;
+            color: #333;
+            line-height: 1.4;
+        }
+
+        /* --- CABEÇALHO (TABELA PARA ALINHAMENTO PERFEITO) --- */
+        .header-table {
+            width: 100%;
+            border-bottom: 2px solid #333; /* Linha grossa no cabeçalho */
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+        }
+
+        .header-logo-cell {
+            width: 100px;
+            vertical-align: middle;
+        }
+
+        .header-logo-img {
+            width: 80px;
+            height: auto;
+            max-height: 80px;
+            object-fit: contain;
+        }
+
+        .header-text-cell {
+            text-align: right;
+            vertical-align: middle;
+        }
+
+        .company-name {
+            font-size: 16px;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: #000;
+            margin: 0;
+        }
+
+        .report-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #555;
+            margin-top: 4px;
+            font-weight: 600;
+        }
+
+        .meta-info {
+            font-size: 9px;
+            color: #777;
+            margin-top: 4px;
+        }
+
+        /* --- TABELA DE DADOS (COM GRIDS E LINHAS) --- */
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        /* Cabeçalho da Tabela */
+        table.data-table th {
+            background-color: #f0f0f0; /* Fundo cinza claro */
+            border: 1px solid #999;    /* Borda visível */
+            padding: 8px;
+            text-transform: uppercase;
+            font-size: 10px;
+            font-weight: bold;
+            text-align: left;
+        }
+
+        /* Células da Tabela */
+        table.data-table td {
+            border: 1px solid #ccc; /* Divisórias em cinza */
+            padding: 8px;           /* Espaçamento interno para não ficar grudado */
+            vertical-align: middle;
+        }
+
+        /* Linhas alternadas (Zebra) */
+        table.data-table tr:nth-child(even) {
+            background-color: #fcfcfc;
+        }
+
+        /* --- BADGES E STATUS --- */
+        .status-badge {
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            display: inline-block;
+        }
+        
+        .status-ativo { background-color: #d1e7dd; color: #0f5132; border: 1px solid #badbcc; }
+        .status-inativo { background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7; }
+        .cipa-badge { color: #0d6efd; font-weight: bold; font-size: 9px; margin-left: 5px; }
+
+    </style>
+</head>
+<body>
+
+    <table class="header-table">
+        <tr>
+            <td class="header-logo-cell">
+                <img src="{% static 'global/images/LOGO_GDL.png' %}" class="header-logo-img" alt="Logo">
+            </td>
+            
+            <td class="header-text-cell">
+                <div class="company-name">{% block header_company %}GALVANOPLASTIA DIADEMA{% endblock %}</div>
+                <div class="report-title">{% block header_title %}Relatório Geral{% endblock %}</div>
+                <div class="meta-info">
+                    Gerado em: {% now "d/m/Y \à\s H:i" %} por {{ user.get_full_name|default:user.username }}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="content">
+        {% block content %}{% endblock %}
+    </div>
+
+</body>
+</html>
