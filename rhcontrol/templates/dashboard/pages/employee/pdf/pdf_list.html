@@ -4,7 +4,7 @@
 
 {% block content %}
 
-    <div style="margin-bottom: 10px; font-size: 9px; border-bottom: 1px dotted #ccc; padding-bottom: 5px;">
+    <div style="margin-bottom: 0.75rem; font-size: 0.625rem; border-bottom: 1px dotted #ccc; padding-bottom: 0.375rem;">
         Filtros: <strong>{{ status_filter|title }}</strong> 
         {% if query %} | Busca: "<strong>{{ query }}</strong>"{% endif %}
         | Total: {{ employees|length }}
@@ -42,7 +42,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="5" style="text-align: center; padding: 10px; font-style: italic;">
+                <td colspan="5" style="text-align: center; padding: 0.75rem; font-style: italic;">
                     Nenhum registro encontrado.
                 </td>
             </tr>

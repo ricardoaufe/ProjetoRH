@@ -3,15 +3,15 @@
 {% block title %} Excluir Funcionário | {% endblock title %}
 
 {% block content %}
-<div class="form-container" style="max-width: 600px; text-align: center; padding: 40px;">
+<div class="form-container" style="max-width: 600px; text-align: center; padding: 2.5rem;">
     <h2 style="color: #dc3545;">Tem certeza?</h2>
     
-    <p style="font-size: 2rem; margin: 20px 0;">
+    <p style="font-size: 2rem; margin: 1.25rem 0;">
         Você está prestes a excluir o funcionário: <br>
         <strong>{{ employee.name }}</strong> (CPF: {{ employee.cpf }})
     </p>
 
-    <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <div style="font-size: 1.4rem; background: #fff3cd; color: #856404; padding: 0.9375rem; border-radius: 5px; margin-bottom: 1.25rem;">
         ⚠️ Esta ação é irreversível.
     </div>
 
@@ -19,11 +19,11 @@
         {% csrf_token %}
         
         <div style="display: flex; gap: 15px; justify-content: center;">
-            <a href="{% url 'rhcontrol:employee_list' %}" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px;">
+            <a href="{% url 'rhcontrol:employee_list' %}" style="padding: 0.625rem 1.25rem; background: #6c757d; color: white; text-decoration: none; border-radius: 5px;">
                 Cancelar
             </a>
 
-            <button type="submit" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            <button type="submit" style="padding: 0.625rem 1.25rem; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
                 Confirmar Exclusão
             </button>
         </div>

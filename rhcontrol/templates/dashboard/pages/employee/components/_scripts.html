@@ -19,14 +19,13 @@
 
     document.addEventListener('DOMContentLoaded', function() {
         console.log("Sistema RH: Inicializando Scripts...");
-
-        // VERIFICAÇÃO DE SEGURANÇA: A biblioteca carregou?
         if (typeof IMask === 'undefined') {
             console.error("ERRO CRÍTICO: A biblioteca IMask não foi carregada. Verifique sua conexão com a internet.");
-            return; // Para o script para não gerar mais erros
+            return;
         }
 
-        // --- 1. FUNÇÃO DE VALIDAÇÃO DE CPF ---
+        // Algoritmo de validação de CPF padrão.
+        // Verifica os dígitos verificadores para garantir a existência do CPF.
         function isValidCPF(cpf) {
             cpf = cpf.replace(/[^\d]+/g, ''); 
             if (cpf == '') return false;
@@ -47,10 +46,8 @@
             return true;
         }
 
-        // --- 2. CONFIGURADOR DE CAMPOS ---
         function setupFields(context) {
             
-            // A. CAPSLOCK E HEADER DINÂMICO DE DEPENDENTES
             const nameInput = context.querySelector('input[name$="-name"]'); 
             const relationInput = context.querySelector('select[name$="-relationship_type"]'); 
             
@@ -69,7 +66,6 @@
                 });
             }
 
-            // APLICA CAPSLOCK GERAL
             const upperInputs = context.querySelectorAll('.uppercase-input');
             upperInputs.forEach(input => {
                 input.style.textTransform = 'uppercase';
@@ -80,15 +76,12 @@
                 });
             });
 
-            // B. MÁSCARA CPF (Busca pela classe .cpf-input)
             const cpfInputs = context.querySelectorAll('.cpf-input');
             cpfInputs.forEach(input => {
-                // Aplica a máscara
                 try { 
                     IMask(input, { mask: '000.000.000-00' }); 
                 } catch(e) { console.error("Erro ao aplicar máscara CPF:", e); }
 
-                // Validação visual (Borda vermelha)
                 input.addEventListener('blur', function() {
                     const errorContainer = this.parentNode.querySelector('.js-error-msg');
                     const value = this.value;
@@ -108,8 +101,7 @@
                         if(errorContainer) errorContainer.style.display = 'none';
                     }
                 });
-                
-                // Limpa erro ao digitar
+
                 input.addEventListener('input', function() {
                     this.style.borderColor = '#ced4da';
                     const errorContainer = this.parentNode.querySelector('.js-error-msg');
@@ -117,7 +109,6 @@
                 });
             });
 
-            // C. MÁSCARA TELEFONE (Busca pela classe .phone-input)
             const phoneInputs = context.querySelectorAll('.phone-input, #id_mobile_phone, #id_emergency_phone, #id_phone');
             
             phoneInputs.forEach(input => {
@@ -126,23 +117,19 @@
 
                      IMask(input, { 
                          mask: [
-                             { mask: '(00) 0000-0000' },   // Fixo
-                             { mask: '(00) 00000-0000' }   // Celular
+                             { mask: '(00) 0000-0000' }, 
                          ] 
                      }); 
                  } catch(e){ console.error("Erro ao aplicar máscara Telefone:", e); }
             });
         }
 
-        // --- INICIALIZAÇÃO ---
-        // 1. Aplica no documento inteiro (Para o Funcionário Principal)
+
         setupFields(document);
 
-        // 2. Aplica nos dependentes já existentes
         const existingRows = document.querySelectorAll('.dependent-row');
         existingRows.forEach(row => setupFields(row));
 
-        // --- 3. MÁSCARA SALÁRIO ---
         const salaryInput = document.getElementById('id_current_salary');
         if (salaryInput) {
             try {
@@ -157,6 +144,8 @@
         const jobTitleSelect = document.getElementById('id_job_title');
         const formElement = document.getElementById('employeeForm');
 
+        // Dynamic loading of jobs based on department selection with AJAX.
+        // Updates automatically the base salary field.
         if (formElement && departmentSelect && jobTitleSelect) {
             const url = formElement.getAttribute('data-jobs-url');
             
@@ -193,7 +182,6 @@
             });
         }
 
-        // --- 5. TOGGLES ---
         function setupToggle(checkboxId, containerId) {
             const checkbox = document.getElementById(checkboxId);
             const container = document.getElementById(containerId);
@@ -210,14 +198,12 @@
         setupToggle('id_is_cipa_member', 'cipa-container');
         setupToggle('id_has_dependents', 'dependents-container');
 
-        // --- 6. DEPENDENTES (ADICIONAR/REMOVER) ---
         const addDepBtn = document.getElementById('add-dependent-btn');
         const depContainer = document.getElementById('dependents-list');
         const totalDepForms = document.querySelector('input[name="dependents-TOTAL_FORMS"]');
 
         if (addDepBtn && depContainer && totalDepForms) {
-            
-            // BOTÃO ADICIONAR
+
             addDepBtn.addEventListener('click', function(e) {
                 e.preventDefault();
                 let formIdx = totalDepForms.value;
@@ -231,10 +217,9 @@
                 depContainer.appendChild(newRow);
                 totalDepForms.value = parseInt(formIdx) + 1;
 
-                setupFields(newRow); // Aplica máscaras no novo dependente
+                setupFields(newRow);
             });
 
-            // BOTÃO REMOVER
             depContainer.addEventListener('click', function(e) {
                 const btn = e.target.closest('.remove-dep-btn');
                 if (btn) {
@@ -254,7 +239,6 @@
         }
     });
 
-    // --- FUNÇÕES MODAL DE EXCLUSÃO ---
     function openDeleteModal(deleteUrl) {
         const dialog = document.getElementById('deleteModal');
         const confirmBtn = document.getElementById('btnConfirmDelete');
@@ -270,7 +254,6 @@
 </script>
 
 <script>
-    // --- SCRIPT DE CEP ---
     document.addEventListener('DOMContentLoaded', function() {
         const cepInput = document.getElementById('id_zip_code');
         const ruaInput = document.getElementById('id_address');
@@ -278,7 +261,9 @@
         const cidadeInput = document.getElementById('id_city');
         const ufInput = document.getElementById('id_state_code');
         
-        // Verifica se IMask existe antes de usar
+
+        // Integration with ViaCEP API to automatic address filling.
+        // Includes error handling.
         if (cepInput && typeof IMask !== 'undefined') {
              IMask(cepInput, { mask: '00000-000' });
         }

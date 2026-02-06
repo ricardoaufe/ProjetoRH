@@ -52,13 +52,13 @@
         <div class="col-span-5"></div>
 
         <div id="dependents-container" class="hidden col-span-8">
-        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6;">
+        <div style="background-color: #f8f9fa; padding: 1.25rem; border-radius: 0.5rem; border: 1px solid #dee2e6;">
             
             {{ dependent_formset.management_form }}
 
             <div id="dependents-list">
                 {% for dep_form in dependent_formset %}
-                    <div class="dependent-row" style="margin-bottom: 15px; background-color: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+                    <div class="dependent-row" style="margin-bottom: 0.9375rem; background-color: #fff; border: 1px solid #e0e0e0; border-radius: 0.375rem; overflow: hidden;">
                         
                         {% for hidden in dep_form.hidden_fields %}
                             {{ hidden }}
@@ -68,25 +68,25 @@
                             {{ dep_form.DELETE }}
                         </div>
 
-                        <div class="dep-header" onclick="toggleDependentBody(this)" style="padding: 15px; background-color: #f1f3f5; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0e0e0;">
-                            <div style="display: flex; align-items: center; gap: 10px;">
+                        <div class="dep-header" onclick="toggleDependentBody(this)" style="padding: 0.9375rem; background-color: #f1f3f5; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0e0e0;">
+                            <div style="display: flex; align-items: center; gap: 0.625rem;">
                                 <i class="fa fa-chevron-right dep-arrow" style="transition: transform 0.2s; color: #6c757d;"></i>
                                 <h4 style="margin: 0; font-size: 1.5rem; color: #495057; font-weight: 700;">
                                     <span class="dep-name-display">{{ dep_form.instance.name|default:"Novo Dependente" }}</span>
-                                    <small style="font-weight: 400; color: #6c757d; margin-left: 5px;">
+                                    <small style="font-weight: 400; color: #6c757d; margin-left: 0.3125rem;">
                                         (<span class="dep-relation-display">{{ dep_form.instance.relationship_type|default:"..." }}</span>)
                                     </small>
                                 </h4>
                             </div>
                             
-                            <div style="display: flex; gap: 10px;">
+                            <div style="display: flex; gap: 0.625rem;">
                                 <button type="button" class="remove-dep-btn" style="border: none; background: transparent; color: #dc3545; font-size: 1.2rem; cursor: pointer;" title="Excluir Dependente">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             </div>
                         </div>
 
-                        <div class="dep-body" style="padding: 20px; display: none;"> <div class="form-content" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px;">
+                        <div class="dep-body" style="padding: 1.25rem; display: none;"> <div class="form-content" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 1.25rem;">
                                 
                                 {% include 'partials/form_field.html' with field=dep_form.name label="Nome Completo" grid_class="col-span-4" %}
                                 {% include 'partials/form_field.html' with field=dep_form.cpf label="CPF" grid_class="col-span-2" %}
@@ -100,39 +100,39 @@
                 {% endfor %}
             </div>
 
-            <button type="button" id="add-dependent-btn" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-top: 10px;">
+            <button type="button" id="add-dependent-btn" style="background-color: #6c757d; color: white; border: none; padding: 0.625rem 1.25rem; border-radius: 0.25rem; cursor: pointer; font-weight: 600; margin-top: 0.625rem;">
                 + Adicionar Dependente
             </button>
         </div>
     </div>
 
     <div id="empty-dependent-form" style="display:none;">
-        <div class="dependent-row" style="margin-bottom: 15px; background-color: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+        <div class="dependent-row" style="margin-bottom: 0.9375rem; background-color: #fff; border: 1px solid #e0e0e0; border-radius: 0.375rem; overflow: hidden;">
             
             <div style="display: none;">
                 <input type="checkbox" name="dependents-__prefix__-DELETE" id="id_dependents-__prefix__-DELETE">
             </div>
 
-            <div class="dep-header" onclick="toggleDependentBody(this)" style="padding: 15px; background-color: #f1f3f5; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0e0e0;">
-                <div style="display: flex; align-items: center; gap: 10px;">
+            <div class="dep-header" onclick="toggleDependentBody(this)" style="padding: 0.9375rem; background-color: #f1f3f5; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0e0e0;">
+                <div style="display: flex; align-items: center; gap: 0.625rem;">
                     <i class="fa fa-chevron-down dep-arrow" style="transition: transform 0.2s; color: #6c757d;"></i>
                     <h4 style="margin: 0; font-size: 1.5rem; color: #495057; font-weight: 700;">
                         <span class="dep-name-display">Novo Dependente</span>
-                        <small style="font-weight: 400; color: #6c757d; margin-left: 5px;">
+                        <small style="font-weight: 400; color: #6c757d; margin-left: 0.3125rem;">
                             (<span class="dep-relation-display">...</span>)
                         </small>
                     </h4>
                 </div>
                 
-                <div style="display: flex; gap: 10px;">
+                <div style="display: flex; gap: 0.625rem;">
                     <button type="button" class="remove-dep-btn" data-new="true" style="border: none; background: transparent; color: #dc3545; font-size: 1.2rem; cursor: pointer;">
                         <i class="fa fa-trash"></i>
                     </button>
                 </div>
             </div>
 
-            <div class="dep-body" style="padding: 20px; display: block;"> 
-                <div class="form-content" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px;">
+            <div class="dep-body" style="padding: 1.25rem; display: block;"> 
+                <div class="form-content" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 1.25rem;">
                     
                     {% include 'partials/form_field.html' with field=dependent_formset.empty_form.name label="Nome Completo" grid_class="col-span-4" %}
                     {% include 'partials/form_field.html' with field=dependent_formset.empty_form.cpf label="CPF" grid_class="col-span-2" %}
@@ -160,7 +160,7 @@
     <div class="col-span-5"></div>
 
     <div id="pcd-container" class="hidden col-span-8">
-        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px;">
+        <div style="background-color: #f8f9fa; padding: 1.25rem; border-radius: 0.5rem; border: 1px solid #dee2e6; display: grid; grid-template-columns: repeat(8, 1fr); gap: 1.25rem;">
             
             {% include 'partials/form_field.html' with field=form.disability_type grid_class="col-span-3" %}
             
@@ -171,7 +171,7 @@
     <div class="col-span-5"></div>
 
     <div id="foreign-container" class="hidden col-span-8">
-        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px;">
+        <div style="background-color: #f8f9fa; padding: 1.25rem; border-radius: 0.5rem; border: 1px solid #dee2e6; display: grid; grid-template-columns: repeat(8, 1fr); gap: 1.25rem;">
             
             {% include 'partials/form_field.html' with field=form.arrival_date grid_class="col-span-2" %}
             {% include 'partials/form_field.html' with field=form.naturalization_date grid_class="col-span-2" %}
@@ -191,7 +191,7 @@
     <div class="col-span-5"></div>
 
     <div id="cipa-container" class="hidden col-span-8">
-        <div style="background-color: #f8f9fa; padding: 20px; border-radius: 8px; border: 1px solid #dee2e6; display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px;">
+        <div style="background-color: #f8f9fa; padding: 1.25rem; border-radius: 0.5rem; border: 1px solid #dee2e6; display: grid; grid-template-columns: repeat(8, 1fr); gap: 1.25rem;">
             
             {% include 'partials/form_field.html' with field=form.cipa_role grid_class="col-span-3" %}
             {% include 'partials/form_field.html' with field=form.cipa_mandate_start_date grid_class="col-span-2" %}
@@ -200,7 +200,7 @@
         </div>
     </div>
 
-    <div class="col-span-4" style="margin-top: 15px;">
+    <div class="col-span-4" style="margin-top: 0.9375rem;">
         {% include 'partials/form_field.html' with field=form.retirement_status %}
     </div>
 
@@ -215,17 +215,17 @@
     {% include 'partials/form_field.html' with field=form.admission_exam_date grid_class="col-span-2" %}
 
     {% if form.instance.pk %}
-        <div class="conditional-section col-span-6" style="border: 1px solid #ffeeba; background-color: #fff3cd; border-radius: 6px; padding: 5px 15px; display: flex; align-items: flex-start; gap: 15px;">
+        <div class="conditional-section col-span-6" style="border: 1px solid #ffeeba; background-color: #fff3cd; border-radius: 0.375rem; padding: 0.3125rem 0.9375rem; display: flex; align-items: flex-start; gap: 0.9375rem;">
             
-            <div style="margin-top: 32px; font-weight: bold; color: #856404; white-space: nowrap; font-size: 1.5rem;">
+            <div style="margin-top: 2rem; font-weight: bold; color: #856404; white-space: nowrap; font-size: 1.5rem;">
                 <i class="fa fa-history"></i> Alteração:
             </div>
 
-            <div style="flex: 1; min-width: 130px;">
+            <div style="flex: 1; min-width: 8.125rem;">
                 {% include 'partials/form_field.html' with field=form.change_date grid_class="w-full" %}
             </div>
 
-            <div style="flex: 2; min-width: 150px;">
+            <div style="flex: 2; min-width: 9.375rem;">
                 {% include 'partials/form_field.html' with field=form.change_reason grid_class="w-full" %}
             </div>
 

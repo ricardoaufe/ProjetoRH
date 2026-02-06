@@ -31,9 +31,7 @@
                     <div class="form-content" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 4px; background-color: #f9f9f9;">
                         
                         {% include 'partials/form_field.html' with field=job_form.name label="Nome do Cargo" grid_class="col-span-2" %}
-                        
                         {% include 'partials/form_field.html' with field=job_form.base_salary label="Salário Base" is_money=True grid_class="col-span-1" %}
-                        
                         {% include 'partials/form_field.html' with field=job_form.description label="Descrição do Cargo" grid_class="col-span-8" %}
 
                         {% if formset.can_delete and job_form.instance.pk %}
@@ -79,25 +77,23 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        
-        // --- 1. FUNÇÃO PARA APLICAR MÁSCARA EM UM CAMPO ---
+
+        //converts decimal points to commas to match the required format.
         function applyMoneyMask(input) {
-            // Correção do Bug 1000 -> 100.000 (Ponto vindo do banco)
             if (input.value && input.value.includes('.')) {
                 input.value = input.value.replace('.', ',');
             }
 
-            // Aplica a máscara
             try {
                 IMask(input, {
                     mask: Number,
-                    scale: 2,  // 2 casas decimais
+                    scale: 2,
                     signed: false,
-                    thousandsSeparator: '.',  // Ponto no milhar
-                    padFractionalZeros: true, // Força ,00
+                    thousandsSeparator: '.',
+                    padFractionalZeros: true,
                     normalizeZeros: true,
-                    radix: ',',  // Vírgula decimal
-                    mapToRadix: ['.'], // Se digitar ponto, vira vírgula
+                    radix: ',',
+                    mapToRadix: ['.'],
                     min: 0,
                     max: 9999999999.99
                 });
@@ -106,12 +102,9 @@
             }
         }
 
-        // --- 2. APLICAR MÁSCARAS NOS CAMPOS JÁ EXISTENTES ---
         const existingInputs = document.querySelectorAll('.money-input');
         existingInputs.forEach(input => applyMoneyMask(input));
 
-
-        // --- 3. LÓGICA DE ADICIONAR NOVO CARGO ---
         const addBtn = document.getElementById('add-job-btn');
         const container = document.getElementById('job-titles-container');
         
@@ -126,17 +119,11 @@
                 
                 if (!emptyFormContent) return;
 
-                // Clona o conteúdo do template vazio
                 const newDiv = document.createElement('div');
-                // Pega o HTML de dentro e substitui __prefix__ pelo número atual
                 newDiv.innerHTML = emptyFormContent.innerHTML.replace(/__prefix__/g, formIdx);
-                
-                // Adiciona ao container visualmente
-                // O .firstElementChild garante que não adicionamos divs "fantasmas" extras
+
                 const newRow = newDiv.firstElementChild;
                 container.appendChild(newRow);
-                
-                // Atualiza o contador de formulários do Django
                 totalForms.value = parseInt(formIdx) + 1;
 
                 const newMoneyInput = newRow.querySelector('.money-input');

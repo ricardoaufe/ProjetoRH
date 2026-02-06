@@ -764,16 +764,28 @@ small{
 
 /* Used for guarantee responsivity */
 .history-scroll {
-    max-height: 400px;
-    overflow-y: auto;
-    padding-right: 1.6rem;
+    max-height: 300px;       
+    overflow-y: auto;        
+    overflow-x: hidden;
+    padding: 10px;
+    border: 1px solid #e9ecef; 
+    border-radius: 6px;
+    background-color: #fff;
 }
 
-.history-scroll::-webkit-scrollbar { width: 6px; }
-.history-scroll::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-.history-scroll::-webkit-scrollbar-thumb { background: #ccc; border-radius: 4px; }
-.history-scroll::-webkit-scrollbar-thumb:hover { background: #aaa; }
-
+.history-scroll::-webkit-scrollbar {
+    width: 6px;
+}
+.history-scroll::-webkit-scrollbar-track {
+    background: #f8f9fa; 
+}
+.history-scroll::-webkit-scrollbar-thumb {
+    background: #ced4da; 
+    border-radius: 3px;
+}
+.history-scroll::-webkit-scrollbar-thumb:hover {
+    background: #adb5bd; 
+}
 .history-list {
     list-style: none;
     padding: 0;
