@@ -1,43 +1,40 @@
-
 @page {
     size: A4;
-    margin: 1.5cm 1.5cm 2cm 1.5cm; /* Margens menores para aproveitar espaço */
+    margin: 1.5cm 1.5cm 2cm 1.5cm;
     
     @bottom-right {
         content: "Pág. " counter(page) " de " counter(pages);
         font-family: 'Helvetica', sans-serif;
-        font-size: 9px;
+        font-size: 0.56rem;
         color: #999;
     }
     @bottom-left {
         content: "Sistema RH - Confidencial";
         font-family: 'Helvetica', sans-serif;
-        font-size: 9px;
+        font-size: 0.56rem;
         color: #ccc;
     }
 }
 
 body {
     font-family: 'Helvetica', 'Arial', sans-serif;
-    font-size: 11px;
+    font-size: 0.68rem;
     color: #333;
     line-height: 1.5;
 }
 
-/* --- CABEÇALHO (Layout Logo + Texto) --- */
 .header-container {
-    display: flex; /* Coloca Logo e Texto lado a lado */
+    display: flex;
     justify-content: space-between;
-    align-items: flex-start; /* Alinha no topo */
-    border-bottom: 2px solid #333; /* Linha preta fina e elegante */
-    padding-bottom: 15px;
-    margin-bottom: 30px;
+    align-items: flex-start;
+    border-bottom: 2px solid #333;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
 }
 
 .header-logo {
-    width: 70px; /* Tamanho do círculo/logo */
-    height: 70px;
-    /* Placeholder temporário (círculo vermelho) se não tiver img */
+    width: 4.375rem;
+    height: 4.375rem;
     background-color: #f8f9fa; 
     border-radius: 50%;
     overflow: hidden;
@@ -53,82 +50,76 @@ body {
 }
 
 .header-text {
-    text-align: right; /* Joga o texto para a direita */
+    text-align: right;
     flex: 1;
-    margin-left: 20px;
+    margin-left: 1.25rem;
 }
 
 .header-text h1 {
     margin: 0;
-    font-size: 22px;
+    font-size: 1.375rem;
     text-transform: uppercase;
     letter-spacing: 1px;
-    font-weight: 300; /* Fonte mais fina = mais moderno */
+    font-weight: 300;
     color: #111;
 }
 
 .header-text .report-name {
-    font-size: 14px;
+    font-size: 0.87rem;
     font-weight: bold;
     color: #555;
-    margin-top: 5px;
+    margin-top: 0.31rem;
     text-transform: uppercase;
 }
 
 .header-text .meta {
-    font-size: 10px;
+    font-size: 0.625rem;
     color: #888;
-    margin-top: 5px;
+    margin-top: 0.3125rem;
 }
 
-/* --- TABELAS --- */
 table.modern-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 10px;
+    margin-top: 0.6rem;
 }
 
-/* Cabeçalho da Tabela */
 table.modern-table th {
-    background-color: #f4f4f4; /* Cinza bem claro */
+    background-color: #f4f4f4;
     color: #333;
     text-transform: uppercase;
-    font-size: 9px;
+    font-size: 0.56rem;
     font-weight: bold;
     letter-spacing: 0.5px;
-    padding: 10px 8px;
+    padding: 0.62rem 0.5rem;
     text-align: left;
     border-bottom: 2px solid #ddd;
 }
 
-/* Linhas da Tabela */
 table.modern-table td {
-    padding: 10px 8px;
-    border-bottom: 1px solid #eee; /* Linha sutil entre itens */
-    font-size: 11px;
+    padding: 0.9rem 0.72rem;
+    border-bottom: 1px solid #eee;
+    font-size: 0.68rem;
     vertical-align: middle;
 }
 
-/* Zebra Striping (Linhas alternadas sutis) */
 table.modern-table tr:nth-child(even) {
     background-color: #fafafa;
 }
 
-/* Remove borda da última linha */
 table.modern-table tr:last-child td {
     border-bottom: none;
 }
 
-/* --- BADGES (Etiquetas de Status) --- */
 .badge {
-    padding: 3px 6px;
+    padding: 0.33rem 0.66rem;
     border-radius: 4px;
-    font-size: 9px;
+    font-size: 0.56rem;
     font-weight: bold;
     text-transform: uppercase;
     display: inline-block;
 }
 
-.badge-active { color: #0f5132; background-color: #d1e7dd; } /* Verde suave */
-.badge-inactive { color: #842029; background-color: #f8d7da; } /* Vermelho suave */
-.badge-cipa { color: #055160; background-color: #cff4fc; margin-left: 5px; } 
+.badge-active { color: #0f5132; background-color: #d1e7dd; }
+.badge-inactive { color: #842029; background-color: #f8d7da; } 
+.badge-cipa { color: #055160; background-color: #cff4fc; margin-left: 0.31rem; }

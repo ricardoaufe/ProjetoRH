@@ -8,8 +8,8 @@
 
         <form method="POST">
             {% csrf_token %}
-            <div style="margin-bottom: 40px;">
-                <h3 style="color: #495057; border-left: 5px solid #0d6efd; padding-left: 10px; margin-bottom: 25px;">
+            <div style="margin-bottom: 2.5rem;">
+                <h3 style="color: #495057; border-left: 5px solid #0d6efd; padding-left: 0.625rem; margin-bottom: 1.5625rem;">
                     Dados Pessoais
                 </h3>
                 
@@ -29,20 +29,20 @@
             </div>
         </form>
 
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 40px 0;">
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 2.5rem 0;">
 
         <div>
-            <h3 style="color: #495057; border-left: 5px solid #dc3545; padding-left: 10px; margin-bottom: 25px;">
+            <h3 style="color: #495057; border-left: 5px solid #dc3545; padding-left: 0.625rem; margin-bottom: 1.5625rem;">
                 Segurança e Acesso
             </h3>
 
-            <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 20px; border-radius: 8px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 20px;">
+            <div style="background-color: #fff3cd; border: 1px solid #ffeeba; padding: 1.25rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.25rem;">
                 <div>
                     <strong style="font-size: 1.2rem; color: #856404;">Alterar Senha</strong>
-                    <p style="margin: 5px 0 0 0; color: #856404;">Recomendamos alterar sua senha periodicamente para manter sua conta segura.</p>
+                    <p style="margin: 0.3125rem 0 0 0; color: #856404;">Recomendamos alterar sua senha periodicamente para manter sua conta segura.</p>
                 </div>
                 
-                <a href="{% url 'rhcontrol:change_password' %}" style="background-color: #ffc107; color: #212529; padding: 12px 25px; text-decoration: none; font-weight: bold; border-radius: 5px; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <a href="{% url 'rhcontrol:change_password' %}" style="background-color: #ffc107; color: #212529; padding: 0.75rem 1.5625rem; text-decoration: none; font-weight: bold; border-radius: 0.3125rem; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
                     <i class="fa fa-lock"></i> Trocar Senha
                 </a>
             </div>
