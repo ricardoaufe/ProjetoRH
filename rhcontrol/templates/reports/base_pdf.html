@@ -4,146 +4,128 @@
 <head>
     <meta charset="UTF-8">
     <title>{% block title %}Relatório{% endblock %}</title>
-    
     <style>
         @page {
             size: A4;
-            margin: 1cm;
+            margin: 2rem;
             @bottom-right {
                 content: "Pág. " counter(page) " de " counter(pages);
                 font-family: Helvetica, sans-serif;
-                font-size: 8px; /* Rodapé bem discreto */
+                font-size: 0.6rem;
                 color: #888;
             }
         }
 
+        html {
+            font-size: 16px;
+        }
+
         body {
             font-family: 'Helvetica', 'Arial', sans-serif;
-            font-size: 9px; /* FONTE REDUZIDA PARA ECONOMIA DE ESPAÇO */
-            color: #000;    /* Preto puro para contraste melhor em letras pequenas */
-            line-height: 1.3;
+            font-size: 0.75rem;
+            color: #000;
+            line-height: 1.2;
+            margin: 0;
+            padding: 0;
         }
 
-        /* --- CABEÇALHO --- */
+        .header-container {
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
         .header-table {
             width: 100%;
-            border-bottom: 1px solid #000; /* Linha fina única */
-            margin-bottom: 15px;
-            padding-bottom: 10px;
+            border-collapse: collapse;
+            border: none;
         }
 
-        .header-logo-cell {
-            width: 80px;
+        .col-logo {
+            width: 100px;
+            height: 100px;
+            text-align: left;
             vertical-align: middle;
         }
 
-        .header-logo-img {
-            width: 60px; /* Logo um pouco menor */
-            height: auto;
-            max-height: 60px;
-            object-fit: contain;
+        .col-center {
+            width: 60%;
+            text-align: center;
+            vertical-align: middle;
         }
 
-        .header-text-cell {
+        .col-meta {
+            width: 20%;
             text-align: right;
             vertical-align: middle;
         }
 
-        .company-name {
-            font-size: 14px;
+        .header-logo-img {
+            width: 5rem;
+            height: auto;
+            object-fit: contain;
+        }
+
+        .company-title {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #7eb77e;
+            text-transform: uppercase;
+            letter-spacing: 0.05rem;
+            display: inline-block;
+            border-bottom: 0.15rem solid #7eb77e;
+            padding-bottom: 0.1rem;
+            margin-bottom: 0.3rem;
+            line-height: 1;
+            white-space: nowrap;
+        }
+
+        .report-subtitle {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 0.9rem;
             font-weight: bold;
             text-transform: uppercase;
             color: #000;
             margin: 0;
         }
 
-        .report-title {
-            font-size: 11px;
-            text-transform: uppercase;
-            color: #333;
-            margin-top: 2px;
-            font-weight: 600;
+        .meta-text {
+            font-family: 'Helvetica', sans-serif;
+            font-size: 0.55rem;
+            color: #666;
+            line-height: 1.4;
         }
 
-        .meta-info {
-            font-size: 8px;
-            color: #555;
-            margin-top: 2px;
-        }
-
-        /* --- TABELA DE DADOS (ECO-FRIENDLY) --- */
-        table.data-table {
+        .content {
             width: 100%;
-            border-collapse: collapse;
-            margin-top: 5px;
         }
-
-        /* Cabeçalho da Tabela: Sem fundo, apenas linha divisória */
-        table.data-table th {
-            background-color: transparent; 
-            border: none;
-            border-bottom: 1px solid #000; /* Única linha forte */
-            padding: 4px 5px; /* Padding reduzido */
-            text-transform: uppercase;
-            font-size: 8px; /* Títulos menores */
-            font-weight: bold;
-            text-align: left;
-            color: #000;
-        }
-
-        /* Células: Sem bordas, espaçamento compacto */
-        table.data-table td {
-            border: none;
-            padding: 3px 5px; /* Espaçamento bem justo para caber mais linhas */
-            vertical-align: middle;
-            font-size: 10px;   /* Tamanho do texto solicitado */
-        }
-
-        /* ZEBRA STRIPING: O "Cinza Clarinho" solicitado */
-        table.data-table tr:nth-child(even) {
-            background-color: #f2f2f2; /* Cinza muito leve, economiza tinta mas guia o olho */
-        }
-        
-        /* Garante que o fundo da linha impar seja branco */
-        table.data-table tr:nth-child(odd) {
-            background-color: #fff;
-        }
-
-        /* --- ESTILOS DE TEXTO ECONÔMICOS --- */
-        .text-bold { font-weight: bold; }
-        .text-upper { text-transform: uppercase; }
-        
-        /* Status minimalista (sem caixas coloridas) */
-        .status-text {
-            font-size: 8px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-        .cipa-mark {
-            font-size: 8px;
-            font-weight: bold;
-            margin-left: 3px;
-        }
-
     </style>
 </head>
 <body>
 
-    <table class="header-table">
-        <tr>
-            <td class="header-logo-cell">
-                <img src="{% static 'global/images/LOGO_GDL.png' %}" class="header-logo-img" alt="Logo">
-            </td>
-            
-            <td class="header-text-cell">
-                <div class="company-name">{% block header_company %}{{ company_name_settings }}{% endblock %}</div>
-                <div class="report-title">{% block header_title %}Relatório Geral{% endblock %}</div>
-                <div class="meta-info">
-                    Gerado em: {% now "d/m/Y \à\s H:i" %} por {{ user.get_full_name|default:user.username }}
-                </div>
-            </td>
-        </tr>
-    </table>
+    <div class="header-container">
+        <table class="header-table">
+            <tr>
+                <td class="col-logo">
+                    <img src="{% static 'global/images/LOGO_GDL.png' %}" class="header-logo-img" alt="Logo">
+                </td>
+                <td class="col-center">
+                    <div class="company-title">
+                        {% block header_company %}{{ company_name_settings }}{% endblock %}
+                    </div>
+                    <div class="report-subtitle">
+                        {% block header_title %}Relatório Geral{% endblock %}
+                    </div>
+                </td>
+                <td class="col-meta">
+                    <div class="meta-text">
+                        Gerado em:<br>
+                        {% now "d/m/Y \à\s H:i" %}<br>por {{ user.get_full_name|default:user.username }}
+                    </div>
+                </td>
+            </tr>
+        </table>
+    </div>
 
     <div class="content">
         {% block content %}{% endblock %}
