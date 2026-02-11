@@ -18,6 +18,11 @@
             <div class="dropdown-content">
                 <a href="{% url 'rhcontrol:employee_registration_pdf' pk=form.instance.pk %}" target="_blank">
                     <i class="fa fa-id-card-o"></i> Ficha Cadastral
+                    <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
+                </a>
+                <a href="{% url 'rhcontrol:confidenciality_term_pdf' pk=form.instance.pk %}" target="_blank">
+                    <i class="fa fa-file-text-o"></i> Termo de Confidencialidade
+                    <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
                 </a>
                 
                 </div>

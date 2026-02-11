@@ -762,7 +762,7 @@ small{
     padding-bottom: 0.6rem;
 }
 
-/* Used for guarantee responsivity */
+/* Used to guarantee responsivity */
 .history-scroll {
     max-height: 300px;       
     overflow-y: auto;        

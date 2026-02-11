@@ -1,0 +1,179 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Termo de Confidencialidade - {{ employee.name }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 1.5cm;
+            @bottom-right {
+                content: "Página " counter(page) " de " counter(pages);
+                font-family: Helvetica, sans-serif;
+                font-size: 0.5rem;
+                color: #888;
+            }
+            @bottom-center {
+                content: element(address-footer);
+            }
+        }
+        
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Times New Roman', Times, serif; 
+            font-size: 0.75rem;
+            color: #000;
+            line-height: 1.6;
+
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header-table {
+            width: 100%;
+            border-bottom: 2px solid #000;
+            margin-bottom: 1.875rem;
+            padding-bottom: 0.625rem;
+            font-family: 'Helvetica', 'Arial', sans-serif;
+        }
+        .header-logo-cell { width: 6.25rem; vertical-align: middle; }
+        .header-logo-img { width: 5.625rem; height: auto; object-fit: contain; }
+        .header-text-cell { text-align: right; vertical-align: middle; }
+        
+        .company-name { font-size: 0.6875rem; font-weight: bold; text-transform: uppercase; margin: 0; }
+        .report-title { font-size: 0.5625rem; text-transform: uppercase; margin-top: 0.3125rem; font-weight: 600; }
+        .meta-info { font-size: 0.5rem; color: #555; margin-top: 0.3125rem; }
+
+
+        .doc-title {
+            text-align: center;
+            font-size: 1rem; 
+            font-weight: bold;
+            margin-bottom: 2.5rem;
+            margin-top: 0.625rem;
+            text-transform: uppercase;
+        }
+    
+        .legal-text {
+            text-align: justify;
+            margin-bottom: 1.25rem;
+            text-indent: 1.875rem;
+        }
+
+        ol.legal-list {
+            padding-left: 2.5rem;
+            margin-bottom: 1.875rem;
+        }
+
+        ol.legal-list li {
+            margin-bottom: 0.75rem;
+            text-align: justify;
+            padding-left: 0.625rem;
+        }
+
+        .date-line {
+            margin-top: 2.5rem;
+            margin-bottom: 3.125rem;
+            text-align: center;
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 0.6875rem;
+        }
+
+        .signatures-block {
+            width: 100%;
+            margin-top: auto; 
+            padding-bottom: 1.25rem; 
+        }
+
+        .signature-box {
+            text-align: center;
+            margin-bottom: 3.125rem;
+            page-break-inside: avoid;
+        }
+        
+        .signature-box:last-child {
+            margin-bottom: 0;
+        }
+
+        .signature-line {
+            border-top: 1px solid #000;
+            width: 21.875rem; 
+            margin: 0 auto 0.3125rem auto;
+        }
+
+        .address-footer-content {
+            position: running(address-footer);
+            text-align: center;
+            font-size: 0.5625rem;
+            color: #666;
+            border-top: 1px solid #ccc;
+            padding-top: 0.625rem;
+            font-family: 'Helvetica', sans-serif;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <table class="header-table">
+        <tr>
+            <td class="header-logo-cell">
+                <img src="{% static 'global/images/LOGO_GDL.png' %}" class="header-logo-img" alt="Logo">
+            </td>
+            <td class="header-text-cell">
+                <div class="company-name">{{ company_name_settings }}</div>
+                <div class="report-title">Termo de Confidencialidade</div>
+                <div class="meta-info">
+                    Gerado em: {% now "d/m/Y \à\s H:i" %}
+                </div>
+            </td>
+        </tr>
+    </table>
+
+    <div class="doc-title">TERMO DE CONFIDENCIALIDADE - PESSOA FÍSICA</div>
+
+    <p class="legal-text">
+        Pelo presente Termo, a <strong>GALVANOPLASTIA DIADEMA LTDA</strong>, inscrita sob o CNPJ: 52.521.036/0001-14 estabelecida na cidade de Diadema, Estado de São Paulo, na Avenida Nossa Senhora das Graças, 353 – CEP 09980-000, bairro Jardim Ruyce, e colaborador <strong>{{ employee.name|upper }}</strong>, CPF <strong>{{ employee.cpf }}</strong>, Identidade nº <strong>{{ employee.rg }}</strong> expedida por SSP/SP, doravante denominados individualmente como PARTE, ou, em conjunto, como PARTES, se obrigam a manter o mais absoluto sigilo com relação a toda e qualquer informação a que tiverem acesso sobre os ativos de informação e dados pessoais que em função do exercício de minha atividade na GALVANOPLASTIA DIADEMA LTDA., terei acesso. Para tanto, declara e se compromete nos seguintes aspectos:
+    </p>
+
+    <ol type="1" class="legal-list"> <li>Não divulgar informações a mim confiadas em razão do exercício de minha função na empresa;</li>
+        <li>Não levar peças para fora das dependências da empresa;</li>
+        <li>Não levar etiquetas e ordens de serviços, seja elas originais ou cópias, para fora das dependências da empresa;</li>
+        <li>Não levar ou divulgar fotos das peças dos clientes;</li>
+        <li>Não levar desenhos para fora das dependências da empresa;</li>
+        <li>Não efetuar nenhuma gravação ou cópia da documentação confidencial a que tiver acesso;</li>
+        <li>Não comentar a terceiros sobre quaisquer assuntos que sejam pertinentes ao meu trabalho;</li>
+        <li>Não comentar a terceiros sobre quaisquer clientes nos quais a empresa atende.</li>
+    </ol>
+
+    <div class="date-line">
+        Diadema, {% now "d" %} de {% now "F" %} de {% now "Y" %}.
+    </div>
+
+    <div class="signatures-block">
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <strong>{{ employee.name|upper }}</strong><br>
+            <span style="font-size: 10px;">COLABORADOR(A)</span>
+        </div>
+
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <strong>Vera Lúcia de Sousa Ferreira</strong><br>
+            <span style="font-size: 10px;">ENCARREGADO DE TRATAMENTO DE DADOS PESSOAIS</span>
+        </div>
+    </div>
+
+    <div class="address-footer-content">
+        Av. Nossa Senhora das Graças, 353 - Cep: 09980-000 - Tel/Fax 11 4056-5765 / 7868<br>
+        Jd. Ruyce - Diadema - SP - email: galdema@terra.com.br
+    </div>
+
+</body>
+</html>
