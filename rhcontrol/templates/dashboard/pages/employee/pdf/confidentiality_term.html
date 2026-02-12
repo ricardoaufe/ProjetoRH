@@ -6,7 +6,6 @@
 {% block header_title %}Termo de Confidencialidade{% endblock %}
 
 {% block style %}
-    /* Removemos a altura forçada para permitir o fluxo natural */
     html, body {
         position: relative;
     }
@@ -15,53 +14,17 @@
         font-family: 'Times New Roman', Times, serif;
         font-size: 0.85rem; 
         line-height: 1.5;
-        padding-bottom: 2rem; /* Margem de segurança no fim da folha */
+        padding-bottom: 2rem;
         color: #000;
     }
 
-    .doc-title {
-        text-align: center;
-        font-size: 1.1rem;
-        font-weight: bold;
-        margin-top: 1rem;
-        margin-bottom: 2rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05rem;
-    }
-
-    .legal-text {
-        text-align: justify;
-        text-indent: 2.5rem; /* Recuo elegante de parágrafo */
-        margin-bottom: 1.5rem;
-        font-size: 0.85rem;
-    }
-
-    ol.legal-list { 
-        padding-left: 3rem;
-        margin-bottom: 2rem;
-        font-size: 0.85rem;
-    }
-
-    ol.legal-list li {
-        text-align: justify;
-        padding-left: 0.5rem;
-        margin-bottom: 0.8rem; /* Espaço entre itens da lista */
-    }
-
-    .date-line {
-        text-align: center;
-        margin-top: 3rem;     /* Distância do texto */
-        margin-bottom: 4rem;  /* Distância para a primeira assinatura */
-        font-size: 0.9rem;
-    }
-    
 {% endblock %}
 
 {% block content %}
     <div class="doc-title">TERMO DE CONFIDENCIALIDADE - PESSOA FÍSICA</div>
 
     <p class="legal-text">
-        Pelo presente Termo, a <strong>GALVANOPLASTIA DIADEMA LTDA</strong>, inscrita sob o CNPJ: 52.521.036/0001-14 estabelecida na cidade de Diadema, Estado de São Paulo, na Avenida Nossa Senhora das Graças, 353 – CEP 09980-000, bairro Jardim Ruyce, e colaborador <strong>{{ employee.name|upper }}</strong>, CPF <strong>{{ employee.cpf }}</strong>, Identidade nº <strong>{{ employee.rg }}</strong> expedida por SSP/SP, doravante denominados individualmente como PARTE, ou, em conjunto, como PARTES, se obrigam a manter o mais absoluto sigilo com relação a toda e qualquer informação a que tiverem acesso sobre os ativos de informação e dados pessoais que em função do exercício de minha atividade na GALVANOPLASTIA DIADEMA LTDA., terei acesso. Para tanto, declara e se compromete nos seguintes aspectos:
+        Pelo presente Termo, a <strong>{{ company_name_settings }}</strong>, inscrita sob o CNPJ:{{ company_cnpj }} estabelecida na cidade de {{ company_city }}, {{ company_state }} na {{company_address}} – CEP {{company_zip}}, bairro {{company_neighborhood}}, e colaborador <strong>{{ employee.name|upper }}</strong>, CPF <strong>{{ employee.cpf }}</strong>, Identidade nº <strong>{{ employee.rg }}</strong> expedida por SSP/SP, doravante denominados individualmente como PARTE, ou, em conjunto, como PARTES, se obrigam a manter o mais absoluto sigilo com relação a toda e qualquer informação a que tiverem acesso sobre os ativos de informação e dados pessoais que em função do exercício de minha atividade na {{company_name_settings}}, terei acesso. Para tanto, declara e se compromete nos seguintes aspectos:
     </p>
 
     <ol type="1" class="legal-list">
@@ -76,7 +39,7 @@
     </ol>
 
     <div class="date-line">
-        Diadema, {% now "d" %} de {% now "F" %} de {% now "Y" %}.
+        {{company_city}}, {% now "d" %} de {% now "F" %} de {% now "Y" %}.
     </div>
 
     <div class="signatures-block">
@@ -88,8 +51,7 @@
 
         <div class="signature-box">
             <div class="signature-line"></div>
-            <div class="sig-name">Vera Lúcia de Sousa Ferreira</div>
-            <div class="sig-role">ENCARREGADO DE TRATAMENTO DE DADOS PESSOAIS</div>
+            <div class="sig-name">{{company_name_settings}}</div>
         </div>
     </div>
 

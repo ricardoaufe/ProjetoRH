@@ -9,6 +9,7 @@ def company_info(request):
         'company_cnpj': settings.COMPANY_CNPJ,
         'company_address': settings.COMPANY_ADDRESS,
         'company_neighborhood': settings.COMPANY_NEIGHBORHOOD,
+        'company_city': settings.COMPANY_CITY,
         'company_state': settings.COMPANY_STATE,
         'company_zip': settings.COMPANY_ZIP,
         'company_phone': settings.COMPANY_PHONE,

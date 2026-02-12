@@ -1,0 +1,56 @@
+{% extends 'reports/base_pdf.html' %}
+{% load static %}
+
+{% block title %}Termo de Consentimento de Uso de Dados Pessoais {{ employee.name }}{% endblock %}
+
+{% block header_title %}Termo de Consentimento de Uso de Dados Pessoais{% endblock %}
+
+{% block style %}
+
+    body {
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 0.85rem; 
+        line-height: 1.5;
+        padding-bottom: 2rem;
+        color: #000;
+    }
+
+    ol {
+        list-style-type: upper-roman;
+    }
+
+{% endblock style %}
+
+{% block content %}
+   <div class="doc-title"> TERMO DE CONSENTIMENTO DE USO DOS DADOS PESSOAIS </div>
+
+    <p class="legal-text">
+        Pelo presente Termo, a <strong>{{ company_name_settings }}</strong>, inscrita sob o CNPJ:{{company_cnpj}} estabelecida na cidade de {{ company_city }}, {{ company_state }}, na {{company_address}} – CEP {{company_zip}}, bairro {{company_neighborhood}}, informa que, para efeitos legais de contratação previstos na CLT DECRETO-LEI Nº 5.452, DE 1º DE MAIO DE 1943, necessita dos dados pessoais e de dependentes solicitados no processo de contratação, que serão utilizados única e exclusivamente para fins de:
+    </p>
+
+    <ol type="1" class="legal-list">
+        <li>Registro de funcionário</li>
+        <li>Registro de ponto</li>
+        <li>Pagamento de salários</li>
+        <li>Inclusão no sistema de benefícios da empresa, incluindo dados de dependentes </li>
+        <li>Uso de dados constantes no atestado médico, inclusive o CID</li>
+    </ol>
+
+    <div class="date-line">
+        Diadema, {% now "d" %} de {% now "F" %} de {% now "Y" %}.
+    </div>
+
+    <div class="signatures-block">
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <div class="sig-name">{{ employee.name|upper }}</div>
+            <div class="sig-role">COLABORADOR(A)</div>
+        </div>
+
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <div class="sig-name">{{company_name_settings}}</div>
+        </div>
+    </div>
+
+{%endblock content%}

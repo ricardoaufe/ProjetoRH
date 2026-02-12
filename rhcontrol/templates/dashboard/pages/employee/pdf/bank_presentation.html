@@ -80,14 +80,11 @@
 {% block content %}
 
     <div class="content">
-        <div class="date-line">
-            Diadema, {% now "d \d\e F \d\e Y" %}.
-        </div>
 
         <div class="address-block">
             Ao<br>
             Banco Itaú S.A.<br>
-            Ag. Serraria - 6875
+            {{company_agency}}<br>
         </div>
 
         <div class="att-line">
@@ -115,10 +112,13 @@
             <tr><td>Salário</td><td><strong>R$ {{ employee.current_salary|floatformat:2 }}</strong></td></tr>
         </table>
         
+        <div class="date-line">
+            {{company_city}}, {% now "d \d\e F \d\e Y" %}.
+        </div>
+
         <div class="signature-block">
             <div class="signature-line"></div>
-            <div class="sig-name">Vera Lúcia de Sousa Ferreira</div>
-            <div class="sig-role">ENCARREGADO DE TRATAMENTO DE DADOS PESSOAIS</div>
+            <div class="sig-name">{{company_name_settings}}</div>
         </div>
 
     </div>
