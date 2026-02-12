@@ -5,6 +5,19 @@
     <meta charset="UTF-8">
     <title>{% block title %}Relatório{% endblock %}</title>
     <style>
+        @font-face {
+            font-family: 'Times New Roman';
+            src: url('{% static "global/fonts/times.ttf" %}');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Times New Roman';
+            src: url('{% static "global/fonts/timesbd.ttf" %}');
+            font-weight: bold;
+            font-style: normal;
+        }
         @page {
             size: A4;
             margin: 2rem;
