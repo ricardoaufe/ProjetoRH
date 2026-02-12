@@ -695,7 +695,7 @@ def create_bank_presentation_pdf(request, pk):
     return response
 
 @login_required
-def create_image_consent_pdf(request, pk):
+def create_personal_data_consent_pdf(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     context = {
         'employee': employee,
@@ -704,7 +704,29 @@ def create_image_consent_pdf(request, pk):
         'company_name_settings': settings.COMPANY_NAME,
     }
 
-    html_string = render_to_string('dashboard/pages/employee/pdf/term_of_commitment.html', context, request=request)
+    html_string = render_to_string('dashboard/pages/employee/pdf/personal_data_consent.html', context, request=request)
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    pdf = html.write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+
+    safe_name = employee.name.replace(' ', '_')
+    filename = f"termo_de_compromisso_{employee.id}_{safe_name}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    
+    return response
+
+@login_required
+def create_commitment_term_pdf(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    context = {
+        'employee': employee,
+        'user': request.user,
+        'generated_at': timezone.now(),
+        'company_name_settings': settings.COMPANY_NAME,
+    }
+
+    html_string = render_to_string('dashboard/pages/employee/pdf/commitment_term.html', context, request=request)
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
     pdf = html.write_pdf()
 

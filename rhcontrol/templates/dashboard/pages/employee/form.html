@@ -28,8 +28,12 @@
                     <i class="fa fa-file-text-o"></i> Apresentação Bancária
                     <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
                 </a>
-                <a href="{% url 'rhcontrol:image_consent_pdf' pk=form.instance.pk %}" target="_blank">
+                <a href="{% url 'rhcontrol:personal_data_consent_pdf' pk=form.instance.pk %}" target="_blank">
                     <i class="fa fa-file-text-o"></i> Termo de Consentimento de Uso de Dados Pessoais
+                    <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
+                </a>
+                <a href="{% url 'rhcontrol:term_of_commitment_pdf' pk=form.instance.pk %}" target="_blank">
+                    <i class="fa fa-file-text-o"></i> Termo de Compromisso
                     <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
                 </a>
                 

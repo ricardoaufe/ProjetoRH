@@ -1,0 +1,55 @@
+{% extends 'reports/base_pdf.html' %}
+{% load static %}
+
+{% block title %}Termo de Consentimento de Uso de Dados Pessoais {{ employee.name }}{% endblock %}
+
+{% block header_title %}Termo de Consentimento de Uso de Dados Pessoais{% endblock %}
+
+{% block style %}
+
+    body {
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 0.85rem; 
+        line-height: 1.5;
+        padding-bottom: 2rem;
+        color: #000;
+    }
+    p {
+        text-align: justify;
+        margin-bottom: 2.5rem;
+        font-size: 1rem;
+    }
+    
+{% endblock style%}
+{% block content %}
+
+    <div class="doc-title">EXPRESSÃO DE COMPROMETIMENTO DA DIREÇÃO</div>
+
+    <h3 style="text-align: center; margin-bottom: 30px;"><strong>{{ employee.name|upper }}</strong></h3>
+
+    <p>
+        Seja bem-vindo(a) a {{ company_name_settings }}.
+    </p>
+    <p>
+        Estamos felizes com sua participação em nossa equipe.
+    </p>
+    <p>
+        Somos uma empresa que recebe e trata dados pessoais e ativos de informação todo esse processo exige muita responsabilidade e atenção. Nossa empresa possui sistemática que tem a finalidade de manter a confidencialidade, integridade e a disponibilidade dos ativos de informação e dados pessoais que temos acesso.
+    </p>
+    <p>
+        Sendo assim contamos com seu compromisso individual de sigilo, compromisso com nossas políticas internas que foram apresentados a você nesse treinamento de integração que acabou de receber.
+    </p>
+
+    <div class="date-line">
+        Diadema, {% now "d" %} de {% now "F" %} de {% now "Y" %}.
+    </div>
+
+    <div class="signatures-block">
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <div class="sig-name">{{company_name_settings}}</div>
+        </div>
+    </div>
+
+
+{% endblock content%}
