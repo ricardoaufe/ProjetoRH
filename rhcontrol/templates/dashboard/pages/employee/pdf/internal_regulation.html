@@ -1,0 +1,168 @@
+{% extends 'reports/base_pdf.html' %}
+{% load static %}
+
+{% block title %}Questionário de Regulamento Interno {{ employee.name }}{% endblock %}
+
+{% block header_title %}Questionário de Regulamento Interno{% endblock %}
+
+{% block style %}
+    .question-title {
+        font-weight: bold;
+        font-size: 1rem;
+        margin-bottom: 5px;
+        margin-top: 20px;
+    }
+
+    .writing-line {
+        width: 100%;
+        border-bottom: 1px solid #000;
+        height: 30px;
+        margin-bottom: 5px;
+    }
+
+    .blank-space-1{
+        height: 120px;
+    }
+
+    .blank-space-2{
+        height: 80px;
+    }
+
+    .signatures-block {
+        width: 100%;
+        margin-top: 3rem;
+        page-break-inside: avoid;
+    }
+
+    .info{
+        display: flex;
+        flex-direction: row;
+        flex-wrap: nowrap;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0;
+        margin-bottom: 0;
+    }
+
+{% endblock style %}
+{% block content %}
+    <div class="doc-title">QUESTIONÁRIO DE REGULAMENTO INTERNO</div>
+
+    <div class="info">
+        <h3 style="margin-bottom: 30px;">Nome do canditado: <strong>{{ employee.name|upper }}</strong></h3>
+        <h3 style="margin-bottom: 30px;">Data: {% now "d" %} de {% now "F" %} de {% now "Y" %}</h3>
+    </div>
+
+    <div class="question-title"> 1) Qual a sua visão do trabalho em grupo na empresa?</div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+
+    <div class="question-title"> 2) Qual a política de qualidade da empresa?</div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+
+    <div class="question-title"> 3) Cite 3 direitos e 3 deveres do funcionário:</div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+
+    <div class="question-title"> 4) Quais dias do mês são realizados os pagamentos? De qual maneira é realizado o pagamento?</div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+
+    <div class="footer-container">
+        <div class="footer-address">
+            {{company_address}} - Cep: {{company_zip}} - Tel/Fax {{company_phone}}<br>
+            {{company_neighborhood}} - {{company_city}} - {{company_state}} - email: {{company_email}}
+        </div>
+    </div>
+
+    <div class="blank-space-2"></div>
+
+    <div class="question-title"> 5) Após quanto tempo o funcionário pode gozar do período de férias?</div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+
+    <div class="question-title"> 6)	Qual o valor da cesta básica? Cite um exemplo de quando o funcionário PERDE a cesta básica e de quando o funcionário NÃO PERDE a cesta.</div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+
+    <div class="question-title"> 7) Após quanto tempo a partir do horário de entrada é contabilizado ATRASO? E após quanto tempo é contabilizado FALTA?</div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+
+    <div class="question-title"> 8) Quais os documentos que podem justificar (abonar) uma falta?</div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+
+    <div class="question-title"> 9) Caso o funcionário precise sair no meio do expediente, o que o mesmo deve fazer?</div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+
+    <div class="footer-container">
+        <div class="footer-address">
+            {{company_address}} - Cep: {{company_zip}} - Tel/Fax {{company_phone}}<br>
+            {{company_neighborhood}} - {{company_city}} - {{company_state}} - email: {{company_email}}
+        </div>
+    </div>
+
+    <div class="blank-space-2"></div>
+
+    <div class="question-title"> 10) Qual o custo de um cartão de ponto novo em caso de perda ou danos causados por mal-uso?</div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+
+    <div class="question-title"> 11) O que deve ser feito caso esqueça de passar o cartão de ponto?</div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+
+    <div class="question-title"> 12) Cite as regras para os seguintes pontos:</div>
+
+    <div class="question-title">a) Uso de telefone da empresa:</div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+
+    <div class="question-title">b) Uso de telefone celular (Particular):</div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+
+    <div class="question-title">c) Uso de computadores e impressoras:</div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+    <div class="writing-line"></div>
+
+    <div class="signatures-block">
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <div class="sig-name">{{ employee.name|upper }}</div>
+            <div class="sig-role">COLABORADOR(A)</div>
+        </div>
+    </div>
+
+{% endblock content %}
