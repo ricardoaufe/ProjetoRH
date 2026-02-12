@@ -1,162 +1,94 @@
+{% extends 'reports/base_pdf.html' %} 
 {% load static %}
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-    <meta charset="UTF-8">
-    <title>Ficha Cadastral - {{ employee.name }}</title>
-    <style>
-        @page {
-            size: A4;
-            margin: 0.5cm;
-            @bottom-right {
-                content: "Página " counter(page) " de " counter(pages);
-                font-family: Helvetica, sans-serif;
-                font-size: 0.55rem;
-                color: #888;
-            }
-        }
-        body {
-            font-family: 'Helvetica', 'Arial', sans-serif;
-            font-size: 1.05rem;
-            color: #333;
-            line-height: 1.25;
-        }
 
-        .header-table {
-            width: 100%;
-            border-bottom: 1px solid #000;
-            margin-bottom: 1rem;
-            padding-bottom: 0.65rem;
-        }
-        .header-logo-cell {
-            width: 85px;
-            vertical-align: middle;
-        }
-        .header-logo-img {
-            width: 75px;
-            height: auto;
-            object-fit: contain;
-        }
-        .header-text-cell {
-            text-align: right;
-            vertical-align: middle;
-        }
-        .company-name {
-            font-size: 0.92rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            color: #000;
-            margin: 0;
-        }
-        .report-title {
-            font-size: 0.72rem;
-            text-transform: uppercase;
-            color: #333;
-            margin-top: 0.13rem;
-            font-weight: 600;
-        }
-        .meta-info {
-            font-size: 0.53rem;
-            color: #555;
-            margin-top: 0.13rem;
-        }
+{% block title %}Ficha Cadastral - {{ employee.name }}{% endblock %}
 
-        .section-title {
-            font-size: 0.65rem;
-            font-weight: bold;
-            color: #fff;
-            background-color: #a3a3a3;
-            padding: 0.33rem 0.53rem;
-            border-radius: 4px 4px 0 0;
-            margin-top: 0.97rem;
-            text-transform: uppercase;
-            border: 1px solid #a3a3a3;
-            page-break-after: avoid;
-            break-after: avoid;
-        }
+{% block header_title %}Ficha Cadastral{% endblock %}
 
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            border: 1px solid #999;
-            border-top: none;
-        }
-        
-        .data-table td {
-            border: 1px solid #999;
-            padding: 0.33rem 0.53rem;
-            vertical-align: top;
-        }
-        
-        .data-table strong {
-            display: block;
-            font-size: 0.46rem;
-            color: #666;
-            text-transform: uppercase;
-            margin-bottom: 0.13rem;
-            font-weight: bold;
-        }
-        
-        .data-table span {
-            font-size: 0.65rem;
-            color: #000;
-            display: block;
-            min-height: 0.92rem;
-        }
+{% block style %}
+    /* Estilos exclusivos do conteúdo da Ficha Cadastral */
 
-        .active-tag {
-            display: inline-block;
-            width: auto; 
-            background-color: #f0f0f0; 
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            padding: 0.13rem 0.4rem;
-            margin-right: 0.33rem;       
-            margin-bottom: 0.13rem;
-            font-size: 0.53rem;         
-            color: #333;
-            font-weight: bold;
-            white-space: nowrap;     
-            line-height: 1;          
-        }
+    .section-title {
+        font-size: 0.65rem;
+        font-weight: bold;
+        color: #fff;
+        background-color: #a3a3a3;
+        padding: 0.33rem 0.53rem;
+        border-radius: 4px 4px 0 0;
+        margin-top: 0.97rem;
+        text-transform: uppercase;
+        border: 1px solid #a3a3a3;
+        page-break-after: avoid;
+        break-after: avoid;
+    }
 
-        .related-table {
-            width: 100%;
-            border-collapse: collapse;
-            border: 1px solid #999;
-            border-top: none;
-        }
-        .related-table th {
-            background-color: #f2f2f2;
-            border: 1px solid #999;
-            padding: 0.33rem;
-            font-size: 0.53rem;
-            text-transform: uppercase;
-            text-align: left;
-        }
-        .related-table td {
-            border: 1px solid #999;
-            padding: 0.33rem;
-            font-size: 0.59rem;
-        }
-    </style>
-</head>
-<body>
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid #999;
+        border-top: none;
+    }
+    
+    .data-table td {
+        border: 1px solid #999;
+        padding: 0.33rem 0.53rem;
+        vertical-align: top;
+    }
+    
+    .data-table strong {
+        display: block;
+        font-size: 0.46rem;
+        color: #666;
+        text-transform: uppercase;
+        margin-bottom: 0.13rem;
+        font-weight: bold;
+    }
+    
+    .data-table span {
+        font-size: 0.65rem;
+        color: #000;
+        display: block;
+        min-height: 0.92rem;
+    }
 
-    <table class="header-table">
-        <tr>
-            <td class="header-logo-cell">
-                <img src="{% static 'global/images/LOGO_GDL.png' %}" class="header-logo-img" alt="Logo">
-            </td>
-            <td class="header-text-cell">
-                <div class="company-name">{{ company_name_settings }}</div>
-                <div class="report-title">Ficha Cadastral</div>
-                <div class="meta-info">
-                    Gerado em: {% now "d/m/Y \à\s H:i" %} por {{ user.get_full_name|default:user.username }}
-                </div>
-            </td>
-        </tr>
-    </table>
+    .active-tag {
+        display: inline-block;
+        width: auto; 
+        background-color: #f0f0f0; 
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 0.13rem 0.4rem;
+        margin-right: 0.33rem;       
+        margin-bottom: 0.13rem;
+        font-size: 0.53rem;         
+        color: #333;
+        font-weight: bold;
+        white-space: nowrap;     
+        line-height: 1;          
+    }
+
+    .related-table {
+        width: 100%;
+        border-collapse: collapse;
+        border: 1px solid #999;
+        border-top: none;
+    }
+    .related-table th {
+        background-color: #f2f2f2;
+        border: 1px solid #999;
+        padding: 0.33rem;
+        font-size: 0.53rem;
+        text-transform: uppercase;
+        text-align: left;
+    }
+    .related-table td {
+        border: 1px solid #999;
+        padding: 0.33rem;
+        font-size: 0.59rem;
+    }
+{% endblock %}
+
+{% block content %}
 
     <div class="section-title">Dados Pessoais</div>
     <table class="data-table">
@@ -472,5 +404,4 @@
         </tbody>
     </table>
 
-</body>
-</html>
+{% endblock %}

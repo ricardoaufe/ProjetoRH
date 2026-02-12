@@ -41,8 +41,7 @@
         }
 
         .col-logo {
-            width: 100px;
-            height: 100px;
+            width: 20%;
             text-align: left;
             vertical-align: middle;
         }
@@ -99,6 +98,29 @@
         .content {
             width: 100%;
         }
+
+        .footer-container {
+            position: running(addressFooter);
+            margin-bottom: 2.5rem;
+        }
+
+        .footer-address {
+            text-align: center;
+            font-family: 'Helvetica', sans-serif;
+            font-size: 0.55rem;
+            color: #666;
+            border-top: 0.06rem solid #ccc;
+            padding-top: 0.6rem;
+            margin-top: 1rem;
+        }
+        
+        @page {
+            @bottom-center {
+                content: element(addressFooter);
+            }
+        }
+
+        {% block style %}{% endblock %}
     </style>
 </head>
 <body>
@@ -120,7 +142,8 @@
                 <td class="col-meta">
                     <div class="meta-text">
                         Gerado em:<br>
-                        {% now "d/m/Y \à\s H:i" %}<br>por {{ user.get_full_name|default:user.username }}
+                        {% now "d/m/Y \à\s H:i" %}<br>
+                        por {{ user.get_full_name|default:user.username }}
                     </div>
                 </td>
             </tr>
@@ -129,6 +152,13 @@
 
     <div class="content">
         {% block content %}{% endblock %}
+    </div>
+
+    <div class="footer-container">
+        <div class="footer-address">
+            Av. Nossa Senhora das Graças, 353 - Cep: 09980-000 - Tel/Fax 11 4056-5765 / 7868<br>
+            Jd. Ruyce - Diadema - SP - email: galdema@terra.com.br
+        </div>
     </div>
 
 </body>
