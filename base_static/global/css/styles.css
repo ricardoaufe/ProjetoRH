@@ -119,12 +119,12 @@ label{
 }
 
 .dropdown-content a {
-    white-space: nowrap;
-    padding: 0.8rem 0.9rem 0.8rem 0 !important;
     font-size: 1.5rem !important;
+    white-space: nowrap !important;
+    padding: 10px 15px !important;
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 8px;
 }
 
 .header-center .dropdown {
