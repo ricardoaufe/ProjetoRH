@@ -68,6 +68,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'rhcontrol.context_processors.company_info',
             ],  
         },
     },
@@ -75,7 +76,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'rh.wsgi.application'
 
-COMPANY_NAME = os.environ.get('COMPANY_NAME', 'RH SYSTEM DEMO') 
+COMPANY_NAME = os.environ.get('COMPANY_NAME', 'RH SYSTEM DEMO')
+COMPANY_CNPJ = os.environ.get('COMPANY_CNPJ', '00.000.000/0001-00')
+COMPANY_ADDRESS = os.environ.get('COMPANY_ADDRESS', 'Rua de Teste, 123')
+COMPANY_NEIGHBORHOOD = os.environ.get('COMPANY_NEIGHBORHOOD', 'Bairro Demo')
+COMPANY_CITY = os.environ.get('COMPANY_CITY', 'Cidade')
+COMPANY_STATE = os.environ.get('COMPANY_STATE', 'UF')
+COMPANY_ZIP = os.environ.get('COMPANY_ZIP', '00000-000')
+COMPANY_PHONE = os.environ.get('COMPANY_PHONE', '(11) 9999-9999')
+COMPANY_EMAIL = os.environ.get('COMPANY_EMAIL', 'contato@demo.com.br')
+COMPANY_AGENCY = os.environ.get('COMPANY_AGENCY', 'Agência de RH Demo') 
 
 
 # Database
