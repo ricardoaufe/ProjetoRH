@@ -25,12 +25,14 @@
         border-collapse: collapse;
         border: 1px solid #999;
         border-top: none;
+        table-layout: fixed; /* Garante que as colunas respeitem as larguras */
     }
     
     .data-table td {
         border: 1px solid #999;
         padding: 0.33rem 0.53rem;
         vertical-align: top;
+        word-wrap: break-word; /* Evita texto vazando da célula */
     }
     
     .data-table strong {
@@ -105,7 +107,7 @@
                 <strong>Data de Nascimento</strong>
                 <span>{{ employee.birth_date|date:"d/m/Y"|default:"-" }}</span>
             </td>
-            <td width="33%">
+            <td width="34%">
                 <strong>Gênero</strong>
                 <span>{{ employee.get_gender_display|default:"-" }}</span>
             </td>
@@ -227,7 +229,6 @@
                 
                 {% if employee.is_foreign %}
                     <div style="font-size: 8pt; margin-top: 3px; line-height: 1.4;">
-                        
                         <div style="margin-bottom: 3px;">
                             <span style="display:inline; font-weight:bold;">RNE:</span> {{ employee.rne_number|default:"-" }} 
                             &nbsp;|&nbsp; 
@@ -235,18 +236,15 @@
                             &nbsp;|&nbsp; 
                             <span style="display:inline; font-weight:bold;">Emissão:</span> {{ employee.rne_issue_date|date:"d/m/Y"|default:"-" }}
                         </div>
-
                         <div style="margin-bottom: 5px;">
                             <span style="display:inline; font-weight:bold;">Chegada:</span> {{ employee.arrival_date|date:"d/m/Y"|default:"-" }}
                             &nbsp;|&nbsp; 
                             <span style="display:inline; font-weight:bold;">Naturalização:</span> {{ employee.naturalization_date|date:"d/m/Y"|default:"-" }}
                         </div>
-
                         <div>
                             {% if employee.married_to_brazilian %}
                                 <span class="active-tag">Casado(a) c/ Brasileiro</span>
                             {% endif %}
-                            
                             {% if employee.has_brazilian_children %}
                                 <span class="active-tag">Tem Filhos Brasileiros</span>
                             {% endif %}
@@ -270,11 +268,19 @@
                 <strong>Cargo</strong>
                 <span>{{ employee.job_title.name|default:"-"|upper }}</span>
             </td>
-            <td width="33%">
+            <td width="34%">
                 <strong>Salário Atual</strong>
                 <span>R$ {{ employee.current_salary|default:"0,00" }}</span>
             </td>
         </tr>
+        
+        <tr>
+            <td colspan="3">
+                <strong>Descrição do Cargo</strong>
+                <span>{{ employee.job_title.description|default:"-" }}</span>
+            </td>
+        </tr>
+
         <tr>
             <td>
                 <strong>Data de Admissão</strong>
@@ -295,27 +301,49 @@
                 </span>
             </td>
         </tr>
+
+        <tr>
+            <td width="33%">
+                <strong>Tipo de Jornada</strong>
+                <span>{{ employee.get_workday_type_display|default:employee.workday_type|default:"-" }}</span>
+            </td>
+            <td width="33%">
+                <strong>Jornada Especial</strong>
+                <span>{{ employee.special_workday|default:"-" }}</span>
+            </td>
+            <td width="34%">
+                <strong>Descrição Outro</strong>
+                {% if employee.special_workday == 'Outro' %}
+                    <span>{{ employee.special_workday_other|default:"-" }}</span>
+                {% else %}
+                    <span style="color: #ccc;">-</span>
+                {% endif %}
+            </td>
+        </tr>
+
+        <tr>
+            <td colspan="3">
+                <strong>Informações da Jornada (Dias, Horários e Intervalos)</strong>
+                <span style="white-space: pre-wrap;">{{ employee.working_info|default:"-" }}</span>
+            </td>
+        </tr>
+
         <tr>
             <td colspan="3">
                 <strong>Características do Contrato</strong>
                 <div style="margin-top: 4px; display: flex; flex-wrap: wrap; gap: 4px;">
-                    
                     {% if employee.is_trial_contract %}
                         <span class="active-tag">Experiência</span>
                     {% endif %}
-                    
                     {% if employee.is_first_job %}
                         <span class="active-tag">Primeiro Emprego</span>
                     {% endif %}
-                    
                     {% if employee.is_intermittent_contract %}
                         <span class="active-tag">Intermitente</span>
                     {% endif %}
-                    
                     {% if employee.has_insalubrity_bonus %}
                         <span class="active-tag">Insalubridade</span>
                     {% endif %}
-                    
                     {% if employee.has_danger_bonus %}
                         <span class="active-tag">Periculosidade</span>
                     {% endif %}
@@ -361,7 +389,7 @@
                 <strong>Vale Transporte</strong>
                 <span>{% if employee.uses_transport_voucher %}Optante{% else %}Não Optante{% endif %}</span>
             </td>
-            <td width="33%">
+            <td width="34%">
                 <strong>CIPA</strong>
                 <span>
                     {% if employee.is_cipa_member %}

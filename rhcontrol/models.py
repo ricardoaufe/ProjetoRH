@@ -225,9 +225,7 @@ class Employee(models.Model):
         ('V - Jornada de semana variável', 'Variável'),
     ]
     workday_type = models.CharField(max_length=50, choices=WORKDAY_TYPE_CHOICES, blank=True, null=True, verbose_name="Tipo de Jornada")
-    working_days= models.CharField(max_length=50, blank=True, null=True, verbose_name="Dias de Trabalho")
-    working_hours= models.CharField(max_length=50, blank=True, null=True, verbose_name="Horário de Trabalho")
-    working_interval = models.CharField(max_length=50, blank=True, null=True, verbose_name="Intervalo de Trabalho")
+    working_info = models.CharField(max_length=200, blank=True, null=True, verbose_name="Informações sobre a Jornada de Trabalho (Dias, Horários e Intervalos)")
     SPECIAL_WORKDAY_CHOICES = [
         ('12 X 36', '12 X 36'),
         ('24 X 72', '24 X 72'),
