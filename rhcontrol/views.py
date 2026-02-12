@@ -639,7 +639,7 @@ def create_employee_registration_pdf(request, pk):
         'company_name_settings': settings.COMPANY_NAME,
     }
     
-    html_string = render_to_string('dashboard/pages/employee/pdf/registration_form.html', context)
+    html_string = render_to_string('dashboard/pages/employee/pdf/registration_form.html', context, request=request)
     
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
     pdf = html.write_pdf()
@@ -661,7 +661,7 @@ def create_confidenciality_pdf(request, pk):
                'company_name_settings': settings.COMPANY_NAME,
                }
 
-    html_string = render_to_string('dashboard/pages/employee/pdf/confidentiality_term.html', context)
+    html_string = render_to_string('dashboard/pages/employee/pdf/confidentiality_term.html', context, request=request)
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
     pdf = html.write_pdf()
 
@@ -682,7 +682,7 @@ def create_bank_presentation_pdf(request, pk):
                'company_name_settings': settings.COMPANY_NAME,
                }
 
-    html_string = render_to_string('dashboard/pages/employee/pdf/bank_presentation.html', context)
+    html_string = render_to_string('dashboard/pages/employee/pdf/bank_presentation.html', context, request=request)
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
     pdf = html.write_pdf()
 
@@ -704,7 +704,7 @@ def create_image_consent_pdf(request, pk):
         'company_name_settings': settings.COMPANY_NAME,
     }
 
-    html_string = render_to_string('dashboard/pages/employee/pdf/term_of_commitment.html', context)
+    html_string = render_to_string('dashboard/pages/employee/pdf/term_of_commitment.html', context, request=request)
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
     pdf = html.write_pdf()
 
