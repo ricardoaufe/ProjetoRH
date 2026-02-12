@@ -1,0 +1,43 @@
+{% extends 'reports/base_pdf.html' %}
+{% load static %}
+
+{% block title %}Termo de Consentimento de Uso de Imagem{{ employee.name }}{% endblock %}
+
+{% block header_title %}Termo de Consentimento de Uso de Imagem{% endblock %}
+
+{% block style %}
+   
+    body {
+        font-family: 'Times New Roman', Times, serif;
+        line-height: 1.7; 
+    }
+
+{% endblock style %}
+{% block content %}
+
+    <div class="doc-title">TERMO DE AUTORIZAÇÃO DE USO DE IMAGEM</div>
+
+    <p>Eu, <strong>{{ employee.name|upper}}</strong>, nacionalidade <strong> BRASILEIRO </strong>, nascido (a) em <strong>{{ employee.birth_date|upper}}</strong>, estado civil <strong>{{ employee.get_marital_status_display|upper }}</strong>, portador (a) da Cédula de Identidade RG nº <strong>{{ employee.rg|upper }}</strong>, inscrito (a) no CPF sob nº <strong>{{ employee.cpf|upper }}</strong>, residente e domiciliado à Av./Rua: <strong>{{ employee.address|upper }}</strong>, nº<strong>{{ employee.number|upper }}</strong>, bairro: <strong>{{ employee.neighborhood|upper }}</strong>, CEP: <strong>{{ employee.zip_code|upper }}</strong>, município de <strong>{{ employee.city|upper }}</strong>, UF <strong>{{ employee.state|upper }}</strong>, AUTORIZO o uso de minha imagem e voz, em todo e qualquer material entre fotos, documentos e outros meios de comunicação, para campanhas promocionais e institucionais desta empresa {{company_name_settings}}, com sede em {{company_address}} - {{company_zip}} - {{company_neighborhood}} - {{company_city}} - {{company_state}}, inscrita no CNPJ/MF sob o nº {{company_cnpj}}, sejam essas destinadas à divulgação ao público em geral e/ou apenas para uso desta empresa, e desde que não haja desvirtuamento da sua finalidade.</p>
+
+    <p> A presente autorização é concedida a título gratuito, abrangendo o uso da imagem acima mencionada em todo território nacional e no exterior, sob qualquer forma e meios, ou sejam, em destaque: (I) website; (II) cartazes; (III) redes e mídias sociais; (IV) divulgações em geral nos meios de comunicação dispostos pela empresa.</p>
+
+    <p> Por esta ser a expressão da minha vontade declaro que autorizo o uso acima descrito sem que nada haja a ser reclamado a título de direitos conexos à minha imagem ou a qualquer outro, e assino a presente autorização em 02 (dias) vias de igual teor e forma.</p>
+
+    <div class="date-line">
+        {{company_city}}, {% now "d" %} de {% now "F" %} de {% now "Y" %}.
+    </div>
+
+    <div class="signatures-block">
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <div class="sig-name">{{ employee.name|upper }}</div>
+            <div class="sig-role">COLABORADOR(A)</div>
+        </div>
+
+        <div class="signature-box">
+            <div class="signature-line"></div>
+            <div class="sig-name">{{company_name_settings}}</div>
+        </div>
+    </div>
+   
+{% endblock content %}

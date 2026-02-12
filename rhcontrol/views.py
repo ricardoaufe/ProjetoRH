@@ -737,3 +737,25 @@ def create_commitment_term_pdf(request, pk):
     response['Content-Disposition'] = f'inline; filename="{filename}"'
     
     return response
+
+@login_required
+def create_image_consent_pdf(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    context = {
+        'employee': employee,
+        'user': request.user,
+        'generated_at': timezone.now(),
+        'company_name_settings': settings.COMPANY_NAME,
+    }
+
+    html_string = render_to_string('dashboard/pages/employee/pdf/image_consent.html', context, request=request)
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    pdf = html.write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+
+    safe_name = employee.name.replace(' ', '_')
+    filename = f"termo_de_consentimento_uso_imagem_{employee.id}_{safe_name}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    
+    return response

@@ -50,4 +50,5 @@ urlpatterns = [
     path('employees/<int:pk>/bank-presentation/', views.create_bank_presentation_pdf, name='bank_presentation_pdf'),
     path('employees/<int:pk>/personal-data-consent/', views.create_personal_data_consent_pdf, name='personal_data_consent_pdf'),
     path('employees/<int:pk>/term-of-commitment/', views.create_commitment_term_pdf, name='term_of_commitment_pdf'),
+    path('employees/<int:pk>/term-of-consent/', views.create_image_consent_pdf, name='term_of_consent_pdf')
 ]
