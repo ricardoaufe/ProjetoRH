@@ -251,6 +251,32 @@
         const dialog = document.getElementById('deleteModal');
         if (dialog) dialog.close();
     }
+
+    const specialWorkdaySelect = document.getElementById('id_special_workday');
+    const otherContainer = document.getElementById('special-workday-other-container');
+    const otherInput = document.getElementById('id_special_workday_other');
+
+    function toggleSpecialWorkday() {
+        if (!specialWorkdaySelect || !otherContainer) return;
+
+        if (specialWorkdaySelect.value === 'Outro') {
+            otherContainer.style.display = 'block';
+            if(otherInput) otherInput.setAttribute('required', 'required');
+        } else {
+            otherContainer.style.display = 'none';
+            if(otherInput) {
+                otherInput.removeAttribute('required');
+                otherInput.value = '';
+            }
+        }
+    }
+
+    if (specialWorkdaySelect) {
+        specialWorkdaySelect.addEventListener('change', toggleSpecialWorkday);
+
+        toggleSpecialWorkday();
+    }
+
 </script>
 
 <script>

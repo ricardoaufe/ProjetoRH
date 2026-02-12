@@ -220,6 +220,22 @@ class Employee(models.Model):
     termination_date = models.DateField(blank=True, null=True, verbose_name="Data da Demissão") 
     termination_reason = models.CharField(max_length=200, blank=True, null=True, verbose_name="Motivo da Demissão")
 
+    WORKDAY_TYPE_CHOICES = [
+        ('F - Jornada de semana fixa', 'Fixa'),
+        ('V - Jornada de semana variável', 'Variável'),
+    ]
+    workday_type = models.CharField(max_length=50, choices=WORKDAY_TYPE_CHOICES, blank=True, null=True, verbose_name="Tipo de Jornada")
+    working_days= models.CharField(max_length=50, blank=True, null=True, verbose_name="Dias de Trabalho")
+    working_hours= models.CharField(max_length=50, blank=True, null=True, verbose_name="Horário de Trabalho")
+    working_interval = models.CharField(max_length=50, blank=True, null=True, verbose_name="Intervalo de Trabalho")
+    SPECIAL_WORKDAY_CHOICES = [
+        ('12 X 36', '12 X 36'),
+        ('24 X 72', '24 X 72'),
+        ('Outro', 'Outro'),
+    ]
+    special_workday = models.CharField(max_length=20, choices=SPECIAL_WORKDAY_CHOICES, blank=True, null=True, verbose_name="Trabalho Especial")
+    special_workday_other = models.CharField(max_length=100, blank=True, null=True, verbose_name="Especificação do Trabalho Especial")
+
     # DADOS DE ESTRANGEIROS
     is_foreign = models.BooleanField(default=False, verbose_name="É Estrangeiro") 
     arrival_date = models.DateField(blank=True, null=True, verbose_name="Data de Chegada") 

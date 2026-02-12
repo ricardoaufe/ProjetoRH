@@ -234,6 +234,15 @@
         <div class="col-span-6"></div>
     {% endif %}
 
+    {% include 'partials/form_field.html' with field=form.workday_type grid_class="col-span-1" %}
+    {% include 'partials/form_field.html' with field=form.working_days grid_class="col-span-2" %}
+    {% include 'partials/form_field.html' with field=form.working_hours grid_class="col-span-2" %}
+    {% include 'partials/form_field.html' with field=form.working_interval grid_class="col-span-2" %}
+    {% include 'partials/form_field.html' with field=form.special_workday grid_class="col-span-1" %}
+    <div id="special-workday-other-container" class="col-span-2" style="display: none;">
+        {% include 'partials/form_field.html' with field=form.special_workday_other %}
+    </div>
+
     {% include 'partials/form_field.html' with field=form.is_trial_contract grid_class="col-span-2" %}
     {% include 'partials/form_field.html' with field=form.is_first_job grid_class="col-span-2" %}
     {% include 'partials/form_field.html' with field=form.is_intermittent_contract grid_class="col-span-2"%}

@@ -73,6 +73,12 @@ class EmployeeForm(forms.ModelForm):
         ],
         widget=forms.Select(attrs={'class': 'form-select'})
     )
+
+    special_workday_other = forms.CharField(
+        label='Qual Trabalho Especial?',
+        required=False,
+        widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Descreva o trabalho especial'})
+    )
     class Meta:
         model = Employee
         fields = '__all__'
@@ -119,7 +125,6 @@ class EmployeeForm(forms.ModelForm):
     def clean_current_salary(self):
         salary = self.cleaned_data.get('current_salary')
         if not salary: return None
-        # Se vier texto (1.500,00), limpamos. Se vier número, passamos direto.
         salary_str = str(salary).replace('.', '').replace(',', '.')
         try:
             return Decimal(salary_str)
@@ -134,6 +139,19 @@ class EmployeeForm(forms.ModelForm):
             return Decimal(salary_str)
         except:
             raise forms.ValidationError("Valor inválido")
+        
+    def clean(self):
+        cleaned_data = super().clean()
+        special_workday = cleaned_data.get('special_workday')
+        special_workday_other = cleaned_data.get('special_workday_other')
+
+        if special_workday == 'Outro' and not special_workday_other:
+            self.add_error('special_workday_other', 'Por favor, especifique qual é o trabalho especial.')
+        
+        if special_workday != 'Outro':
+            cleaned_data['special_workday_other'] = ''
+
+        return cleaned_data
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
