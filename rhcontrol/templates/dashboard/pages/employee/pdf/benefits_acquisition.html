@@ -1,0 +1,70 @@
+{% extends 'reports/base_pdf.html' %}
+{% load static %}
+
+{% block title %}Termo de Aquisição de Benefícios - {{ employee.name }}{% endblock %}
+
+{% block header_title %}Termo de Aquisição de Benefícios{% endblock %}
+
+{% block style %}
+    .options-list {
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+    .option-item {
+        margin-bottom: 20px;
+        text-align: left;
+    }
+    .sub-option {
+        margin-left: 40px;
+        margin-top: 10px;
+        margin-bottom: 10px;
+        text-align: left;
+    }
+    
+{% endblock style %}
+{% block content %}   
+
+        <div class="doc-title">TERMO DE AQUISIÇÃO DE BENEFÍCIO</div>
+
+        <p>
+            Eu, <strong>{{ employee.name|upper }}</strong> na qualidade de funcionário da {{company_name_settings}} declaro através desta que neste presente momento:
+        </p>
+
+        <div class="options-list">
+            <p class="option-item">( &nbsp; ) Não tenho interesse de adquirir Convênio médico, tanto para eu quanto para meus dependentes.</p>
+            <p class="option-item">( &nbsp; ) Não tenho interesse de adquirir Odontológico, tanto para eu quanto para meus dependentes.</p>
+            <p class="option-item">
+                ( &nbsp; ) Tenho interesse de adquirir Convênio Médico:
+                <div class="sub-option">( &nbsp; ) Individual</div>
+                <div class="sub-option">( &nbsp; ) Dependentes</div>
+            </p>
+            <p class="option-item">
+                ( &nbsp; ) Tenho interesse de adquirir Odontológico:
+                <div class="sub-option">( &nbsp; ) Individual</div>
+                <div class="sub-option">( &nbsp; ) Dependentes</div>
+            </p>
+        </div>
+
+        <p>
+            Estou ciente de que se não realizar a aquisição neste momento vier a ter interesse posteriormente, irei passar pelo período de carência estabelecido pelo convênio.
+        </p>
+
+        <div class="date-line">
+            {{company_city}}, {% now "d" %} de {% now "F" %} de {% now "Y" %}.
+        </div>
+
+        <div class="signatures-block">
+            <div class="signature-box">
+                <div class="signature-line"></div>
+                <div class="sig-name">{{ employee.name|upper }}</div>
+                <div class="sig-role">COLABORADOR(A)</div>
+            </div>
+
+            <div class="signature-box">
+                <div class="signature-line"></div>
+                <div class="sig-name">{{company_name_settings}}</div>
+            </div>
+        </div>
+
+    </div>
+{% endblock content %}

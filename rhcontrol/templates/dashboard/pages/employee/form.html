@@ -40,8 +40,12 @@
                     <i class="fa fa-file-text-o"></i> Termo de Consentimento de Uso de Imagem
                     <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
                 </a>
+                <a href="{% url 'rhcontrol:benefits_acquisition_pdf' pk=form.instance.pk %}" target="_blank">
+                    <i class="fa fa-file-text-o"></i> Termo de Aquisição de Benefícios
+                    <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>  
+                </a>
                 
-                </div>
+            </div>
         </div>
         {% endif %}
     </div>
