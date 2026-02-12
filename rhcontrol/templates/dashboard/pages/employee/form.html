@@ -17,34 +17,33 @@
             </button>
             <div class="dropdown-content">
                 <a href="{% url 'rhcontrol:employee_registration_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-id-card-o"></i> Ficha Cadastral
+                    <i class="fa fa-id-text-o"></i> Ficha Cadastral
                     <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
                 </a>
                 <a href="{% url 'rhcontrol:confidenciality_term_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-file-text-o"></i> Termo de Confidencialidade
+                    <i class="fa fa-file-text-o"></i> Confidencialidade
                     <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
                 </a>
                 <a href="{% url 'rhcontrol:bank_presentation_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-file-text-o"></i> Apresentação Bancária
+                    <i class="fa fa-file-text-o"></i> Conta Bancária
                     <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
                 </a>
                 <a href="{% url 'rhcontrol:personal_data_consent_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-file-text-o"></i> Termo de Consentimento de Uso de Dados Pessoais
+                    <i class="fa fa-file-text-o"></i> Uso de Dados Pessoais
                     <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
                 </a>
                 <a href="{% url 'rhcontrol:term_of_commitment_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-file-text-o"></i> Termo de Compromisso
+                    <i class="fa fa-file-text-o"></i> Compromisso
                     <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
                 </a>
                 <a href="{% url 'rhcontrol:term_of_consent_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-file-text-o"></i> Termo de Consentimento de Uso de Imagem
+                    <i class="fa fa-file-text-o"></i> Uso de Imagem
                     <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
                 </a>
                 <a href="{% url 'rhcontrol:benefits_acquisition_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-file-text-o"></i> Termo de Aquisição de Benefícios
+                    <i class="fa fa-file-text-o"></i> Aquisição de Benefícios
                     <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>  
                 </a>
-                
             </div>
         </div>
         {% endif %}
