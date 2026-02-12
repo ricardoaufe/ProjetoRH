@@ -672,3 +672,24 @@ def create_confidenciality_pdf(request, pk):
     response['Content-Disposition'] = f'inline; filename="{filename}"'
     
     return response
+
+@login_required
+def bank_presentation_pdf(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    context = {'employee': employee,
+               'user': request.user,
+               'generated_at': timezone.now(),
+               'company_name_settings': settings.COMPANY_NAME,
+               }
+
+    html_string = render_to_string('dashboard/pages/employee/pdf/bank_presentation.html', context)
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    pdf = html.write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+
+    safe_name = employee.name.replace(' ', '_')
+    filename = f"apresentacao_bancaria_{employee.id}_{safe_name}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    
+    return response

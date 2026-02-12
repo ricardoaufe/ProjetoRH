@@ -47,4 +47,5 @@ urlpatterns = [
     path('employees/pdf/', views.create_employee_list_pdf, name='employee_list_pdf'),
     path('employees/<int:pk>/registration-form/', views.create_employee_registration_pdf, name='employee_registration_pdf'),
     path('employees/<int:pk>/confidenciality-term/', views.create_confidenciality_pdf, name='confidenciality_term_pdf'),
+    path('employees/<int:pk>/bank-presentation/', views.bank_presentation_pdf, name='bank_presentation_pdf'),
 ]

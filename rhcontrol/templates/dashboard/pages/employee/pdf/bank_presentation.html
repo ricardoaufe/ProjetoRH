@@ -1,0 +1,126 @@
+{% extends 'reports/base_pdf.html' %}
+{% load static %}
+
+{% block title %}Apresentação Bancária - {{ employee.name }}{% endblock %}
+
+{% block header_title %}Apresentação Bancária{% endblock %}
+
+{% block style %}
+    /* Reset e Fonte Base */
+    body {
+        font-family: 'Arial', sans-serif;
+        font-size: 0.9rem; /* Tamanho confortável para leitura */
+        color: #333;
+        line-height: 1.5;
+    }
+
+    /* Espaçamentos Verticais (Ar para respirar) */
+    .content {
+        padding-top: 1rem;
+    }
+
+    .date-line { 
+        margin-bottom: 2.5rem; 
+    }
+
+    .address-block { 
+        margin-bottom: 2.5rem; 
+        line-height: 1.4;
+        font-weight: bold;
+    }
+
+    .att-line { 
+        margin-bottom: 2rem; 
+        font-weight: bold; 
+        text-decoration: underline; 
+    }
+
+    .ref-line {
+        background-color: #f0f8ff; /* Azul bem clarinho */
+        padding: 0.6rem;
+        text-align: center;
+        font-weight: bold;
+        margin: 2rem auto;
+        border: 1px solid #dcdcdc;
+        border-radius: 4px;
+        width: 90%;
+    }
+
+    .main-text {
+        text-align: justify;
+        margin-bottom: 2rem;
+        text-indent: 2rem; /* Parágrafo */
+    }
+
+    /* Tabela de Dados */
+    .info-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.85rem;
+        margin-bottom: 3rem; /* Espaço antes da assinatura */
+    }
+
+    .info-table td {
+        padding: 0.4rem 0;
+        vertical-align: top;
+        border-bottom: 1px solid #eee; /* Linha sutil para guiar o olho */
+    }
+
+    .info-table tr:last-child td {
+        border-bottom: none;
+    }
+
+    .info-table td:first-child { 
+        width: 140px; 
+        color: #555;
+    }
+
+{% endblock style %}
+
+{% block content %}
+
+    <div class="content">
+        <div class="date-line">
+            Diadema, {% now "d \d\e F \d\e Y" %}.
+        </div>
+
+        <div class="address-block">
+            Ao<br>
+            Banco Itaú S.A.<br>
+            Ag. Serraria - 6875
+        </div>
+
+        <div class="att-line">
+            Att: Abertura de Contas
+        </div>
+
+        <div class="ref-line">
+            Ref.: Carta de Apresentação
+        </div>
+
+        <p class="main-text">
+            Vimos através desta apresentar o funcionário descrito abaixo para
+            abertura de conta salário nesta agência, sendo que o(a) mesmo(a) faz parte do nosso quadro de colaboradores.
+        </p>
+
+        <table class="info-table">
+            <tr><td>Nome</td><td><strong>{{ employee.name|upper }}</strong></td></tr>
+            <tr><td>R.G.</td><td><strong>{{ employee.rg|default:"-" }}</strong></td></tr>
+            <tr><td>CPF</td><td><strong>{{ employee.cpf|default:"-" }}</strong></td></tr>
+            <tr><td>Endereço</td><td><strong>{{ employee.address|upper }}, {{ employee.address_num}}</strong></td></tr>
+            <tr><td>Bairro</td><td><strong>{{ employee.neighborhood|upper }}</strong></td></tr>
+            <tr><td>Cidade</td><td><strong>{{ employee.city|upper }}</strong></td></tr>
+            <tr><td>Cargo</td><td><strong>{{ employee.job_title.name|upper }}</strong></td></tr>
+            <tr><td>Admissão</td><td><strong>{{ employee.hire_date|date:"d/m/Y" }}</strong></td></tr>
+            <tr><td>Salário</td><td><strong>R$ {{ employee.current_salary|floatformat:2 }}</strong></td></tr>
+        </table>
+        
+        <div class="signature-block">
+            <div class="signature-line"></div>
+            <div class="sig-name">Vera Lúcia de Sousa Ferreira</div>
+            <div class="sig-role">ENCARREGADO DE TRATAMENTO DE DADOS PESSOAIS</div>
+        </div>
+
+    </div>
+
+{% endblock content %}
