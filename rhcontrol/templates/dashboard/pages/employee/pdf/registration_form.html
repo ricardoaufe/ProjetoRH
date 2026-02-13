@@ -93,9 +93,13 @@
     <div class="section-title">Dados Pessoais</div>
     <table class="data-table">
         <tr>
-            <td colspan="3">
+            <td colspan="2" width="66%">
                 <strong>Nome Completo</strong>
                 <span>{{ employee.name|default:"-"|upper }}</span>
+            </td>
+            <td width="34%">
+                <strong>Matrícula</strong>
+                <span>{{ employee.registration_number|default:"-" }}</span>
             </td>
         </tr>
         <tr>
@@ -144,52 +148,6 @@
             <td colspan="2">
                 <strong>UF Nascimento</strong>
                 <span>{{ employee.get_state_birthplace_code_display|default:employee.state_birthplace_code|default:"-" }}</span>
-            </td>
-        </tr>
-    </table>
-
-    <div class="section-title">Endereço e Contato</div>
-    <table class="data-table">
-        <tr>
-            <td width="50%">
-                <strong>Endereço</strong>
-                <span>{{ employee.address|default:"-" }}</span>
-            </td>
-            <td width="10%">
-                <strong>Número</strong>
-                <span>{{ employee.address_num|default:"-" }}</span>
-            </td>
-            <td width="40%">
-                <strong>Complemento</strong>
-                <span>{{ employee.complement|default:"-" }}</span>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <strong>Bairro</strong>
-                <span>{{ employee.neighborhood|default:"-" }}</span>
-            </td>
-            <td>
-                <strong>Cidade / UF</strong>
-                <span>{{ employee.city|default:"-" }} / {{ employee.state_code|default:"-" }}</span>
-            </td>
-            <td>
-                <strong>CEP</strong>
-                <span>{{ employee.zip_code|default:"-" }}</span>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <strong>E-mail</strong>
-                <span>{{ employee.email|default:"-"|lower }}</span>
-            </td>
-            <td>
-                <strong>Celular</strong>
-                <span>{{ employee.mobile_phone|default:"-" }}</span>
-            </td>
-            <td>
-                <strong>Contato de Emergência</strong>
-                <span>{{ employee.emergency_contact_name|default:"-" }} ({{ employee.emergency_phone|default:"-" }})</span>
             </td>
         </tr>
     </table>
@@ -429,5 +387,62 @@
             {% endfor %}
         </tbody>
     </table>
+
+    <div style="break-inside:avoid; margin-top: 2rem; border: 1px solid #000; padding: 10px; font-size: 0.7rem; text-align: justify; line-height: 1.2;">
+        <strong>( &nbsp;&nbsp; ) Estou ciente da solicitação, arquivamento e uso dos dados supracitados nesta ficha de 
+        registro de empregados, durante o período que durar a prestação de serviços de minha parte 
+        à empresa, até mesmo após a extinção do contrato de trabalho, para cumprimento das 
+        obrigações legais, tais como: sistema de folha de pagamento; sindicato da categoria; Receita 
+        Federal; Ministério da Economia; Previdência Social; Caixa Econômica Federal; eSocial; 
+        Empregador web; Gov.br; cumprimento do prazo de guarda de meus dados; e demais 
+        obrigações que venham ser necessárias para o envio dos meus dados pessoais, até mesmo 
+        sensíveis, conforme as leis governamentais, seguindo os preceitos da Lei 13.709/2018 – LGPD.</strong>
+    </div>
+
+    <div style="margin-top: 3rem; width: 100%;">
+        
+        <div style="float: left; width: 45%;">
+            <div style="border-top: 1px solid #000; width: 100%; margin-bottom: 5px;"></div>
+            <div style="font-size: 0.7rem;">Assinatura Legível do Funcionário</div>
+        </div>
+
+        <div style="clear: both; height: 1.5rem;"></div>
+
+        <div style="float: left; width: 100%; margin-bottom: 2.5rem;">
+            <span style="font-size: 0.7rem;">AUTORIZADOR POR: (RESPONSÁVEL DA EMPRESA) __________________________________________________</span>
+        </div>
+
+        <div style="width: 100%; margin-bottom: 2rem;">
+            <div style="float: left; width: 30%; font-size: 0.7rem;">
+                DATA: {% now "d/m/Y" %}
+            </div>
+            <div style="float: right; width: 45%; text-align: center;">
+                <div style="border-top: 1px solid #000; width: 100%; margin-bottom: 5px;"></div>
+                <div style="font-size: 0.7rem;"><strong>{{ company_name_settings }}</strong></div>
+            </div>
+            <div style="clear: both;"></div>
+        </div>
+
+        <table style="width: 100%; border-collapse: collapse; border: 1px solid #000; font-size: 0.6rem; line-height: 1.2;">
+            <tr>
+                <td style="width: 33%; border: 1px solid #000; padding: 5px; vertical-align: top; text-align: justify;">
+                    <strong>Fica vossa senhoria ciente de que os exames médicos admissionais, periódicos e demissionais são obrigatórios de acordo com a CLT.</strong> 
+                    A responsabilidade pela realização dos exames é vossa ou de empresa de medicina e segurança do trabalho por vossa senhoria contratada. 
+                    A não realização destes exames pode trazer penalidades à empresa.
+                </td>
+
+                <td style="width: 33%; border: 1px solid #000; padding: 5px; vertical-align: top; text-align: justify;">
+                    <strong>De acordo com a CLT, na jornada de 8 horas diárias o intervalo deve ser de no mínimo 1 (uma) e no máximo de 2 (duas) horas.</strong>
+                </td>
+
+                <td style="width: 34%; border: 1px solid #000; padding: 5px; vertical-align: top; text-align: justify;">
+                    <strong>Segundo a Convenção Coletiva de Trabalho do Sindicato, o trabalhador tem direito a um salário base de acordo com a categoria econômica da empresa.</strong> 
+                    Caso vossa senhoria pague valor a menor que este, estará propenso a eventuais problemas.<br><br>
+                    ( &nbsp; ) Sindicato<br>
+                    ( &nbsp; ) Outro: R$ __________________
+                </td>
+            </tr>
+        </table>
+    </div>
 
 {% endblock %}

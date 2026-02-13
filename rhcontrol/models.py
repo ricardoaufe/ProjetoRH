@@ -106,6 +106,7 @@ class Employee(models.Model):
     ctps_series = models.CharField(max_length=10, blank=True, null=True, verbose_name="Série")
     ctps_issue_date = models.DateField(blank=True, null=True, verbose_name="Emissão da CTPS") 
     pis = models.CharField(max_length=20, blank=True, null=True, verbose_name="PIS")
+    registration_number = models.CharField(max_length=5, blank=True, null=True, verbose_name="Matrícula")
 
     ETHINICITY_CHOICES = [
         ('Branca', 'Branca'),

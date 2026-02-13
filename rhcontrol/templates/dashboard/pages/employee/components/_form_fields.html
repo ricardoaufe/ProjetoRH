@@ -2,7 +2,8 @@
             
     <h3 class="section-title">Dados Pessoais</h3>
     
-    {% include 'partials/form_field.html' with field=form.name grid_class="col-span-8" %}
+    {% include 'partials/form_field.html' with field=form.name grid_class="col-span-7" %}
+    {% include 'partials/form_field.html' with field=form.registration_number grid_class="col-span-1" %}
     {% include 'partials/form_field.html' with field=form.mother_name grid_class="col-span-8"%}
     {% include 'partials/form_field.html' with field=form.birth_date grid_class="col-span-1" %}
     
