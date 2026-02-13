@@ -5,7 +5,9 @@
 {% block content %}
 
 <div class="form-container">
-    <h2>{{ title|default:"Cadastrar Setores" }}</h2>
+    <div class="form-header" style="margin-bottom: 20px;">
+        <h2 style="margin: 0;">{{ title|default:"Cadastrar Setores" }}</h2>
+    </div>
 
     <form method="POST" id="departmentForm" novalidate>
         {% csrf_token %}
@@ -15,49 +17,94 @@
             {% include 'partials/form_field.html' with field=form.description label="Descrição do Setor" %}
         </div>
 
-        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #ddd;">
+        <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ddd;">
 
-        <h3>Cargos Vinculados</h3>
+        <h3 class="section-title" style="margin-bottom: 15px;">Cargos Vinculados</h3>
         
         {{ formset.management_form }}
 
         <div id="job-titles-container">
             {% for job_form in formset %}
-                <div class="job-title-row">
+                <div class="job-row" style="margin-bottom: 15px; background-color: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+                    
                     {% for hidden in job_form.hidden_fields %}
                         {{ hidden }}
                     {% endfor %}
 
-                    <div class="form-content" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 4px; background-color: #f9f9f9;">
-                        
-                        {% include 'partials/form_field.html' with field=job_form.name label="Nome do Cargo" grid_class="col-span-2" %}
-                        {% include 'partials/form_field.html' with field=job_form.base_salary label="Salário Base" is_money=True grid_class="col-span-1" %}
-                        {% include 'partials/form_field.html' with field=job_form.description label="Descrição do Cargo" grid_class="col-span-8" %}
+                    <div style="display: none;">
+                        {{ job_form.DELETE }}
+                    </div>
 
-                        {% if formset.can_delete and job_form.instance.pk %}
-                            <div class="col-span-8" style="margin-top: -10px; color: #dc3545;">
-                                {{ job_form.DELETE }} <label for="{{ job_form.DELETE.id_for_label }}">Excluir este cargo</label>
-                            </div>
-                        {% endif %}
+                    <div class="job-header" onclick="toggleJobBody(this)" style="padding: 15px; background-color: #f8f9fa; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0e0e0;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fa fa-chevron-right job-arrow" style="transition: transform 0.2s; color: #6c757d;"></i>
+                            <h4 style="margin: 0; font-size: 1.4rem; color: #495057; font-weight: 600;">
+                                <span class="job-name-display">{{ job_form.instance.name|default:"Novo Cargo"|upper }}</span>
+                                <small style="font-weight: 400; color: #6c757d; margin-left: 5px; font-size: 1.2rem;">
+                                    (Salário Base: <span class="job-salary-display">R$ {{ job_form.instance.base_salary|default:"0,00"|floatformat:2 }}</span>)
+                                </small>
+                            </h4>
+                        </div>
+                        
+                        <div style="display: flex; gap: 10px;">
+                            {% if formset.can_delete %}
+                                <button type="button" class="remove-job-btn" style="border: none; background: transparent; color: #dc3545; font-size: 1.2rem; cursor: pointer;" title="Excluir Cargo">
+                                    <i class="fa fa-trash"></i>
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="job-body" style="padding: 20px; display: none;"> 
+                        <div class="form-content" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px;">
+                            
+                            {% include 'partials/form_field.html' with field=job_form.name label="Nome do Cargo" grid_class="col-span-6 job-name-input" %}
+                            
+                            {% include 'partials/form_field.html' with field=job_form.base_salary label="Salário Base" is_money=True grid_class="col-span-2 job-salary-input" %}
+                            
+                            {% include 'partials/form_field.html' with field=job_form.description label="Descrição do Cargo" grid_class="col-span-8" %}
+
+                        </div>
                     </div>
                 </div>
             {% endfor %}
         </div>
 
-        <button type="button" id="add-job-btn" style="background-color: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; margin-bottom: 20px;">
-            + Adicionar Outro Cargo
+        <button type="button" id="add-job-btn" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-bottom: 20px;">
+            + Adicionar Cargo
         </button>
 
         <div id="empty-form" style="display:none;">
-            <div class="job-title-row">
-                <div class="form-content" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px; border: 1px solid #e0e0e0; padding: 15px; margin-bottom: 15px; border-radius: 4px; background-color: #f9f9f9;">
-                    
-                    {% include 'partials/form_field.html' with field=formset.empty_form.name label="Nome do Cargo" grid_class="col-span-6" %}
-                    
-                    {% include 'partials/form_field.html' with field=formset.empty_form.base_salary label="Salário Base" is_money=True grid_class="col-span-2" %}
-                    
-                    {% include 'partials/form_field.html' with field=formset.empty_form.description label="Descrição do Cargo" grid_class="col-span-8" %}
+            <div class="job-row" style="margin-bottom: 15px; background-color: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
                 
+                <div style="display: none;">
+                    {{ formset.empty_form.DELETE }}
+                </div>
+
+                <div class="job-header" onclick="toggleJobBody(this)" style="padding: 15px; background-color: #f8f9fa; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0e0e0;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <i class="fa fa-chevron-down job-arrow" style="transition: transform 0.2s; color: #6c757d;"></i>
+                        <h4 style="margin: 0; font-size: 1.1rem; color: #495057; font-weight: 600;">
+                            <span class="job-name-display">NOVO CARGO</span>
+                            <small style="font-weight: 400; color: #6c757d; margin-left: 5px; font-size: 0.85rem;">
+                                (Salário Base: <span class="job-salary-display">R$ 0,00</span>)
+                            </small>
+                        </h4>
+                    </div>
+                    
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="remove-job-btn" data-new="true" style="border: none; background: transparent; color: #dc3545; font-size: 1.2rem; cursor: pointer;">
+                            <i class="fa fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="job-body" style="padding: 20px; display: block;"> 
+                    <div class="form-content" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px;">
+                        {% include 'partials/form_field.html' with field=formset.empty_form.name label="Nome do Cargo" grid_class="col-span-6 job-name-input" %}
+                        {% include 'partials/form_field.html' with field=formset.empty_form.base_salary label="Salário Base" is_money=True grid_class="col-span-2 job-salary-input" %}
+                        {% include 'partials/form_field.html' with field=formset.empty_form.description label="Descrição do Cargo" grid_class="col-span-8" %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -76,11 +123,26 @@
 <script src="https://unpkg.com/imask"></script>
 
 <script>
+    function toggleJobBody(header) {
+        const row = header.closest('.job-row');
+        const body = row.querySelector('.job-body');
+        const arrow = row.querySelector('.job-arrow');
+
+        if (body.style.display === 'none') {
+            body.style.display = 'block';
+            arrow.classList.remove('fa-chevron-right');
+            arrow.classList.add('fa-chevron-down');
+        } else {
+            body.style.display = 'none';
+            arrow.classList.remove('fa-chevron-down');
+            arrow.classList.add('fa-chevron-right');
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
 
-        //converts decimal points to commas to match the required format.
         function applyMoneyMask(input) {
-            if (input.value && input.value.includes('.')) {
+            if (input.value && input.value.includes('.') && !input.value.includes(',')) {
                 input.value = input.value.replace('.', ',');
             }
 
@@ -102,12 +164,38 @@
             }
         }
 
-        const existingInputs = document.querySelectorAll('.money-input');
-        existingInputs.forEach(input => applyMoneyMask(input));
+        function setupRow(row) {
+            const moneyInput = row.querySelector('.money-input');
+            if (moneyInput) {
+                applyMoneyMask(moneyInput);
+
+                moneyInput.addEventListener('input', function() {
+                    const display = row.querySelector('.job-salary-display');
+                    if(display) display.textContent = "R$ " + (this.value || "0,00");
+                });
+            }
+
+            const nameInput = row.querySelector('input[name$="-name"]');
+            if (nameInput) {
+
+                nameInput.style.textTransform = 'uppercase';
+                
+                nameInput.addEventListener('input', function() {
+                    let start = this.selectionStart;
+                    this.value = this.value.toUpperCase();
+                    this.setSelectionRange(start, start);
+
+                    const display = row.querySelector('.job-name-display');
+                    if(display) display.textContent = this.value || "NOVO CARGO";
+                });
+            }
+        }
+
+        const existingRows = document.querySelectorAll('.job-row');
+        existingRows.forEach(row => setupRow(row));
 
         const addBtn = document.getElementById('add-job-btn');
         const container = document.getElementById('job-titles-container');
-        
         const totalForms = document.querySelector('input[id$="-TOTAL_FORMS"]'); 
 
         if (addBtn && container && totalForms) {
@@ -121,18 +209,37 @@
 
                 const newDiv = document.createElement('div');
                 newDiv.innerHTML = emptyFormContent.innerHTML.replace(/__prefix__/g, formIdx);
-
                 const newRow = newDiv.firstElementChild;
+
                 container.appendChild(newRow);
+
                 totalForms.value = parseInt(formIdx) + 1;
 
-                const newMoneyInput = newRow.querySelector('.money-input');
-                if (newMoneyInput) {
-                    applyMoneyMask(newMoneyInput);
+                setupRow(newRow);
+            });
+        }
+
+        if (container) {
+            container.addEventListener('click', function(e) {
+                const btn = e.target.closest('.remove-job-btn');
+                
+                if (btn) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    
+                    const row = btn.closest('.job-row');
+                    
+                    if (btn.dataset.new === "true") {
+                        row.remove(); 
+                    } else {
+                        const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                        if (deleteCheckbox) {
+                            deleteCheckbox.checked = true;
+                            row.style.display = 'none';
+                        }
+                    }
                 }
             });
-        } else {
-            console.error("Erro: Botão adicionar ou ManagementForm não encontrados.");
         }
     });
 </script>

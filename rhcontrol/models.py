@@ -53,7 +53,7 @@ class Department(models.Model):
 
 class JobTitle(models.Model):
     name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, null=True)
+    description = models.TextField(verbose_name="Descrição")
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='job_titles')
     base_salary= models.DecimalField(max_digits=10, decimal_places=2)
 
