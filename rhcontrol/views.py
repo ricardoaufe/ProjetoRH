@@ -453,16 +453,42 @@ def vacation_delete(request, pk):
         'vacation': vacation
     })
 
-#TRAINING
+#TRAININGclass Department(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
 @login_required
 def training_view(request):
     training_list = Training.objects.all().order_by('-training_date')
+    
+    search_query = request.GET.get('search', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+
+    if search_query:
+        training_list = training_list.filter(
+            Q(training_name__icontains=search_query) |
+            Q(training_provider__icontains=search_query)
+        )
+
+    if date_from:
+        training_list = training_list.filter(training_date__gte=date_from)
+    
+    if date_to:
+        training_list = training_list.filter(training_date__lte=date_to)
+
     paginator = Paginator(training_list, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
     context = {
         'object_list': page_obj,
+        'search_query': search_query,
+        'date_from': date_from,
+        'date_to': date_to,
     }
     return render(request, 'dashboard/pages/training/list.html', context)
 
@@ -530,6 +556,14 @@ def training_delete(request, pk):
 @login_required
 def department_list(request):
     departments = Department.objects.all().order_by('name') 
+
+    search_query = request.GET.get('search', '')
+    
+    if search_query:
+        departments = departments.filter(
+            Q(name__icontains=search_query) | 
+            Q(description__icontains=search_query)
+        )
     
     context = {
         'object_list': departments, 

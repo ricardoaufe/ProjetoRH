@@ -3,6 +3,99 @@
 {% block title %} Treinamentos | {% endblock title %}
 
 {% block content %}
+<style>
+
+    .filter-bar {
+        background-color: #f8f9fa;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #e9ecef;
+    }
+
+    .search-form {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 15px;
+        width: 100%;
+    }
+
+    .search-form input[type="text"],
+    .search-form input[type="date"] {
+        width: 100%;
+        padding: 6px 12px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        font-size: 1.4rem;
+        height: 38px;
+    }
+
+    .name-group {
+        flex: 1.5; 
+        min-width: 200px;
+    }
+
+    .date-group {
+        display: flex;
+        align-items: center; 
+        gap: 8px; 
+        flex: 1;
+        min-width: 160px;
+    }
+
+    .date-group label {
+        margin: 0; 
+        font-weight: bold;
+        color: #555;
+        font-size: 1.2rem;
+        white-space: nowrap; 
+    }
+
+    .filter-actions {
+        display: flex;
+        gap: 5px;
+        height: 38px;
+    }
+
+    .btn-filter {
+        background-color: #3498db;
+        color: white;
+        border: none;
+        padding: 0.6rem 1rem;
+        height: 100%;
+        border-radius: 5px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+        font-size: 1.4rem;
+    }
+
+    .btn-filter:hover {
+        background-color: #0056b3;
+    }
+
+    .btn-clear {
+        background-color: #dc3545;
+        color: white;
+        border: none;
+        width: 38px;
+        height: 100%;
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+    }
+    
+    .btn-clear:hover {
+        background-color: #a71d2a;
+        color: white;
+    }
+
+</style>
 <body>
 <div class= "list-container">
 
@@ -16,9 +109,33 @@
     </div>
 
     <div class="filter-bar">
-        <form method="GET" action= "{% url 'rhcontrol:training_list' %}" style="width: 100%;">
-            <input type="text" name="search" placeholder="Pesquisar por nome de treinamento" value="{{ request.GET.search }}">
-            <input type="hidden" name="status" value="{{ request.GET.status|default_if_none:'' }}">
+        <form method="GET" action="{% url 'rhcontrol:training_list' %}" class="search-form">
+            
+            <div class="filter-group name-group">
+                <input type="text" name="search" placeholder="Treinamento ou Fornecedor..." value="{{ search_query }}">
+            </div>
+
+            <div class="filter-group date-group">
+                <label for="date_from">De:</label>
+                <input type="date" name="date_from" id="date_from" value="{{ date_from }}">
+            </div>
+
+            <div class="filter-group date-group">
+                <label for="date_to">Até:</label>
+                <input type="date" name="date_to" id="date_to" value="{{ date_to }}">
+            </div>
+
+            <div class="filter-actions">
+                <button type="submit" class="btn-filter" title="Filtrar">
+                    <i class="fa fa-search"></i> Buscar
+                </button>
+                
+                {% if search_query or date_from or date_to %}
+                    <a href="{% url 'rhcontrol:training_list' %}" class="btn-clear" title="Limpar Filtros">
+                        <i class="fa fa-times"></i>
+                    </a>
+                {% endif %}
+            </div>
         </form>
     </div>
 
