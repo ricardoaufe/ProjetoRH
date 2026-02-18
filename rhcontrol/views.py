@@ -360,7 +360,20 @@ def get_job_salary(request):
 #VACATIONS
 @login_required
 def vacation_view(request):
-    vacation_list = Vacation.objects.select_related('employee').all()
+    vacation_list = Vacation.objects.select_related('employee').all().order_by('-start_date')
+
+    search_query = request.GET.get('search', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+
+    if search_query:
+        vacation_list = vacation_list.filter(employee__name__icontains=search_query)
+
+    if date_from:
+        vacation_list = vacation_list.filter(start_date__gte=date_from)
+
+    if date_to:
+        vacation_list = vacation_list.filter(start_date__lte=date_to)
 
     paginator = Paginator(vacation_list, 5)
     page_number = request.GET.get('page')
@@ -368,6 +381,9 @@ def vacation_view(request):
 
     context = {
         'object_list': page_obj,
+        'search_query': search_query,
+        'date_from': date_from,
+        'date_to': date_to,
     }
     return render(request, 'dashboard/pages/vacation/list.html', context)
 
