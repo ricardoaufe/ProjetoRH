@@ -305,6 +305,6 @@ JobTitleFormSet = forms.inlineformset_factory(
     Department,
     JobTitle,
     form=JobTitleForm,
-    extra=1,          
+    extra=0,          
     can_delete=True
 )
