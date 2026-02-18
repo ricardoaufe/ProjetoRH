@@ -188,11 +188,11 @@ def employee_create(request):
             EmployeeHistory.objects.create(
                 employee=employee,
                 date_changed=data_admissao,
-                old_job_title=None,    # Admissão não tem cargo anterior
+                old_job_title=None,    
                 new_job_title=str(employee.job_title),
-                old_salary=None,       # Admissão não tem salário anterior
+                old_salary=None,       
                 new_salary=employee.current_salary,
-                reason="Admissão"      # Motivo fixo
+                reason="Admissão"      
             )
 
             messages.success(request, 'Funcionário cadastrado com sucesso!')
@@ -301,7 +301,7 @@ def employee_update(request, pk):
     attended = employee.attended_trainings.all().order_by('-training_date')
     history_log = employee.history.all().order_by('-date_changed')
     vacations = employee.vacations.all().order_by('-start_date')
-    total_hours = sum(t.training_duration for t in scheduled | attended)
+    total_hours = sum(t.training_duration for t in attended)
 
     return render(request, 'dashboard/pages/employee/form.html', {
         'form': form,
