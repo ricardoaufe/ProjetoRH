@@ -53,4 +53,6 @@ urlpatterns = [
     path('employees/<int:pk>/term-of-consent/', views.create_image_consent_pdf, name='term_of_consent_pdf'),
     path('employees/<int:pk>/benefits-acquisition/', views.create_benefits_acquisition_pdf, name='benefits_acquisition_pdf'),
     path('employees/<int:pk>/internal-regulation/', views.create_internal_regulation_pdf, name='internal_regulation_pdf'),
+    path('departments/pdf/department-and-jobtitles/', views.create_department_and_jobtitle_pdf, name='department_and_jobtitles_pdf'),
+    path('departments/pdf/employees-department/', views.create_employees_department_pdf, name='employees_department_pdf'),
 ]

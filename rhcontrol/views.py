@@ -4,7 +4,7 @@ from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department
-from django.db.models import Q 
+from django.db.models import Q, Prefetch
 from django.core.paginator import Paginator
 from rhcontrol.forms import DependentFormSet, LoginForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
@@ -16,6 +16,7 @@ from datetime import timedelta, timezone
 from django.utils import timezone
 from django.template.loader import render_to_string
 from weasyprint import HTML
+
 
 def login_view(request):
     
@@ -599,9 +600,11 @@ def department_create(request):
 def department_update(request, pk):
     department = get_object_or_404(Department, pk=pk)
 
+    ordened_jobtitles = JobTitle.objects.order_by('base_salary')
+
     if request.method == 'POST':
         form = DepartmentForm(request.POST or None, instance=department)
-        formset = JobTitleFormSet(request.POST or None, instance=department)
+        formset = JobTitleFormSet(request.POST or None, instance=department, queryset=ordened_jobtitles)
 
         if form.is_valid() and formset.is_valid():
             form.save()
@@ -611,7 +614,7 @@ def department_update(request, pk):
 
     else:
         form = DepartmentForm(instance=department)
-        formset = JobTitleFormSet(instance=department)
+        formset = JobTitleFormSet(instance=department, queryset=ordened_jobtitles)
 
     return render(request, 'dashboard/pages/departments/form.html', {
         'form': form,
@@ -852,4 +855,60 @@ def create_internal_regulation_pdf(request, pk):
     filename = f"regimento_interno_{employee.id}_{safe_name}.pdf"
     response['Content-Disposition'] = f'inline; filename="{filename}"'
     
+    return response
+
+@login_required
+def create_department_and_jobtitle_pdf(request):
+    ordened_jobtitles = JobTitle.objects.order_by('base_salary')
+    departments = Department.objects.prefetch_related(
+        Prefetch('job_titles', queryset=ordened_jobtitles)
+    ).order_by('name')
+
+    context = {
+        'object_list': departments,
+        'title': 'Lista de Setores e Cargos',
+        'user': request.user,
+        'generated_at': timezone.now(),
+        'company_name_settings': settings.COMPANY_NAME,
+    }
+
+    html_string = render_to_string('dashboard/pages/departments/pdf/department_and_jobtitle.html', context, request=request)
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    pdf = html.write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+
+    safe_name = "setores_e_cargos"
+    filename = f"regimento_interno_de_{safe_name}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+
+    return response
+
+@login_required
+def create_employees_department_pdf(request):
+    funcionarios_ordenados = Employee.objects.select_related('job_title').order_by('job_title__base_salary', 'name')
+
+    departments = Department.objects.prefetch_related(
+        Prefetch('funcionarios_setor', queryset=funcionarios_ordenados)
+    ).order_by('name')
+
+    total_employees = Employee.objects.count()
+
+    context = {
+        'object_list': departments,
+        'total_employees': total_employees,
+        'user': request.user,
+        'generated_at': timezone.now(),
+        'company_name_settings': settings.COMPANY_NAME,
+    }
+
+    html_string = render_to_string('dashboard/pages/departments/pdf/employees_department.html', context, request=request)
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    pdf = html.write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+
+    filename = "funcionarios_por_setor.pdf"
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+
     return response

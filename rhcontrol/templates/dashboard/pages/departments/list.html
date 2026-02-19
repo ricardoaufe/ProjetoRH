@@ -3,12 +3,33 @@
 {% block title %} Setores | {% endblock title %}
 
 {% block content %}
+{% include 'dashboard/pages/employee/components/_styles.html' %}
 <body>
 <div class= "list-container">
 
-    <div class= "page-header">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center;">
         <h1>Lista de Setores</h1>
-        <a href="{% url 'rhcontrol:department_create' %}" class="btn btn-primary">Registrar Setor</a>
+        
+        <div style="display: flex; gap: 15px; align-items: center;">
+            
+            <div class="dropdown">
+            <button type="button" class="btn-dropdown-trigger">
+                <i class="fa fa-print"></i> Gerar Documento <i class="fa fa-caret-down"></i>
+            </button>
+            <div class="dropdown-content">
+                <a href="{% url 'rhcontrol:department_and_jobtitles_pdf' %}" target="_blank">
+                    <i class="fa fa-id-text-o"></i> Setores e Cargos
+                    <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
+                </a>
+                <a href="{% url 'rhcontrol:employees_department_pdf' %}" target="_blank">
+                    <i class="fa fa-id-text-o"></i> Funcionários por Setor
+                    <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
+                </a>
+            </div>
+        </div>
+
+            <a href="{% url 'rhcontrol:department_create' %}" class="btn btn-primary">Registrar Setor</a>
+        </div>
     </div>
 
     <div class="status-filters">

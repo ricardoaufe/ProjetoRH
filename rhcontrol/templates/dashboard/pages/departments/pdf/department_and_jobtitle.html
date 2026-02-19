@@ -1,0 +1,99 @@
+{% extends 'reports/base_pdf.html' %}
+
+{% block title %}Setores e Cargos{% endblock %}
+
+{% block header_title %}Relatório de Setores e Cargos{% endblock %}
+
+{% block content %}
+    <style>
+        table.data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 5px;
+        }
+
+        .dept-header td {
+            background-color: #44444469;
+            color: #fff;
+            text-transform: uppercase;
+            font-weight: bold;
+            font-size: 1rem;
+            padding: 6px 8px;
+            text-align: center;
+            border: 1px solid #44444469;
+        }
+
+        .col-header td {
+            background-color: #f2f2f2;
+            color: #333;
+            font-weight: bold;
+            font-size: 9px;
+            padding: 4px 8px;
+            text-align: left;
+            border-bottom: 1px solid #ccc;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+        }
+
+        .job-row td {
+            border-bottom: 1px solid #eee;
+            border-left: 1px solid #ccc;
+            border-right: 1px solid #ccc;
+            padding: 4px 8px;
+            font-size: 10px;
+            vertical-align: middle;
+        }
+
+        .spacer-row td {
+            height: 15px;
+            border: none;
+        }
+
+        .text-right { text-align: right !important; }
+        .text-center { text-align: center !important; }
+    </style>
+
+    <div style="margin-bottom: 15px; font-size: 9px; color: #555;">
+        Total de Setores: {{ object_list|length }}
+    </div>
+
+    <table class="data-table">
+        {% for department in object_list %}
+            
+            <tr class="dept-header">
+                <td colspan="3">{{ department.name }}</td>
+            </tr>
+
+            {% if department.job_titles.all %}
+                <tr class="col-header">
+                    <td width="40%">CARGO</td>
+                    <td width="20%" class="text-right">SALÁRIO BASE</td>
+                    <td width="40%">DESCRIÇÃO</td>
+                </tr>
+
+                {% for job in department.job_titles.all %}
+                <tr class="job-row">
+                    <td><strong>{{ job.name|upper }}</strong></td>
+                    <td class="text-right">R$ {{ job.base_salary|floatformat:2 }}</td>
+                    <td>{{ job.description|default:"-"|truncatechars:60 }}</td>
+                </tr>
+                {% endfor %}
+
+            {% else %}
+                <tr class="job-row">
+                    <td colspan="3" class="text-center" style="color: #999; font-style: italic; padding: 10px;">
+                        Nenhum cargo cadastrado neste setor.
+                    </td>
+                </tr>
+            {% endif %}
+
+            <tr class="spacer-row"><td colspan="3"></td></tr>
+
+        {% empty %}
+            <tr>
+                <td style="text-align: center; padding: 20px;">Nenhum setor registrado no sistema.</td>
+            </tr>
+        {% endfor %}
+    </table>
+
+{% endblock %}
