@@ -30,16 +30,12 @@
             font-size: 9px;
             padding: 4px 8px;
             text-align: left;
-            border-bottom: 1px solid #ccc;
-            border-left: 1px solid #ccc;
-            border-right: 1px solid #ccc;
+            border: 1px solid #ccc;
         }
 
         .job-row td {
-            border-bottom: 1px solid #eee;
-            border-left: 1px solid #ccc;
-            border-right: 1px solid #ccc;
-            padding: 4px 8px;
+            border: 1px solid #ccc;
+            padding: 5px 8px;
             font-size: 10px;
             vertical-align: middle;
         }
@@ -63,38 +59,40 @@
             <tbody style="page-break-inside: avoid;">
             
                 <tr class="dept-header">
-                    <td colspan="3">{{ department.name }}</td>
+                    <td colspan="2">{{ department.name }}</td>
                 </tr>
 
                 {% if department.job_titles.all %}
                     <tr class="col-header">
-                        <td width="40%">CARGO</td>
-                        <td width="20%" class="text-right">SALÁRIO BASE</td>
-                        <td width="40%">DESCRIÇÃO</td>
+                        <td width="70%">CARGO</td>
+                        <td width="30%" class="text-right">SALÁRIO BASE</td>
                     </tr>
 
                     {% for job in department.job_titles.all %}
                     <tr class="job-row">
                         <td><strong>{{ job.name|upper }}</strong></td>
                         <td class="text-right">R$ {{ job.base_salary|floatformat:2 }}</td>
-                        <td>{{ job.description|default:"-"|truncatechars:60 }}</td>
                     </tr>
                     {% endfor %}
 
                 {% else %}
                     <tr class="job-row">
-                        <td colspan="3" class="text-center" style="color: #999; font-style: italic; padding: 10px;">
+                        <td colspan="2" class="text-center" style="color: #999; font-style: italic; padding: 10px;">
                             Nenhum cargo cadastrado neste setor.
                         </td>
                     </tr>
                 {% endif %}
 
-                <tr class="spacer-row"><td colspan="3"></td></tr>
+                <tr class="spacer-row"><td colspan="2"></td></tr>
 
-            </tbody> {% empty %}
-            <tr>
-                <td style="text-align: center; padding: 20px;">Nenhum setor registrado no sistema.</td>
-            </tr>
+            </tbody> 
+            
+        {% empty %}
+            <tbody>
+                <tr>
+                    <td style="text-align: center; padding: 20px;">Nenhum setor registrado no sistema.</td>
+                </tr>
+            </tbody>
         {% endfor %}
     </table>
 

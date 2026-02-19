@@ -30,12 +30,10 @@
             font-size: 9px;
             padding: 4px 8px;
             text-align: left;
-            /* Bordas uniformes */
             border: 1px solid #ccc;
         }
 
         .job-row td {
-            /* Todas as bordas com a mesma cor e espessura agora */
             border: 1px solid #ccc;
             padding: 5px 8px;
             font-size: 10px;
@@ -43,7 +41,6 @@
         }
 
         .merged-cell {
-            /* Fundo transparente para igualar com o resto e manter a uniformidade */
             background-color: transparent; 
             vertical-align: middle;
         }
@@ -62,40 +59,33 @@
             <tbody style="page-break-inside: avoid;">
                 
                 <tr class="dept-header">
-                    <td colspan="4">{{ department.name }}</td>
+                    <td colspan="3">{{ department.name }}</td>
                 </tr>
 
                 <tr class="col-header">
-                    <td width="25%">CARGO</td>
-                    <td width="30%">FUNCIONÁRIO</td>
-                    <td width="15%" class="text-right">SALÁRIO BASE</td>
-                    <td width="30%">DESCRIÇÃO DO CARGO</td>
+                    <td width="40%">CARGO</td>
+                    <td width="40%">FUNCIONÁRIO</td>
+                    <td width="20%" class="text-right">SALÁRIO BASE</td>
                 </tr>
 
                 {% regroup department.funcionarios_setor.all by job_title as cargos_agrupados %}
 
-                {% for grupo in cargos_agrupados %}
+                {% for grup in cargos_agrupados %}
                     
-                    {% for employee in grupo.list %}
+                    {% for employee in grup.list %}
                     <tr class="job-row">
                         
                         {% if forloop.first %}
-                        <td rowspan="{{ grupo.list|length }}" class="merged-cell">
-                            <strong>{{ grupo.grouper.name|upper }}</strong>
+                        <td rowspan="{{ grup.list|length }}" class="merged-cell">
+                            <strong>{{ grup.grouper.name|upper }}</strong>
                         </td>
                         {% endif %}
                         
                         <td><strong>{{ employee.name|upper }}</strong></td>
                         
                         {% if forloop.first %}
-                        <td rowspan="{{ grupo.list|length }}" class="merged-cell text-right">
-                            R$ {{ grupo.grouper.base_salary|floatformat:2 }}
-                        </td>
-                        {% endif %}
-
-                        {% if forloop.first %}
-                        <td rowspan="{{ grupo.list|length }}" class="merged-cell">
-                            {{ grupo.grouper.description|default:"-"|truncatechars:50 }}
+                        <td rowspan="{{ grup.list|length }}" class="merged-cell text-right">
+                            R$ {{ grup.grouper.base_salary|floatformat:2 }}
                         </td>
                         {% endif %}
 
@@ -103,7 +93,7 @@
                     {% endfor %}
                 {% endfor %}
 
-                <tr class="spacer-row"><td colspan="4" style="height: 15px; border: none;"></td></tr>
+                <tr class="spacer-row"><td colspan="3" style="height: 15px; border: none;"></td></tr>
             
             </tbody> 
 
