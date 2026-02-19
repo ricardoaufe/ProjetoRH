@@ -142,14 +142,27 @@
         </tr>
         <tr>
             <td>
-                <strong>Naturalidade (Cidade)</strong>
-                <span>{{ employee.birth_city|default:"-" }}</span>
+                <strong>Naturalidade / UF</strong>
+                <span>
+                    {{ employee.birth_city|default:"-" }} / {{ employee.state_birthplace_code|default:"-" }}
+                </span>
             </td>
-            <td colspan="2">
-                <strong>UF Nascimento</strong>
-                <span>{{ employee.get_state_birthplace_code_display|default:employee.state_birthplace_code|default:"-" }}</span>
+            
+            <td>
+                <strong>E-mail</strong>
+                <span>{{ employee.email|default:"-" }}</span>
+            </td>
+            
+            <td>
+                <strong>Telefone / Celular</strong>
+                <span>{{ employee.mobile_phone|default:employee.emergency_phone|default:"-" }}</span>
             </td>
         </tr>
+        <tr>
+            <td colspan="3">
+                <strong>Endereço Completo:</strong>
+                <span>{{ employee.full_address }}</span>
+            </td>
     </table>
 
     <div class="section-title">Documentação</div>

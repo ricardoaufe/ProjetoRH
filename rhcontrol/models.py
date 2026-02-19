@@ -3,7 +3,6 @@ from datetime import timedelta
 from django.utils import timezone
 import holidays 
 
-
 class Vacation(models.Model):
     employee = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='vacations')
     start_date = models.DateField(verbose_name="Data de Início")
@@ -53,7 +52,7 @@ class Department(models.Model):
 
 class JobTitle(models.Model):
     name = models.CharField(max_length=100)
-    description = models.TextField(verbose_name="Descrição")
+    description = models.TextField(verbose_name="Descrição", default="")
     department = models.ForeignKey(Department, on_delete=models.CASCADE, related_name='job_titles')
     base_salary= models.DecimalField(max_digits=10, decimal_places=2)
 
@@ -275,6 +274,35 @@ class Employee(models.Model):
             return 'stability'
             
         return None
+    
+    @property
+    def full_address(self):
+        parts = []
+        if self.address:
+            endereco = f"{self.address}"
+            if self.address_num:
+                endereco += f", {self.address_num}"
+            parts.append(endereco)
+            
+        if self.complement:
+            parts.append(self.complement)
+            
+        if self.neighborhood:
+            parts.append(self.neighborhood)
+            
+        cidade_estado = ""
+        if self.city:
+            cidade_estado += self.city
+        if self.state_code:
+            cidade_estado += f"/{self.state_code}"
+            
+        if cidade_estado:
+            parts.append(cidade_estado)
+            
+        if self.zip_code:
+            parts.append(f"{self.zip_code}")
+
+        return ", ".join(parts) + "." if parts else "Endereço não cadastrado."
     
     def check_cipa_expiration(self):
         """
