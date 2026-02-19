@@ -886,10 +886,12 @@ def create_department_and_jobtitle_pdf(request):
 
 @login_required
 def create_employees_department_pdf(request):
-    funcionarios_ordenados = Employee.objects.select_related('job_title').order_by('job_title__base_salary', 'name')
+    ordened_employees = Employee.objects.select_related('job_title').order_by('job_title__base_salary', 'name')
 
-    departments = Department.objects.prefetch_related(
-        Prefetch('funcionarios_setor', queryset=funcionarios_ordenados)
+    departments = Department.objects.filter(
+        funcionarios_setor__isnull=False
+    ).distinct().prefetch_related(
+        Prefetch('funcionarios_setor', queryset=ordened_employees)
     ).order_by('name')
 
     total_employees = Employee.objects.count()

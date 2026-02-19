@@ -61,37 +61,30 @@
                     <td colspan="4">SETOR: {{ department.name }}</td>
                 </tr>
 
-                {% if department.funcionarios_setor.all %}
-                    <tr class="col-header">
-                        <td width="25%">CARGO</td>
-                        <td width="30%">FUNCIONÁRIO</td>
-                        <td width="15%" class="text-right">SALÁRIO</td>
-                        <td width="30%">DESCRIÇÃO DO CARGO</td>
-                    </tr>
+                <tr class="col-header">
+                    <td width="25%">CARGO</td>
+                    <td width="30%">FUNCIONÁRIO</td>
+                    <td width="15%" class="text-right">SALÁRIO</td>
+                    <td width="30%">DESCRIÇÃO DO CARGO</td>
+                </tr>
 
-                    {% for employee in department.funcionarios_setor.all %}
-                    <tr class="job-row">
-                        <td><strong>{{ employee.job_title.name|upper }}</strong></td>
-                        <td>{{ employee.name|upper }}</td>
-                        <td class="text-right">R$ {{ employee.current_salary|default:employee.job_title.base_salary|floatformat:2 }}</td>
-                        <td>{{ employee.job_title.description|default:"-"|truncatechars:50 }}</td>
-                    </tr>
-                    {% endfor %}
-
-                {% else %}
-                    <tr class="job-row">
-                        <td colspan="4" class="text-center" style="color: #999; font-style: italic; padding: 10px;">
-                            Nenhum registro vinculado a este setor no momento.
-                        </td>
-                    </tr>
-                {% endif %}
+                {% for employee in department.funcionarios_setor.all %}
+                <tr class="job-row">
+                    <td><strong>{{ employee.job_title.name|upper }}</strong></td>
+                    <td>{{ employee.name|upper }}</td>
+                    <td class="text-right">R$ {{ employee.current_salary|default:employee.job_title.base_salary|floatformat:2 }}</td>
+                    <td>{{ employee.job_title.description|default:"-"|truncatechars:50 }}</td>
+                </tr>
+                {% endfor %}
 
                 <tr class="spacer-row"><td colspan="4" style="height: 15px; border: none;"></td></tr>
             
-            </tbody> {% empty %}
+            </tbody> 
+
+        {% empty %}
             <tbody>
                 <tr>
-                    <td style="text-align: center; padding: 20px;">Nenhum setor registrado no sistema.</td>
+                    <td style="text-align: center; padding: 20px;">Nenhum funcionário registrado no sistema.</td>
                 </tr>
             </tbody>
         {% endfor %}
