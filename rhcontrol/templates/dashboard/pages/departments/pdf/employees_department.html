@@ -1,6 +1,6 @@
 {% extends 'reports/base_pdf.html' %}
 
-{% block title %}Funcionários por Setor{% endblock %}
+{% block title %}Funcionários por Setor{% endblock %} 
 
 {% block header_title %}Relatório de Funcionários por Setor{% endblock %}
 
@@ -13,14 +13,14 @@
         }
 
         .dept-header td {
-            background-color: #44444469;
+            background-color: #444;
             color: #fff;
             text-transform: uppercase;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 11px;
             padding: 6px 8px;
-            text-align: center;
-            border: 1px solid #44444469;
+            text-align: left;
+            border: 1px solid #444;
         }
 
         .col-header td {
@@ -44,12 +44,19 @@
             vertical-align: middle;
         }
 
+        /* Estilo para dar destaque às células que foram mescladas */
+        .merged-cell {
+            background-color: #fafafa; 
+            border-bottom: 1px solid #ccc !important; 
+            vertical-align: middle;
+        }
+
         .text-right { text-align: right !important; }
         .text-center { text-align: center !important; }
     </style>
 
     <div style="margin-bottom: 15px; font-size: 9px; color: #555;">
-        Total Geral de Funcionários: {{ total_employees }}
+        Total Geral de Funcionários: {{ total_employees }} | Gerado em: {{ generated_at|date:"d/m/Y H:i" }}
     </div>
 
     <table class="data-table">
@@ -64,17 +71,39 @@
                 <tr class="col-header">
                     <td width="25%">CARGO</td>
                     <td width="30%">FUNCIONÁRIO</td>
-                    <td width="15%" class="text-right">SALÁRIO</td>
+                    <td width="15%" class="text-right">SALÁRIO BASE</td>
                     <td width="30%">DESCRIÇÃO DO CARGO</td>
                 </tr>
 
-                {% for employee in department.funcionarios_setor.all %}
-                <tr class="job-row">
-                    <td><strong>{{ employee.job_title.name|upper }}</strong></td>
-                    <td>{{ employee.name|upper }}</td>
-                    <td class="text-right">R$ {{ employee.current_salary|default:employee.job_title.base_salary|floatformat:2 }}</td>
-                    <td>{{ employee.job_title.description|default:"-"|truncatechars:50 }}</td>
-                </tr>
+                {% regroup department.funcionarios_setor.all by job_title as cargos_agrupados %}
+
+                {% for grupo in cargos_agrupados %}
+                    
+                    {% for employee in grupo.list %}
+                    <tr class="job-row">
+                        
+                        {% if forloop.first %}
+                        <td rowspan="{{ grupo.list|length }}" class="merged-cell">
+                            <strong>{{ grupo.grouper.name|upper }}</strong>
+                        </td>
+                        {% endif %}
+                        
+                        <td>{{ employee.name|upper }}</td>
+                        
+                        {% if forloop.first %}
+                        <td rowspan="{{ grupo.list|length }}" class="merged-cell text-right">
+                            R$ {{ grupo.grouper.base_salary|floatformat:2 }}
+                        </td>
+                        {% endif %}
+
+                        {% if forloop.first %}
+                        <td rowspan="{{ grupo.list|length }}" class="merged-cell">
+                            {{ grupo.grouper.description|default:"-"|truncatechars:50 }}
+                        </td>
+                        {% endif %}
+
+                    </tr>
+                    {% endfor %}
                 {% endfor %}
 
                 <tr class="spacer-row"><td colspan="4" style="height: 15px; border: none;"></td></tr>
