@@ -30,24 +30,21 @@
             font-size: 9px;
             padding: 4px 8px;
             text-align: left;
-            border-bottom: 1px solid #ccc;
-            border-left: 1px solid #ccc;
-            border-right: 1px solid #ccc;
+            /* Bordas uniformes */
+            border: 1px solid #ccc;
         }
 
         .job-row td {
-            border-bottom: 1px solid #eee;
-            border-left: 1px solid #ccc;
-            border-right: 1px solid #ccc;
-            padding: 4px 8px;
+            /* Todas as bordas com a mesma cor e espessura agora */
+            border: 1px solid #ccc;
+            padding: 5px 8px;
             font-size: 10px;
             vertical-align: middle;
         }
 
-        /* Estilo para dar destaque às células que foram mescladas */
         .merged-cell {
-            background-color: #fafafa; 
-            border-bottom: 1px solid #ccc !important; 
+            /* Fundo transparente para igualar com o resto e manter a uniformidade */
+            background-color: transparent; 
             vertical-align: middle;
         }
 
@@ -56,7 +53,7 @@
     </style>
 
     <div style="margin-bottom: 15px; font-size: 9px; color: #555;">
-        Total Geral de Funcionários: {{ total_employees }} | Gerado em: {{ generated_at|date:"d/m/Y H:i" }}
+        Total Geral de Funcionários: {{ total_employees }}
     </div>
 
     <table class="data-table">
@@ -65,7 +62,7 @@
             <tbody style="page-break-inside: avoid;">
                 
                 <tr class="dept-header">
-                    <td colspan="4">SETOR: {{ department.name }}</td>
+                    <td colspan="4">{{ department.name }}</td>
                 </tr>
 
                 <tr class="col-header">
@@ -88,7 +85,7 @@
                         </td>
                         {% endif %}
                         
-                        <td>{{ employee.name|upper }}</td>
+                        <td><strong>{{ employee.name|upper }}</strong></td>
                         
                         {% if forloop.first %}
                         <td rowspan="{{ grupo.list|length }}" class="merged-cell text-right">
