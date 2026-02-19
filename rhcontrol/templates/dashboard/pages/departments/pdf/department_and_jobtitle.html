@@ -10,7 +10,6 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 5px;
-            break-inside: avoid;
         }
 
         .dept-header td {
@@ -60,37 +59,39 @@
 
     <table class="data-table">
         {% for department in object_list %}
+
+            <tbody style="page-break-inside: avoid;">
             
-            <tr class="dept-header">
-                <td colspan="3">{{ department.name }}</td>
-            </tr>
-
-            {% if department.job_titles.all %}
-                <tr class="col-header">
-                    <td width="40%">CARGO</td>
-                    <td width="20%" class="text-right">SALÁRIO BASE</td>
-                    <td width="40%">DESCRIÇÃO</td>
+                <tr class="dept-header">
+                    <td colspan="3">{{ department.name }}</td>
                 </tr>
 
-                {% for job in department.job_titles.all %}
-                <tr class="job-row">
-                    <td><strong>{{ job.name|upper }}</strong></td>
-                    <td class="text-right">R$ {{ job.base_salary|floatformat:2 }}</td>
-                    <td>{{ job.description|default:"-"|truncatechars:60 }}</td>
-                </tr>
-                {% endfor %}
+                {% if department.job_titles.all %}
+                    <tr class="col-header">
+                        <td width="40%">CARGO</td>
+                        <td width="20%" class="text-right">SALÁRIO BASE</td>
+                        <td width="40%">DESCRIÇÃO</td>
+                    </tr>
 
-            {% else %}
-                <tr class="job-row">
-                    <td colspan="3" class="text-center" style="color: #999; font-style: italic; padding: 10px;">
-                        Nenhum cargo cadastrado neste setor.
-                    </td>
-                </tr>
-            {% endif %}
+                    {% for job in department.job_titles.all %}
+                    <tr class="job-row">
+                        <td><strong>{{ job.name|upper }}</strong></td>
+                        <td class="text-right">R$ {{ job.base_salary|floatformat:2 }}</td>
+                        <td>{{ job.description|default:"-"|truncatechars:60 }}</td>
+                    </tr>
+                    {% endfor %}
 
-            <tr class="spacer-row"><td colspan="3"></td></tr>
+                {% else %}
+                    <tr class="job-row">
+                        <td colspan="3" class="text-center" style="color: #999; font-style: italic; padding: 10px;">
+                            Nenhum cargo cadastrado neste setor.
+                        </td>
+                    </tr>
+                {% endif %}
 
-        {% empty %}
+                <tr class="spacer-row"><td colspan="3"></td></tr>
+
+            </tbody> {% empty %}
             <tr>
                 <td style="text-align: center; padding: 20px;">Nenhum setor registrado no sistema.</td>
             </tr>
