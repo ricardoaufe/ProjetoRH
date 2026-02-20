@@ -303,6 +303,32 @@ class Employee(models.Model):
             parts.append(f"{self.zip_code}")
 
         return ", ".join(parts) + "." if parts else "Endereço não cadastrado."
+
+    @property
+    def company_tenure(self):
+        if not self.hire_date:
+            return "-"
+        
+        today = timezone.now().date()
+        
+        years = today.year - self.hire_date.year
+        months = today.month - self.hire_date.month
+
+        if today.day < self.hire_date.day:
+            months -= 1
+
+        if months < 0:
+            years -= 1
+            months += 12
+            
+        result = []
+        if years > 0:
+            result.append(f"{years} ano{'s' if years > 1 else ''}")
+        if months > 0:
+            result.append(f"{months} mês{'es' if months > 1 else ''}")
+            
+
+        return " e ".join(result) if result else "Menos de 1 mês"
     
     def check_cipa_expiration(self):
         """
