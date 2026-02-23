@@ -1,6 +1,8 @@
 from django.db import models
 from datetime import timedelta
 from django.utils import timezone
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.contenttypes.fields import GenericForeignKey
 import holidays 
 
 class Vacation(models.Model):
@@ -350,3 +352,70 @@ class Employee(models.Model):
 
     def __str__(self):
         return self.name
+    
+class EventTypes(models.TextChoices):
+    VACATION_START = 'VACATION', 'Início de Férias'
+    TRAINING_DUE = 'TRAINING', 'Vencimento de Treinamento'
+    TRIAL_END = 'TRIAL_END', 'Fim do Contrato de Experiência'
+    EXAM_DUE = 'EXAM_DUE', 'Exame Ocupacional a Vencer'
+
+    BIRTHDAY = 'BIRTHDAY', 'Aniversário do Colaborador'
+    COMPANY_ANNIVERSARY = 'COMPANY_ANNIVERSARY', 'Aniversário de Empresa'
+
+class NotificationRule(models.Model):
+
+    event_type = models.CharField('Tipo de Evento', max_length=30, choices=EventTypes.choices)
+    days_in_advance = models.PositiveIntegerField('Dias de Antecedência', default=15)
+    is_active = models.BooleanField('Regra Ativa', default=True)
+
+    class Meta:
+
+        unique_together = ('event_type', 'days_in_advance')
+
+    def __str__(self):
+        return f"{self.get_event_type_display()} ({self.days_in_advance} dias)"
+
+class NotificationRecipient(models.Model):
+    name = models.CharField('Nome / Setor', max_length=100)
+    email = models.EmailField('E-mail', unique=True)
+    receive_all_events = models.BooleanField('Recebe Todos os Eventos', default=False)
+    
+    subscribed_rules = models.ManyToManyField(
+        NotificationRule, 
+        blank=True, 
+        related_name='subscribers',
+        verbose_name='Regras Inscritas'
+    )
+    is_active = models.BooleanField('Ativo', default=True)
+
+    def __str__(self):
+        return f"{self.name} <{self.email}>"
+
+class NotificationLog(models.Model):
+
+    rule = models.ForeignKey(NotificationRule, on_delete=models.PROTECT, related_name='logs')
+    employee = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='notifications')
+
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
+    related_object = GenericForeignKey('content_type', 'object_id')
+
+    reference_year = models.PositiveIntegerField('Ano de Referência do Evento')
+
+    recipients_snapshot = models.JSONField(
+        'Destinatários (Snapshot)', 
+        default=list, 
+        help_text="Lista exata de e-mails que receberam esta notificação no momento do envio."
+    )
+    
+    sent_at = models.DateTimeField('Enviado em', auto_now_add=True)
+
+    class Meta:
+        unique_together = ('rule', 'content_type', 'object_id', 'reference_year')
+        indexes = [
+            models.Index(fields=['content_type', 'object_id']),
+            models.Index(fields=['reference_year']),
+        ]
+
+    def __str__(self):
+        return f"Log: {self.rule.event_type} - {self.employee.name} ({self.reference_year})"
