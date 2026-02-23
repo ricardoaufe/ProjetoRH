@@ -2,8 +2,7 @@ import logging
 from datetime import date, timedelta
 from django.utils import timezone
 from .models import Employee, EventTypes, NotificationRule, Vacation, Training, NotificationRecipient, NotificationLog
-from django.db.models import Q
-from rhcontrol import models
+from django.db.models import Q, QuerySet
 from django.core.mail import send_mail
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -87,7 +86,7 @@ def get_events_for_notification() -> list[dict]:
         
     return events_to_notify
 
-def get_active_recipients_queryset_for_rule(rule) -> models.QuerySet:
+def get_active_recipients_queryset_for_rule(rule) -> QuerySet:
     """
     Returns the QuerySet of active recipients who should receive a specific rule.
     A recipient is included if:
