@@ -87,6 +87,14 @@ COMPANY_PHONE = os.environ.get('COMPANY_PHONE', '(11) 9999-9999')
 COMPANY_EMAIL = os.environ.get('COMPANY_EMAIL', 'contato@demo.com.br')
 COMPANY_AGENCY = os.environ.get('COMPANY_AGENCY', 'Agência de RH Demo') 
 
+EMAIL_BACKEND = os.getenv("EMAIL_BACKEND", "django.core.mail.backends.smtp.EmailBackend")
+EMAIL_HOST = os.getenv("EMAIL_HOST", "localhost")
+EMAIL_PORT = int(os.getenv("EMAIL_PORT", "25"))
+EMAIL_USE_TLS = os.getenv("EMAIL_USE_TLS", "False").lower() == "true"
+EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER", "")
+EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD", "")
+DEFAULT_FROM_EMAIL = os.getenv("DEFAULT_FROM_EMAIL", "webmaster@localhost")
+
 
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
