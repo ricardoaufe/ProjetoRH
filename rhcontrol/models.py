@@ -316,6 +316,9 @@ class Employee(models.Model):
         
         today = timezone.now().date()
         
+        if self.hire_date > today:
+            return "Não possui tempo de empresa ainda"
+        
         years = today.year - self.hire_date.year
         months = today.month - self.hire_date.month
 
@@ -330,9 +333,8 @@ class Employee(models.Model):
         if years > 0:
             result.append(f"{years} ano{'s' if years > 1 else ''}")
         if months > 0:
-            result.append(f"{months} mês{'es' if months > 1 else ''}")
+            result.append(f"{months} {'mês' if months == 1 else 'meses'}")
             
-
         return " e ".join(result) if result else "Menos de 1 mês"
     
     def check_cipa_expiration(self):
