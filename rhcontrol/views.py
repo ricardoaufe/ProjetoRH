@@ -361,7 +361,7 @@ def get_job_salary(request):
 #VACATIONS
 @login_required
 def vacation_view(request):
-    vacation_list = Vacation.objects.select_related('employee').all().order_by('-start_date')
+    vacation_list = Vacation.objects.select_related('employee').all().order_by('employee__name')
 
     search_query = request.GET.get('search', '')
     date_from = request.GET.get('date_from', '')

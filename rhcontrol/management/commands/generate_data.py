@@ -1,6 +1,6 @@
 import random
 from django.core.management.base import BaseCommand
-from rhcontrol.models import Employee, Department, JobTitle
+from rhcontrol.models import Employee, Department, JobTitle, Vacation
 
 class Command(BaseCommand):
     help = 'Gera setores, cargos e funcionários fictícios e relacionados para testes.'
@@ -14,10 +14,6 @@ class Command(BaseCommand):
         fake = Faker('pt_BR')
         
         self.stdout.write(self.style.NOTICE('=== INICIANDO GERAÇÃO DE DADOS ==='))
-
-        # ==========================================
-        # 1. CRIAÇÃO DE SETORES (Departments)
-        # ==========================================
         self.stdout.write('Gerando Setores...')
         nomes_setores = [
             'Tecnologia da Informação', 'Recursos Humanos', 
@@ -93,4 +89,26 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.ERROR(f'Erro ao criar funcionário: {e}'))
 
         self.stdout.write(self.style.SUCCESS(f'{len(funcionarios_criados)} Funcionários criados com sucesso!'))
+        self.stdout.write(self.style.NOTICE('=== GERAÇÃO FINALIZADA ==='))
+
+        self.stdout.write('Gerando histórico de Férias...')
+        ferias_criadas = 0
+
+        for emp in funcionarios_criados:
+
+            if random.random() < 0.40:
+                data_inicio = fake.date_between(start_date='-1y', end_date='+1y')
+                duracao = random.choice([10, 15, 20, 30])
+                
+                try:
+                    Vacation.objects.create(
+                        employee=emp,
+                        start_date=data_inicio,
+                        vacation_duration=duracao
+                    )
+                    ferias_criadas += 1
+                except Exception as e:
+                    self.stdout.write(self.style.ERROR(f'Erro ao criar férias para {emp.name}: {e}'))
+
+        self.stdout.write(self.style.SUCCESS(f'{ferias_criadas} registros de Férias criados com sucesso!'))
         self.stdout.write(self.style.NOTICE('=== GERAÇÃO FINALIZADA ==='))
