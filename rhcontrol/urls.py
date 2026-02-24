@@ -55,4 +55,5 @@ urlpatterns = [
     path('employees/<int:pk>/internal-regulation/', views.create_internal_regulation_pdf, name='internal_regulation_pdf'),
     path('departments/pdf/department-and-jobtitles/', views.create_department_and_jobtitle_pdf, name='department_and_jobtitles_pdf'),
     path('departments/pdf/employees-department/', views.create_employees_department_pdf, name='employees_department_pdf'),
+    path('vacation/pdf/', views.create_vacation_list_pdf, name='vacation_list_pdf'),
 ]

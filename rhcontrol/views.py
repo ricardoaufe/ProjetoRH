@@ -225,14 +225,12 @@ def employee_update(request, pk):
     if form.is_valid() and formset.is_valid():
         new_employee = form.save(commit=False)
 
-        # Lógica Automática: Calcula Fim do Mandato (1 ano) se não preenchido
         if new_employee.is_cipa_member and new_employee.cipa_mandate_start_date and not new_employee.cipa_mandate_end_date:
             new_employee.cipa_mandate_end_date = new_employee.cipa_mandate_start_date + timedelta(days=365)
 
         new_employee.save()
         formset.save()
-        
-        # 2. Detecção de Mudanças
+
         has_job_change = str(old_job) != str(new_employee.job_title)
         has_salary_change = old_salary != new_employee.current_salary
         has_cipa_change = old_cipa_role != new_employee.cipa_role
@@ -240,18 +238,15 @@ def employee_update(request, pk):
         if has_job_change or has_salary_change or has_cipa_change:
             custom_date = form.cleaned_data.get('change_date')
             custom_reason = form.cleaned_data.get('change_reason')
-            
-            # --- CORREÇÃO DA DATA ---
-            # Prioridade: 1. Data Personalizada (Se digitou) -> 2. Início do Mandato (Se for CIPA) -> 3. Hoje
+
             final_date = timezone.now()
             
             if custom_date:
                 final_date = custom_date
             elif has_cipa_change and new_employee.cipa_mandate_start_date:
-                # Se mudou a CIPA, a data do histórico DEVE ser o início do mandato
+
                 final_date = new_employee.cipa_mandate_start_date
 
-            # Lógica do Motivo
             auto_reason = ""
             if custom_reason:
                 auto_reason = custom_reason
@@ -267,10 +262,6 @@ def employee_update(request, pk):
                     auto_reason = "Mérito"
                 else:
                     auto_reason = "Reajuste"
-
-            # --- CORREÇÃO DA SUJEIRA NO HISTÓRICO ---
-            # Só preenchemos os campos no histórico se eles realmente mudaram.
-            # Se não mudaram, passamos None, e o template vai esconder automaticamente.
 
             h_old_job = str(old_job) if (old_job and has_job_change) else None
             h_new_job = str(new_employee.job_title) if has_job_change else None
@@ -911,6 +902,43 @@ def create_employees_department_pdf(request):
     response = HttpResponse(pdf, content_type='application/pdf')
 
     filename = "funcionarios_por_setor.pdf"
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+
+    return response
+
+@login_required
+def create_vacation_list_pdf(request):
+    vacation_list = Vacation.objects.select_related('employee').all().order_by('employee__name')
+
+    search_query = request.GET.get('search', '')
+    date_from = request.GET.get('date_from', '')
+    date_to = request.GET.get('date_to', '')
+
+    if search_query:
+        vacation_list = vacation_list.filter(employee__name__icontains=search_query)
+
+    if date_from:
+        vacation_list = vacation_list.filter(start_date__gte=date_from)
+
+    if date_to:
+        vacation_list = vacation_list.filter(start_date__lte=date_to)
+
+    context = {
+        'vacation': vacation_list,
+        'search_query': search_query,
+        'date_from': date_from,
+        'date_to': date_to,
+        'generated_at': timezone.now(),
+        'user': request.user,
+        'company_name_settings': settings.COMPANY_NAME,
+    }
+
+    html_string = render_to_string('dashboard/pages/vacation/pdf/vacation_list.html', context, request=request)
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    pdf = html.write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+    filename = "vacation_list.pdf"
     response['Content-Disposition'] = f'inline; filename="{filename}"'
 
     return response

@@ -99,11 +99,20 @@
 <body>
 <div class= "list-container">
 
-    <div class= "page-header">
+    <div class= "page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
         <h1>Registo de Férias</h1>
-        <a href="{% url 'rhcontrol:vacation_create' %}" class="btn btn-primary">Registrar Férias</a>
-    </div>
+        <div class="header-actions" style="display: flex; gap: 0.625rem;">
+            <a style='align-text: right;' href="{% url 'rhcontrol:vacation_list_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-danger" target="_blank">
+                <i class="fa fa-file-pdf"></i> Gerar PDF
+            </a>
 
+            <a href="{% url 'rhcontrol:vacation_create' %}" class="btn btn-primary">
+                Registrar Férias
+            </a>
+        </div>
+
+    </div>
+    
     <div class="status-filters">
         <a href="{% url 'rhcontrol:vacation_list' %}" class="{% if not request.GET.status %}active{% endif %}">Todos</a>
     </div>
