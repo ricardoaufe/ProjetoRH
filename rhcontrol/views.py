@@ -139,7 +139,7 @@ def employee_view(request):
     for emp in expired_employees:
         emp.check_cipa_expiration()
 
-    employee_list = Employee.objects.select_related('department').all()
+    employee_list = Employee.objects.select_related('department').all().order_by('name')
 
     query = request.GET.get('search', '')
     if query:
