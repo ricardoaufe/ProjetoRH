@@ -133,7 +133,7 @@ def employee_view(request):
     
     expired_employees = Employee.objects.filter(
         is_cipa_member=True,
-        cipa_mandate_end_date__lt=limit_date # Data fim MENOR que (Hoje - 366 dias)
+        cipa_mandate_end_date__lt=limit_date
     )
     
     for emp in expired_employees:
@@ -164,7 +164,7 @@ def employee_view(request):
     else:
         employee_list = employee_list.order_by('name')
 
-    paginator = Paginator(employee_list, 15)
+    paginator = Paginator(employee_list, 40)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
