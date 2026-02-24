@@ -352,11 +352,20 @@ def get_job_salary(request):
 #VACATIONS
 @login_required
 def vacation_view(request):
-    vacation_list = Vacation.objects.select_related('employee').all().order_by('employee__name')
+    vacation_list = Vacation.objects.select_related('employee').all()
 
     search_query = request.GET.get('search', '')
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
+
+    sort_by = request.GET.get('sort', 'employee__name') 
+
+    valid_sort_fields = ['employee__name', 'start_date', 'end_date', 'return_date', 'vacation_duration']
+    
+    if sort_by in valid_sort_fields:
+        vacation_list = vacation_list.order_by(sort_by)
+    else:
+        vacation_list = vacation_list.order_by('employee__name') 
 
     if search_query:
         vacation_list = vacation_list.filter(employee__name__icontains=search_query)
@@ -367,7 +376,7 @@ def vacation_view(request):
     if date_to:
         vacation_list = vacation_list.filter(start_date__lte=date_to)
 
-    paginator = Paginator(vacation_list, 5)
+    paginator = Paginator(vacation_list, 30)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -376,6 +385,7 @@ def vacation_view(request):
         'search_query': search_query,
         'date_from': date_from,
         'date_to': date_to,
+        'current_sort': sort_by,
     }
     return render(request, 'dashboard/pages/vacation/list.html', context)
 

@@ -151,11 +151,31 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th><a href="?sort=name&q={{ request.GET.search|default_if_none:''}}&start={{ request.GET.status|default_if_none:''}}"><span>Nome</span></a></th>
-                <th><a href="?sort=start_date&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Data de Início</span></a></th>
-                <th><a href="?sort=end_date&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Data de Término</span></a></th>
-                <th><a href="?sort=return_date&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Data de Retorno</span></a></th>
-                <th><a href="?sort=vacation_duration&q={{request.GET.q|default_if_none:''}}&status={{ request.GET.status|default_if_none:'' }}"><span>Duração das Férias (dias)</span></a></th>
+                <th>
+                    <a href="?sort=employee__name&search={{ request.GET.search|default_if_none:''}}&status={{ request.GET.status|default_if_none:''}}" style="color: inherit; text-decoration: none;">
+                        <span>Nome <i class="fa fa-sort" style="color: #aaa; margin-left: 5px;"></i></span>
+                    </a>
+                </th>
+                <th>
+                    <a href="?sort=start_date&search={{ request.GET.search|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}" style="color: inherit; text-decoration: none;">
+                        <span>Data de Início <i class="fa fa-sort" style="color: #aaa; margin-left: 5px;"></i></span>
+                    </a>
+                </th>
+                <th>
+                    <a href="?sort=end_date&search={{ request.GET.search|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}" style="color: inherit; text-decoration: none;">
+                        <span>Data de Término <i class="fa fa-sort" style="color: #aaa; margin-left: 5px;"></i></span>
+                    </a>
+                </th>
+                <th>
+                    <a href="?sort=return_date&search={{ request.GET.search|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}" style="color: inherit; text-decoration: none;">
+                        <span>Data de Retorno <i class="fa fa-sort" style="color: #aaa; margin-left: 5px;"></i></span>
+                    </a>
+                </th>
+                <th>
+                    <a href="?sort=vacation_duration&search={{request.GET.search|default_if_none:''}}&status={{ request.GET.status|default_if_none:'' }}" style="color: inherit; text-decoration: none;">
+                        <span>Duração (dias) <i class="fa fa-sort" style="color: #aaa; margin-left: 5px;"></i></span>
+                    </a>
+                </th>
             </tr>
         </thead>
 
