@@ -169,7 +169,7 @@ class EmployeeForm(forms.ModelForm):
                     'termination_date', 
                     'A data de demissão não pode ser anterior à data de admissão.'
                 )
-                
+
         special_workday = cleaned_data.get('special_workday')
         special_workday_other = cleaned_data.get('special_workday_other')
 
@@ -312,7 +312,6 @@ class JobTitleForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'form-control', 'placeholder': 'Descrição (Opcional)', 'rows': 1}),
         }
 
-    # --- NOVO: Formata o valor inicial com vírgula ao carregar a página ---
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk and self.instance.base_salary:
@@ -320,12 +319,17 @@ class JobTitleForm(forms.ModelForm):
 
     def clean_base_salary(self):
         salary = self.cleaned_data.get('base_salary')
-        if not salary: return None
+        if not salary: 
+            return None
+        
         if isinstance(salary, (float, int, Decimal)): return salary
         
         salary_str = str(salary).replace('.', '').replace(',', '.')
+
         try:
             return Decimal(salary_str)
+            
+
         except Exception:
             raise forms.ValidationError("Valor inválido")
         
