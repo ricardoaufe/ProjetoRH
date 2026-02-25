@@ -1,3 +1,4 @@
+from datetime import date
 from decimal import Decimal
 from django import forms 
 from django.contrib.auth.models import User
@@ -79,6 +80,8 @@ class EmployeeForm(forms.ModelForm):
         required=False,
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Descreva o trabalho especial'})
     )
+
+    
     class Meta:
         model = Employee
         fields = '__all__'
@@ -109,6 +112,20 @@ class EmployeeForm(forms.ModelForm):
         if not validate_cpf(cpf):
             raise forms.ValidationError("CPF Inválido ou Inexistente.")
         return cpf
+    
+    def clean_birth_date(self):
+        birth_date = self.cleaned_data.get('birth_date')
+        
+        if birth_date:
+            today = date.today()
+            age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
+            if age < 18:
+                raise forms.ValidationError("O funcionário deve ter pelo menos 18 anos.")
+            
+            if age > 100:
+                raise forms.ValidationError("Idade inválida. Verifique o ano de nascimento (Máx: 100 anos).")
+        return birth_date
+    
     
     def clean_name(self):
         name = self.cleaned_data.get('name')
@@ -142,6 +159,17 @@ class EmployeeForm(forms.ModelForm):
         
     def clean(self):
         cleaned_data = super().clean()
+
+        hire_date = cleaned_data.get('hire_date')
+        termination_date = cleaned_data.get('termination_date')
+
+        if hire_date and termination_date:
+            if termination_date < hire_date:
+                self.add_error(
+                    'termination_date', 
+                    'A data de demissão não pode ser anterior à data de admissão.'
+                )
+                
         special_workday = cleaned_data.get('special_workday')
         special_workday_other = cleaned_data.get('special_workday_other')
 

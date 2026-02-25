@@ -277,6 +277,19 @@
         toggleSpecialWorkday();
     }
 
+    const hireInput = document.getElementById("id_hire_date");
+    const terminationInput = document.getElementById("id_termination_date");
+
+    if (hireInput && terminationInput) {
+        hireInput.addEventListener("change", function() {
+            terminationInput.min = this.value;
+
+            if (terminationInput.value && terminationInput.value < this.value) {
+                terminationInput.value = "";
+            }
+        });
+    }
+
 </script>
 
 <script>
