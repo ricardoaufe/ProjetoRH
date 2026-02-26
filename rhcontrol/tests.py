@@ -849,3 +849,71 @@ class CareerPlanDismissalTests(TestCase):
         self.assertEqual(plan.status, CareerPlan.PlanStatus.CANCELLED)
         self.assertIn("desligado", (plan.cancellation_reason or "").lower())
         self.assertEqual(len(mail.outbox), 1)
+
+class CareerPlanEffectiveTests(TestCase):
+    def setUp(self):
+        self.today = timezone.localdate()
+
+        self.dept = Department.objects.create(name="TI")
+
+        self.current_job = JobTitle.objects.create(
+            name="Dev Jr",
+            department=self.dept,
+            base_salary=Decimal("4000.00")
+        )
+
+        self.proposed_job = JobTitle.objects.create(
+            name="Dev Pl",
+            department=self.dept,
+            base_salary=Decimal("6000.00")
+        )
+
+        self.employee = Employee.objects.create(
+            name="Teste",
+            cpf="67134509206",
+            birth_date="1990-01-01",
+            department=self.dept,
+            job_title=self.current_job,
+            current_salary=Decimal("4000.00"),
+        )
+
+        NotificationRule.objects.create(
+            event_type=EventTypes.CAREER_PLAN_EFFECTIVE,
+            is_active=True,
+            days_in_advance=0
+        )
+
+        NotificationRecipient.objects.create(
+            name="RH",
+            email="rh@teste.com",
+            is_active=True,
+            receive_all_events=True
+        )
+
+    def test_confirmed_plan_becomes_effective_and_updates_employee_on_day_d(self):
+        plan = CareerPlan.objects.create(
+            employee=self.employee,
+            proposed_job=self.proposed_job,
+            proposed_salary=Decimal("6000.00"),
+            promotion_date=self.today + timedelta(days=5),
+            status=CareerPlan.PlanStatus.CONFIRMED,
+        )
+
+        CareerPlan.objects.filter(pk=plan.pk).update(promotion_date=self.today)
+
+        process_career_plans(dry_run=False)
+
+        plan.refresh_from_db()
+        self.employee.refresh_from_db()
+
+        self.assertEqual(plan.status, CareerPlan.PlanStatus.EFFECTIVE)
+        self.assertIsNotNone(plan.effective_applied_at)
+
+        self.assertEqual(self.employee.job_title, self.proposed_job)
+        self.assertEqual(self.employee.current_salary, Decimal("6000.00"))
+
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn(self.employee.name, mail.outbox[0].subject)
+
+        process_career_plans(dry_run=False)
+        self.assertEqual(len(mail.outbox), 1)
