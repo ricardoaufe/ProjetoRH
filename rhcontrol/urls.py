@@ -19,6 +19,10 @@ urlpatterns = [
 
     #CAREER PLAN
     path('ajax/load-employee-data/', views.ajax_load_employee_data, name='ajax_load_employee_data'),
+    path('career/', views.career_plan_list, name='career_plan_list'),
+    path('career/create/', views.career_plan_create, name='career_plan_create'),
+    path('career/<int:pk>/edit/', views.career_plan_update, name='career_plan_update'),
+    path('career-de-carreira/<int:pk>/confirm/', views.confirm_career_plan_action, name='career_plan_confirm'),
 
     #VACATIONS
     path('vacations/', views.vacation_view, name='vacation_list'),

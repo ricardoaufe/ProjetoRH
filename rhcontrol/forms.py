@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 from django import forms 
 from django.contrib.auth.models import User
-from rhcontrol.models import Dependent, Employee, JobTitle, Training, Vacation, Department
+from rhcontrol.models import Dependent, Employee, JobTitle, Training, Vacation, Department, CareerPlan
 
 class LoginForm(forms.Form):
     email = forms.CharField(label='Usuário ou Email', max_length=100, widget=forms.TextInput(attrs={
@@ -340,3 +340,43 @@ JobTitleFormSet = forms.inlineformset_factory(
     extra=0,          
     can_delete=True
 )
+
+class CareerPlanForm(forms.ModelForm):
+    class Meta:
+        model = CareerPlan
+
+        fields = ['employee', 'proposed_job', 'proposed_salary', 'promotion_date']
+        
+        widgets = {
+            'promotion_date': forms.DateInput(attrs={'type': 'date'}),
+            'proposed_salary': forms.TextInput(attrs={'placeholder': '0,00', 'class': 'money-input'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        for field in self.fields.values():
+            if 'class' in field.widget.attrs:
+                field.widget.attrs['class'] += ' form-control'
+            else:
+                field.widget.attrs['class'] = 'form-control'
+                
+        if self.instance and self.instance.pk:
+            self.fields['employee'].disabled = True
+
+        self.fields['proposed_job'].queryset = JobTitle.objects.none()
+
+        if 'employee' in self.data:
+            try:
+                employee_id = int(self.data.get('employee'))
+                employee = Employee.objects.get(id=employee_id)
+                self.fields['proposed_job'].queryset = JobTitle.objects.filter(
+                    department=employee.department
+                ).order_by('name')
+            except (ValueError, TypeError, Employee.DoesNotExist):
+                pass 
+
+        elif self.instance.pk and self.instance.employee:
+            self.fields['proposed_job'].queryset = JobTitle.objects.filter(
+                department=self.instance.employee.department
+            ).order_by('name')

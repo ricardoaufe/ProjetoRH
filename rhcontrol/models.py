@@ -412,6 +412,18 @@ class CareerPlan(models.Model):
 
     def clean(self):
         super().clean()
+
+        if self.pk:
+            old_instance = CareerPlan.objects.get(pk=self.pk)
+
+            if old_instance.status in [self.PlanStatus.CONFIRMED, self.PlanStatus.EFFECTIVE, self.PlanStatus.CANCELLED]:
+
+                if (old_instance.proposed_job != self.proposed_job or 
+                    old_instance.proposed_salary != self.proposed_salary or 
+                    old_instance.promotion_date != self.promotion_date or
+                    old_instance.employee != self.employee):
+                    raise ValidationError("Não é possível alterar funcionário, cargo, salário ou data de um plano que já foi Confirmado, Efetivado ou Cancelado.")
+                
         if not self.pk and self.promotion_date:
             if self.promotion_date <= timezone.now().date():
                 raise ValidationError({'promotion_date': 'A data da promoção deve ser estritamente no futuro.'})

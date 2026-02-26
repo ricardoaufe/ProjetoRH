@@ -3,14 +3,16 @@ from django.conf import settings
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department
+from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department, CareerPlan
 from django.db.models import Q, Prefetch
 from django.core.paginator import Paginator
-from rhcontrol.forms import DependentFormSet, LoginForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet
+from rhcontrol.forms import DependentFormSet, LoginForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet, CareerPlanForm
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views.decorators.http import require_POST
 from django.contrib import messages 
 from datetime import timedelta, timezone
 from django.utils import timezone
@@ -454,13 +456,6 @@ def vacation_delete(request, pk):
     return render(request, 'dashboard/pages/vacation/delete.html', {
         'vacation': vacation
     })
-
-#TRAININGclass Department(models.Model):
-    name = models.CharField(max_length=100)
-    description = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
 
 @login_required
 def training_view(request):
@@ -977,3 +972,90 @@ def ajax_load_employee_data(request):
             return JsonResponse({'success': False, 'error': 'Funcionário não encontrado'})
             
     return JsonResponse({'success': False, 'error': 'ID não fornecido'})
+
+@login_required
+def career_plan_list(request):
+    """ View para listar todos os planos com um painel de controle para o RH """
+
+    plans = CareerPlan.objects.select_related('employee', 'proposed_job').order_by('-created_at')
+    
+    context = {
+        'plans': plans
+    }
+    return render(request, 'dashboard/pages/career/list.html', context)
+
+
+@login_required
+def career_plan_create(request):
+    """ View para criar um novo Plano de Carreira """
+    if request.method == 'POST':
+        form = CareerPlanForm(request.POST)
+        if form.is_valid():
+
+            plan = form.save(commit=False)
+
+            plan.created_by = request.user
+
+            plan.save()
+            
+            messages.success(request, f"Plano para {plan.employee.name} agendado com sucesso!")
+            return redirect('rhcontrol:career_plan_list')
+        else:
+            messages.error(request, "Erro ao agendar o plano. Verifique os campos destacados abaixo.")
+    else:
+        form = CareerPlanForm()
+
+    context = {
+        'form': form,
+        'is_update': False 
+    }
+    return render(request, 'dashboard/pages/career/form.html', context)
+
+
+@login_required
+def career_plan_update(request, pk):
+    """ View para editar um Plano de Carreira existente """
+    plan = get_object_or_404(CareerPlan, pk=pk)
+
+    if plan.status in [CareerPlan.PlanStatus.CONFIRMED, CareerPlan.PlanStatus.EFFECTIVE, CareerPlan.PlanStatus.CANCELLED]:
+        messages.warning(request, "Acesso negado: Este plano já está bloqueado para edição.")
+        return redirect('rhcontrol:career_plan_list')
+
+    if request.method == 'POST':
+
+        form = CareerPlanForm(request.POST, instance=plan)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Plano de {plan.employee.name} atualizado.")
+            return redirect('rhcontrol:career_plan_list')
+        else:
+            messages.error(request, "Erro ao atualizar. Verifique os campos abaixo.")
+    else:
+
+        form = CareerPlanForm(instance=plan)
+
+    context = {
+        'form': form,
+        'plan': plan,
+        'is_update': True
+    }
+    return render(request, 'dashboard/pages/career/form.html', context)
+
+@login_required
+@require_POST 
+def confirm_career_plan_action(request, pk):
+    """ Ação de botão: O RH aperta para dizer 'Aprovado, pode efetivar no dia D' """
+    plan = get_object_or_404(CareerPlan, pk=pk)
+
+    if plan.status == CareerPlan.PlanStatus.AWAITING_CONFIRMATION:
+        plan.status = CareerPlan.PlanStatus.CONFIRMED
+        plan.confirmed_at = timezone.now()
+        plan.confirmed_by = request.user
+
+        plan.save(update_fields=['status', 'confirmed_at', 'confirmed_by', 'updated_at'])
+        
+        messages.success(request, f"Promoção de {plan.employee.name} confirmada! O sistema efetivará o cargo no dia {plan.promotion_date.strftime('%d/%m/%Y')}.")
+    else:
+        messages.error(request, "Ação inválida: Este plano não está aguardando confirmação.")
+        
+    return redirect('rhcontrol:career_plan_list')
