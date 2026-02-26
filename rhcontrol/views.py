@@ -952,3 +952,28 @@ def create_vacation_list_pdf(request):
     response['Content-Disposition'] = f'inline; filename="{filename}"'
 
     return response
+
+@login_required
+def ajax_load_employee_data(request):
+    employee_id = request.GET.get('employee_id')
+    
+    if employee_id:
+        try:
+            employee = Employee.objects.get(id=employee_id)
+            department = employee.department
+
+            available_jobs = JobTitle.objects.filter(department=department).order_by('name')
+
+            jobs_list = [{'id': job.id, 'name': job.name} for job in available_jobs]
+            
+            return JsonResponse({
+                'success': True,
+                'department_name': department.name if department else 'Nenhum',
+                'current_job_name': employee.job_title.name if employee.job_title else 'Nenhum',
+                'current_salary': str(employee.current_salary) if employee.current_salary else '0.00',
+                'jobs': jobs_list
+            })
+        except Employee.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Funcionário não encontrado'})
+            
+    return JsonResponse({'success': False, 'error': 'ID não fornecido'})

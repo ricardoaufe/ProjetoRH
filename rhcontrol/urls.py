@@ -17,6 +17,9 @@ urlpatterns = [
     path('employees/<int:pk>/delete/', views.employee_delete, name='employee_delete'),
     path('employee/history/delete/<int:pk>/', views.delete_history_log, name='history_delete'),
 
+    #CAREER PLAN
+    path('ajax/load-employee-data/', views.ajax_load_employee_data, name='ajax_load_employee_data'),
+
     #VACATIONS
     path('vacations/', views.vacation_view, name='vacation_list'),
     path('vacations/create/', views.vacation_create, name='vacation_create'),

@@ -1,0 +1,109 @@
+{% extends 'base.html' %} {% block content %}
+<div class="container mt-4">
+    <h2>Criar Plano de Carreira</h2>
+    <hr>
+
+    <form method="post" id="careerPlanForm">
+        {% csrf_token %}
+        
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                Por favor, corrija os erros abaixo.
+            </div>
+        {% endif %}
+
+        <div class="row">
+            <div class="col-md-12 mb-3">
+                <label for="{{ form.employee.id_for_label }}" class="form-label">Funcionário:</label>
+                {{ form.employee }} {{ form.employee.errors }}
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label class="form-label text-muted">Setor Atual:</label>
+                <input type="text" id="display_dept" class="form-control" readonly placeholder="Aguardando funcionário...">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label text-muted">Cargo Atual:</label>
+                <input type="text" id="display_job" class="form-control" readonly placeholder="Aguardando funcionário...">
+            </div>
+            <div class="col-md-4 mb-3">
+                <label class="form-label text-muted">Salário Atual:</label>
+                <input type="text" id="display_salary" class="form-control" readonly placeholder="Aguardando funcionário...">
+            </div>
+
+            <div class="col-md-4 mb-3">
+                <label for="{{ form.proposed_job.id_for_label }}" class="form-label">Próximo Cargo:</label>
+                {{ form.proposed_job }} {{ form.proposed_job.errors }}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="{{ form.proposed_salary.id_for_label }}" class="form-label">Salário Proposto (R$):</label>
+                {{ form.proposed_salary }}
+                {{ form.proposed_salary.errors }}
+            </div>
+            <div class="col-md-4 mb-3">
+                <label for="{{ form.promotion_date.id_for_label }}" class="form-label">Data da Promoção:</label>
+                {{ form.promotion_date }}
+                {{ form.promotion_date.errors }}
+            </div>
+        </div>
+
+        <div class="mt-4">
+            <button type="submit" class="btn btn-primary">Salvar Plano</button>
+            <a href="javascript:history.back()" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const employeeSelect = document.getElementById("id_employee");
+        const proposedJobSelect = document.getElementById("id_proposed_job");
+        
+        const displayDept = document.getElementById("display_dept");
+        const displayJob = document.getElementById("display_job");
+        const displaySalary = document.getElementById("display_salary");
+
+        employeeSelect.addEventListener("change", function() {
+            const employeeId = this.value;
+
+            if (!employeeId) {
+                proposedJobSelect.innerHTML = '<option value="">---------</option>';
+                displayDept.value = "";
+                displayJob.value = "";
+                displaySalary.value = "";
+                return;
+            }
+
+            const url = `{% url 'rhcontrol:ajax_load_employee_data' %}?employee_id=${employeeId}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+
+                        displayDept.value = data.department_name;
+                        displayJob.value = data.current_job_name;
+                        displaySalary.value = "R$ " + data.current_salary;
+
+                        proposedJobSelect.innerHTML = '<option value="">--- Selecione o Cargo ---</option>';
+                        
+                        data.jobs.forEach(function(job) {
+                            const option = document.createElement("option");
+                            option.value = job.id;
+                            option.textContent = job.name;
+                            proposedJobSelect.appendChild(option);
+                        });
+                    } else {
+                        console.error("Erro do servidor:", data.error);
+                        alert("Não foi possível carregar os dados do funcionário.");
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro no AJAX:", error);
+                });
+        });
+    });
+</script>
+{% endblock %}
