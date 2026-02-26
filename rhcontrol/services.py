@@ -1,7 +1,8 @@
 import logging
 from datetime import date, timedelta
+from django.core import mail
 from django.utils import timezone
-from .models import Employee, EventTypes, NotificationRule, Vacation, Training, NotificationRecipient, NotificationLog
+from .models import Employee, EventTypes, NotificationRule, Vacation, Training, NotificationRecipient, NotificationLog, CareerPlan
 from django.db.models import Q, QuerySet
 from django.core.mail import send_mail
 from django.conf import settings
@@ -116,10 +117,6 @@ def get_recipients_for_event(event: dict) -> list[str]:
     
     return unique_emails
 
-
-
-
-
 logger = logging.getLogger(__name__)
 
 def process_notifications(dry_run: bool = False) -> None:
@@ -166,8 +163,8 @@ def send_notification_for_event(event: dict, dry_run: bool = False) -> None:
     event_name_display = rule.get_event_type_display()
     formatted_date = event_date.strftime("%d/%m/%Y")
     
-    subject = f"Aviso RH: {event_name_display} - {employee.name}"
-    body = (
+    subject = event.get('custom_subject') or f"Aviso RH: {event_name_display} - {employee.name}"
+    body = event.get('custom_body') or (
         f"Olá,\n\n"
         f"Este é um aviso automático do sistema de RH.\n\n"
         f"Evento: {event_name_display}\n"
@@ -218,3 +215,142 @@ def send_notification_for_event(event: dict, dry_run: bool = False) -> None:
         raise
 
     logger.info(f"Sucesso: Notificação de [{event_name_display}] enviada e registrada para {len(snapshot_ordenado)} e-mail(s) sobre [{employee.name}].")
+
+
+def notify_career_plan_event(plan: CareerPlan, event_type: str, dry_run: bool = False) -> None:
+    """
+    Constrói o dicionário padrão de evento e dispara o e-mail usando a infraestrutura existente.
+    Fail-safe: Se a regra não existir, apenas loga e aborta.
+    """
+    rule = NotificationRule.objects.filter(event_type=event_type, is_active=True).first()
+    
+    if not rule:
+        logger.warning(f"Sem regra ativa configurada para [{event_type}]. E-mail não enviado para {plan.employee.name}.")
+        return
+    
+    subject = f"Aviso RH: {rule.get_event_type_display()} - {plan.employee.name}"
+    body = (
+        f"Olá,\n\n"
+        f"Aviso do Módulo de Plano de Carreira:\n\n"
+        f"Colaborador: {plan.employee.name}\n"
+        f"Próximo Cargo: {plan.proposed_job.name}\n"
+        f"Data da Promoção: {plan.promotion_date.strftime('%d/%m/%Y')}\n"
+        f"Status Atualizado: {plan.get_status_display()}\n"
+    )
+    if plan.cancellation_reason:
+        body += f"Motivo do Cancelamento: {plan.cancellation_reason}\n"
+        
+    body += "\nPor favor, acesse o sistema para mais detalhes."
+
+    event_dict = {
+        'event_type': event_type,
+        'rule': rule,
+        'employee': plan.employee,
+        'related_object': plan,
+        'event_date': plan.promotion_date,
+        'reference_year': plan.promotion_date.year,
+        'custom_subject': subject,
+        'custom_body': body,
+    }
+
+    send_notification_for_event(event_dict, dry_run=dry_run)
+
+
+def process_career_plans(dry_run: bool = False) -> None:
+    """
+    Motor diário de transições de status do Plano de Carreira.
+    Roda via Hub (run_automations).
+    """
+    today = timezone.localdate()
+    if dry_run:
+        logger.info(f"=== [DRY-RUN] Iniciando simulação de Planos de Carreira para {today} ===")
+    else:
+        logger.info(f"=== Iniciando processamento de Planos de Carreira para {today} ===")
+
+    plans_to_cancel_dismissed = CareerPlan.objects.filter(
+        status__in=[CareerPlan.PlanStatus.SCHEDULED, CareerPlan.PlanStatus.AWAITING_CONFIRMATION, CareerPlan.PlanStatus.CONFIRMED],
+        employee__termination_date__isnull=False,
+        employee__termination_date__lte=today
+    )
+    for plan in plans_to_cancel_dismissed:
+        if dry_run:
+            logger.info(f"[DRY-RUN] Cancelaria plano de [{plan.employee.name}] (Motivo: Funcionário desligado).")
+        else:
+            plan.status = CareerPlan.PlanStatus.CANCELLED
+            plan.cancellation_reason = 'Funcionário desligado'
+            plan.save(update_fields=['status', 'cancellation_reason', 'updated_at'])
+            notify_career_plan_event(plan, EventTypes.CAREER_PLAN_CANCELLED)
+
+    scheduled_plans = CareerPlan.objects.filter(status=CareerPlan.PlanStatus.SCHEDULED)
+    for plan in scheduled_plans:
+        window_start = plan.promotion_date - timedelta(days=30)
+
+        if today >= plan.promotion_date:
+            if dry_run:
+                logger.info(f"[DRY-RUN] Cancelaria plano de [{plan.employee.name}] (Motivo: Janela perdida/cron inativo).")
+            else:
+                plan.status = CareerPlan.PlanStatus.CANCELLED
+                plan.cancellation_reason = 'Janela perdida/cron inativo'
+                plan.save(update_fields=['status', 'cancellation_reason', 'updated_at'])
+                notify_career_plan_event(plan, EventTypes.CAREER_PLAN_CANCELLED)
+
+        elif today >= window_start and plan.reminder_sent_at is None:
+            if dry_run:
+                logger.info(f"[DRY-RUN] Mudaria status de [{plan.employee.name}] para AWAITING_CONFIRMATION e enviaria aviso.")
+            else:
+                plan.status = CareerPlan.PlanStatus.AWAITING_CONFIRMATION
+                plan.reminder_sent_at = timezone.now()
+                plan.save(update_fields=['status', 'reminder_sent_at', 'updated_at'])
+                notify_career_plan_event(plan, EventTypes.CAREER_PLAN_REMINDER)
+
+    expired_plans = CareerPlan.objects.filter(
+        status=CareerPlan.PlanStatus.AWAITING_CONFIRMATION,
+        promotion_date__lte=today
+    )
+    for plan in expired_plans:
+        if dry_run:
+            logger.info(f"[DRY-RUN] Cancelaria plano de [{plan.employee.name}] (Motivo: Prazo expirado sem confirmação do RH).")
+        else:
+            plan.status = CareerPlan.PlanStatus.CANCELLED
+            plan.cancellation_reason = 'Prazo de confirmação expirado'
+            plan.save(update_fields=['status', 'cancellation_reason', 'updated_at'])
+            notify_career_plan_event(plan, EventTypes.CAREER_PLAN_CANCELLED)
+
+    dia_d_plans = CareerPlan.objects.filter(
+        status=CareerPlan.PlanStatus.CONFIRMED,
+        promotion_date__lte=today,
+        effective_applied_at__isnull=True
+    )
+    for plan in dia_d_plans:
+        employee = plan.employee
+
+        if plan.proposed_job.department != employee.department:
+            if dry_run:
+                logger.info(f"[DRY-RUN] Cancelaria plano de [{employee.name}] (Conflito: Setor alterado manualmente).")
+            else:
+                plan.status = CareerPlan.PlanStatus.CANCELLED
+                plan.cancellation_reason = 'Conflito: Setor alterado manualmente antes da promoção'
+                plan.save(update_fields=['status', 'cancellation_reason', 'updated_at'])
+                notify_career_plan_event(plan, EventTypes.CAREER_PLAN_CANCELLED)
+            continue
+            
+        if dry_run:
+            logger.info(f"[DRY-RUN] Efetivaria promoção de [{employee.name}] para o cargo [{plan.proposed_job.name}]. Salvaria histórico.")
+        else:
+            try:
+                with transaction.atomic():
+                    employee.job_title = plan.proposed_job
+                    employee.current_salary = plan.proposed_salary
+                    employee.save(update_fields=['job_title', 'current_salary'])
+                    
+                    plan.status = CareerPlan.PlanStatus.EFFECTIVE
+                    plan.effective_applied_at = timezone.now()
+                    plan.save(update_fields=['status', 'effective_applied_at', 'updated_at'])
+
+                notify_career_plan_event(plan, EventTypes.CAREER_PLAN_EFFECTIVE)
+                logger.info(f"Promoção de [{employee.name}] efetivada com sucesso.")
+            except Exception as e:
+                logger.error(f"Falha crítica ao efetivar promoção do plano {plan.id}: {str(e)}")
+
+    if dry_run:
+        logger.info("=== [DRY-RUN] Finalizado ===")

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Employee, Department, JobTitle, Vacation, Training, NotificationLog, NotificationRecipient, NotificationRule
+from .models import Employee, Department, JobTitle, Vacation, Training, NotificationLog, NotificationRecipient, NotificationRule, CareerPlan
 
 class EmployeeAdmin(admin.ModelAdmin):
     ...
@@ -39,3 +39,8 @@ class NotificationLogAdmin(admin.ModelAdmin):
     list_display = ("rule", "employee", "reference_year", "sent_at")
     list_filter = ("rule", "reference_year")
     readonly_fields = ("sent_at",)
+
+@admin.register(CareerPlan)
+class CareerPlanAdmin(admin.ModelAdmin):
+    list_display = ("employee", "created_at", "updated_at")
+    readonly_fields = ("created_at", "updated_at")

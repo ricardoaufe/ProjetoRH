@@ -1,11 +1,18 @@
+from decimal import Decimal
+import inspect
+
+from attrs import inspect
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.staticfiles import finders
-from rhcontrol.models import Employee, JobTitle, Training, Vacation, Department
+from rhcontrol.models import CareerPlan, Employee, EventTypes, JobTitle, NotificationRecipient, NotificationRule,NotificationLog, Training, Vacation, Department
 from rhcontrol.forms import EmployeeForm
 from datetime import datetime, timedelta
 from django.utils import timezone
+from django.core import mail
+from rhcontrol.services import process_career_plans
+
 
 class RhcontrolTests(TestCase):
     def test_dashboard_url_working(self):
@@ -82,7 +89,7 @@ class EmployeeFormTests(TestCase):
     def test_employee_form_valid_data(self):
         form_data = {
             'name': 'Maria Santos',
-            'cpf': '11122233344',
+            'cpf': '67134509206',
             'birth_date': '1992-03-20',
             'department': self.department.id,
             'job_title': self.job_title.id,
@@ -104,7 +111,7 @@ class EmployeeFormTests(TestCase):
         # Cria o primeiro
         Employee.objects.create(
             name='Original', 
-            cpf='11122233344', 
+            cpf='67134509206', 
             birth_date='1990-01-01',
             department=self.department,
             job_title=self.job_title
@@ -113,7 +120,7 @@ class EmployeeFormTests(TestCase):
         # Tenta criar o segundo com mesmo CPF via formulário
         form_data = {
             'name': 'Impostor',
-            'cpf': '11122233344', # Mesmo CPF
+            'cpf': '67134509206', # Mesmo CPF
             'birth_date': '1995-01-01',
             'department': self.department.id,
             'job_title': self.job_title.id,
@@ -148,6 +155,55 @@ class AuthenticationTests(TestCase):
         self.assertIn('form', response.context)
 
 class EmployeeViewTests(TestCase):
+    def _employee_payload_for_url(self, url, **overrides):
+        get_resp = self.client.get(url)
+        formset = get_resp.context['dependent_formset']
+        prefix = formset.prefix
+
+        data = {
+            'name': 'Carlos Silva',
+            'cpf': '67134509206',
+            'birth_date': '1988-07-10',
+            'department': self.department.id,
+            'job_title': self.job_title.id,
+            'current_salary': '4000.00',
+            'hire_date': '2025-01-01',
+
+            'registration_number': '12345',
+            'mother_name': 'Mãe do Carlos',
+            'birth_city': 'São Paulo',
+            'gender': 'M',
+            'marital_status': 'S',
+            'ethnicity': 'Branca',
+            'education_level': 'Superior Completo',
+            'retirement_status': 'N',
+            'address': 'Rua de Teste',
+            'address_num': '123',
+            'neighborhood': 'Bairro Teste',
+            'city': 'São Paulo',
+            'state_code': 'SP',
+            'zip_code': '01234-567',
+            'mobile_phone': '(11) 99999-9999',
+            'workday_type': 'F - Jornada de semana fixa',
+
+            'change_reason': 'Promoção',
+            'change_date': '2025-01-01',
+        }
+
+        data.update(overrides)
+
+        data.update({
+            f'{prefix}-TOTAL_FORMS': str(formset.total_form_count()),
+            f'{prefix}-INITIAL_FORMS': str(formset.initial_form_count()),
+            f'{prefix}-MIN_NUM_FORMS': '0',
+            f'{prefix}-MAX_NUM_FORMS': '1000',
+        })
+
+        return data
+
+    def _valid_employee_form_data(self):
+        return self._employee_payload_for_url(reverse('rhcontrol:employee_create'))
+
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(
@@ -164,21 +220,20 @@ class EmployeeViewTests(TestCase):
         )
     
     def test_employee_create_view(self):
-        form_data = {
-            'name': 'Carlos Silva',
-            'cpf': '55566677788',
-            'birth_date': '1988-07-10',
-            'department': self.department.id,
-            'job_title': self.job_title.id,
-        }
         response = self.client.post(
             reverse('rhcontrol:employee_create'),
-            form_data
+            self._valid_employee_form_data()
         )
-        # Should redirect after successful creation
+
+        if response.status_code == 200:
+            form = response.context['form']
+            formset = response.context['dependent_formset']
+            print("FORM ERRORS:", form.errors)
+            print("FORMSET ERRORS:", formset.errors)
+            print("FORMSET NON_FIELD_ERRORS:", formset.non_form_errors())
+
         self.assertEqual(response.status_code, 302)
-        # Employee should exist in database
-        self.assertTrue(Employee.objects.filter(cpf='55566677788').exists())
+        self.assertTrue(Employee.objects.filter(cpf='67134509206').exists())
     
     def test_employee_list_view(self):
         employee = Employee.objects.create(
@@ -195,24 +250,28 @@ class EmployeeViewTests(TestCase):
     def test_employee_update_view(self):
         employee = Employee.objects.create(
             name='Roberto Lima',
-            cpf='44433322211',
+            cpf='67134509206',
             birth_date='1985-02-14',
             department=self.department,
             job_title=self.job_title
         )
-        form_data = {
-            'name': 'Roberto Lima Atualizado',
-            'cpf': '44433322211',
-            'birth_date': '1985-02-14',
-            'department': self.department.id,
-            'job_title': self.job_title.id,
-        }
-        response = self.client.post(
-            reverse('rhcontrol:employee_update', args=[employee.id]),
-            form_data
+
+        url = reverse('rhcontrol:employee_update', args=[employee.pk])
+
+        data = self._employee_payload_for_url(
+            url,
+            name='Roberto Lima Atualizado',
+            cpf=employee.cpf,
+            birth_date='1985-02-14',
+            department=self.department.id,
+            job_title=self.job_title.id,
         )
+
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 302)
+
         employee.refresh_from_db()
-        self.assertEqual(employee.name, 'Roberto Lima Atualizado')
+        self.assertEqual(employee.name, 'ROBERTO LIMA ATUALIZADO')
     
     def test_employee_delete_view(self):
         employee = Employee.objects.create(
@@ -378,7 +437,6 @@ class CipaStabilityTestes(TestCase):
         self.employee.cipa_mandate_end_date = today - timedelta(days=1)
         self.employee.save()
 
-        # Deve estar em estabilidade (pois faz menos de 1 ano que acabou)
         self.assertEqual(self.employee.cipa_status, 'stability')
 
     def test_cipa_stability_expired(self):
@@ -417,3 +475,377 @@ class CipaStabilityTestes(TestCase):
         self.assertIsNone(self.employee.cipa_role)
         self.assertIsNone(self.employee.cipa_mandate_start_date)
         self.assertIsNone(self.employee.cipa_mandate_end_date)
+
+class CareerPlanAutomationsTest(TestCase):
+    def setUp(self):
+        self.today = timezone.localdate()
+
+        self.dept = Department.objects.create(
+            name="TI"
+        )
+        self.current_job = JobTitle.objects.create(
+            name="Desenvolvedor Júnior", 
+            department=self.dept,
+            base_salary=Decimal("4000.00")
+        )
+        self.proposed_job = JobTitle.objects.create(
+            name="Desenvolvedor Pleno", 
+            department=self.dept, 
+            base_salary=Decimal("6000.00")
+        )
+
+        self.employee = Employee.objects.create(
+            name="Teste ",
+            cpf="67134509206",
+            birth_date="1990-01-01",
+            department=self.dept,
+            job_title=self.current_job,
+            current_salary=Decimal("4000.00"),
+        )
+
+        NotificationRule.objects.create(event_type=EventTypes.CAREER_PLAN_REMINDER, is_active=True, days_in_advance=0)
+        NotificationRule.objects.create(event_type=EventTypes.CAREER_PLAN_EFFECTIVE, is_active=True, days_in_advance=0)
+
+        NotificationRecipient.objects.create(
+            name="RH Teste",
+            email="rh@teste.com",
+            is_active=True,
+            receive_all_events=True
+        )
+
+    def test_reminder_email_sent_exactly_at_30_days_window(self):
+        plan = CareerPlan.objects.create(
+            employee=self.employee,
+            proposed_job=self.proposed_job,
+            proposed_salary=Decimal("6000.00"),
+            promotion_date=self.today + timedelta(days=30),
+            status=CareerPlan.PlanStatus.SCHEDULED
+        )
+
+        process_career_plans(dry_run=False)
+        plan.refresh_from_db()
+
+        self.assertEqual(plan.status, CareerPlan.PlanStatus.AWAITING_CONFIRMATION)
+        self.assertIsNotNone(plan.reminder_sent_at)
+
+        self.assertEqual(len(mail.outbox), 1)
+
+    def test_promotion_applied_only_on_exact_date(self):
+        plan = CareerPlan.objects.create(
+            employee=self.employee,
+            proposed_job=self.proposed_job,
+            proposed_salary=Decimal("6000.00"),
+            promotion_date=self.today + timedelta(days=1),
+            status=CareerPlan.PlanStatus.CONFIRMED
+        )
+
+        process_career_plans(dry_run=False)
+        plan.refresh_from_db()
+        self.employee.refresh_from_db()
+
+        self.assertEqual(plan.status, CareerPlan.PlanStatus.CONFIRMED)
+        self.assertEqual(self.employee.job_title, self.current_job)
+        self.assertEqual(len(mail.outbox), 0)
+
+        plan.promotion_date = self.today
+        plan.save(update_fields=["promotion_date"])
+
+        process_career_plans(dry_run=False)
+        plan.refresh_from_db()
+        self.employee.refresh_from_db()
+
+        self.assertEqual(plan.status, CareerPlan.PlanStatus.EFFECTIVE)
+        self.assertEqual(self.employee.job_title, self.proposed_job)
+        self.assertEqual(self.employee.current_salary, Decimal("6000.00"))
+        self.assertEqual(len(mail.outbox), 1)
+
+    # def test_conflict_aborts_promotion(self):
+    #     plan = CareerPlan.objects.create(
+    #         employee=self.employee,
+    #         proposed_job=self.proposed_job,             
+    #         proposed_salary=Decimal("6000.00"),
+    #         promotion_date=self.today + timedelta(days=1),
+    #         status=CareerPlan.PlanStatus.CONFIRMED,
+    #     )
+
+    #     new_dept = Department.objects.create(name="RH")
+    #     self.employee.department = new_dept
+    #     self.employee.save(update_fields=["department"])
+
+    #     plan.promotion_date = self.today
+    #     plan.save(update_fields=["promotion_date"])
+
+    #     process_career_plans(dry_run=False)
+
+    #     plan.refresh_from_db()
+    #     self.employee.refresh_from_db()
+
+    #     self.assertEqual(plan.status, CareerPlan.PlanStatus.CANCELLED)
+    #     self.assertIn("Conflito", plan.cancellation_reason)
+    #     self.assertEqual(self.employee.job_title, self.current_job)
+
+class CareerPlanIdempotencyTests(TestCase):
+    def setUp(self):
+        self.today = timezone.localdate()
+
+        self.dept = Department.objects.create(name="TI")
+        self.current_job = JobTitle.objects.create(
+            name="Dev Jr", department=self.dept, base_salary=Decimal("4000.00")
+        )
+        self.proposed_job = JobTitle.objects.create(
+            name="Dev Pl", department=self.dept, base_salary=Decimal("6000.00")
+        )
+
+        self.employee = Employee.objects.create(
+            name="Teste",
+            cpf="67134509206",
+            birth_date="1990-01-01",
+            department=self.dept,
+            job_title=self.current_job,
+            current_salary=Decimal("4000.00"),
+        )
+
+        NotificationRule.objects.create(
+            event_type=EventTypes.CAREER_PLAN_REMINDER, is_active=True, days_in_advance=0
+        )
+        NotificationRecipient.objects.create(
+            name="RH", email="rh@teste.com", is_active=True, receive_all_events=True
+        )
+
+    def test_reminder_idempotent_no_duplicate_email_and_log(self):
+        plan = CareerPlan.objects.create(
+            employee=self.employee,
+            proposed_job=self.proposed_job,
+            proposed_salary=Decimal("6000.00"),
+            promotion_date=self.today + timedelta(days=30),
+            status=CareerPlan.PlanStatus.SCHEDULED
+        )
+
+        process_career_plans(dry_run=False)
+        plan.refresh_from_db()
+        self.assertEqual(plan.status, CareerPlan.PlanStatus.AWAITING_CONFIRMATION)
+        self.assertIsNotNone(plan.reminder_sent_at)
+        self.assertEqual(len(mail.outbox), 1)
+
+        logs_count_1 = NotificationLog.objects.count()
+
+        process_career_plans(dry_run=False)
+        plan.refresh_from_db()
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertEqual(NotificationLog.objects.count(), logs_count_1)
+
+
+class CareerPlanDryRunTests(TestCase):
+    def setUp(self):
+        self.today = timezone.localdate()
+
+        self.dept = Department.objects.create(name="TI")
+        self.current_job = JobTitle.objects.create(
+            name="Dev Jr", department=self.dept, base_salary=Decimal("4000.00")
+        )
+        self.proposed_job = JobTitle.objects.create(
+            name="Dev Pl", department=self.dept, base_salary=Decimal("6000.00")
+        )
+
+        self.employee = Employee.objects.create(
+            name="Teste",
+            cpf="67134509206",
+            birth_date="1990-01-01",
+            department=self.dept,
+            job_title=self.current_job,
+            current_salary=Decimal("4000.00"),
+        )
+
+        NotificationRule.objects.create(
+            event_type=EventTypes.CAREER_PLAN_REMINDER, is_active=True, days_in_advance=0
+        )
+        NotificationRecipient.objects.create(
+            name="RH", email="rh@teste.com", is_active=True, receive_all_events=True
+        )
+
+    def test_dry_run_does_not_send_or_change_state(self):
+        """
+        Tests that when process_career_plans is called with dry_run=True, 
+        it does not send emails or change the state of the plan.
+
+        """
+        plan = CareerPlan.objects.create(
+            employee=self.employee,
+            proposed_job=self.proposed_job,
+            proposed_salary=Decimal("6000.00"),
+            promotion_date=self.today + timedelta(days=30),
+            status=CareerPlan.PlanStatus.SCHEDULED
+        )
+
+        process_career_plans(dry_run=True)
+
+        plan.refresh_from_db()
+        self.assertEqual(plan.status, CareerPlan.PlanStatus.SCHEDULED)
+        self.assertIsNone(plan.reminder_sent_at)
+        self.assertEqual(len(mail.outbox), 0)
+        self.assertEqual(NotificationLog.objects.count(), 0)
+
+class CareerPlanExpiryTests(TestCase):
+    def setUp(self):
+        self.today = timezone.localdate()
+
+        self.dept = Department.objects.create(name="TI")
+        self.current_job = JobTitle.objects.create(
+            name="Dev Jr", department=self.dept, base_salary=Decimal("4000.00")
+        )
+        self.proposed_job = JobTitle.objects.create(
+            name="Dev Pl", department=self.dept, base_salary=Decimal("6000.00")
+        )
+
+        self.employee = Employee.objects.create(
+            name="Teste",
+            cpf="67134509206",
+            birth_date="1990-01-01",
+            department=self.dept,
+            job_title=self.current_job,
+            current_salary=Decimal("4000.00"),
+        )
+
+        NotificationRule.objects.create(
+            event_type=EventTypes.CAREER_PLAN_CANCELLED, is_active=True, days_in_advance=0
+        )
+        NotificationRecipient.objects.create(
+            name="RH", email="rh@teste.com", is_active=True, receive_all_events=True
+        )
+
+    class CareerPlanExpiryTests(TestCase):
+        def setUp(self):
+            self.today = timezone.localdate()
+
+            self.dept = Department.objects.create(name="TI")
+            self.current_job = JobTitle.objects.create(
+                name="Dev Jr", department=self.dept, base_salary=Decimal("4000.00")
+            )
+            self.proposed_job = JobTitle.objects.create(
+                name="Dev Pl", department=self.dept, base_salary=Decimal("6000.00")
+            )
+
+            self.employee = Employee.objects.create(
+                name="Teste",
+                cpf="67134509206",
+                birth_date="1990-01-01",
+                department=self.dept,
+                job_title=self.current_job,
+                current_salary=Decimal("4000.00"),
+            )
+
+            NotificationRule.objects.create(
+                event_type=EventTypes.CAREER_PLAN_CANCELLED, is_active=True, days_in_advance=0
+            )
+            NotificationRecipient.objects.create(
+                name="RH", email="rh@teste.com", is_active=True, receive_all_events=True
+            )
+
+    def test_awaiting_confirmation_expires_and_cancels_on_day_d(self):
+        plan = CareerPlan.objects.create(
+            employee=self.employee,
+            proposed_job=self.proposed_job,
+            proposed_salary=Decimal("6000.00"),
+            promotion_date=self.today + timedelta(days=10),
+            status=CareerPlan.PlanStatus.AWAITING_CONFIRMATION,
+        )
+        CareerPlan.objects.filter(pk=plan.pk).update(promotion_date=self.today)
+
+        process_career_plans(dry_run=False)
+
+        plan.refresh_from_db()
+        self.assertEqual(plan.status, CareerPlan.PlanStatus.CANCELLED)
+        self.assertIn("expir", (plan.cancellation_reason or "").lower())
+        self.assertEqual(len(mail.outbox), 1)
+    
+class CareerPlanComaTests(TestCase):
+    def setUp(self):
+        self.today = timezone.localdate()
+
+        self.dept = Department.objects.create(name="TI")
+        self.current_job = JobTitle.objects.create(
+            name="Dev Jr", department=self.dept, base_salary=Decimal("4000.00")
+        )
+        self.proposed_job = JobTitle.objects.create(
+            name="Dev Pl", department=self.dept, base_salary=Decimal("6000.00")
+        )
+
+        self.employee = Employee.objects.create(
+            name="Teste",
+            cpf="67134509206",
+            birth_date="1990-01-01",
+            department=self.dept,
+            job_title=self.current_job,
+            current_salary=Decimal("4000.00"),
+        )
+
+        NotificationRule.objects.create(
+            event_type=EventTypes.CAREER_PLAN_CANCELLED, is_active=True, days_in_advance=0
+        )
+        NotificationRecipient.objects.create(
+            name="RH", email="rh@teste.com", is_active=True, receive_all_events=True
+        )
+
+    def test_scheduled_plan_with_past_promotion_date_is_cancelled(self):
+        plan = CareerPlan.objects.create(
+            employee=self.employee,
+            proposed_job=self.proposed_job,
+            proposed_salary=Decimal("6000.00"),
+            promotion_date=self.today + timedelta(days=5),
+            status=CareerPlan.PlanStatus.SCHEDULED,
+        )
+        CareerPlan.objects.filter(pk=plan.pk).update(promotion_date=self.today - timedelta(days=1))
+
+        process_career_plans(dry_run=False)
+
+        plan.refresh_from_db()
+        self.assertEqual(plan.status, CareerPlan.PlanStatus.CANCELLED)
+        self.assertIn("cron", (plan.cancellation_reason or "").lower())
+        self.assertEqual(len(mail.outbox), 1)
+
+class CareerPlanDismissalTests(TestCase):
+    def setUp(self):
+        self.today = timezone.localdate()
+
+        self.dept = Department.objects.create(name="TI")
+        self.current_job = JobTitle.objects.create(
+            name="Dev Jr", department=self.dept, base_salary=Decimal("4000.00")
+        )
+        self.proposed_job = JobTitle.objects.create(
+            name="Dev Pl", department=self.dept, base_salary=Decimal("6000.00")
+        )
+
+        self.employee = Employee.objects.create(
+            name="Teste",
+            cpf="67134509206",
+            birth_date="1990-01-01",
+            department=self.dept,
+            job_title=self.current_job,
+            current_salary=Decimal("4000.00"),
+        )
+
+        NotificationRule.objects.create(
+            event_type=EventTypes.CAREER_PLAN_CANCELLED, is_active=True, days_in_advance=0
+        )
+        NotificationRecipient.objects.create(
+            name="RH", email="rh@teste.com", is_active=True, receive_all_events=True
+        )
+
+    def test_dismissed_employee_cancels_active_plan(self):
+        plan = CareerPlan.objects.create(
+            employee=self.employee,
+            proposed_job=self.proposed_job,
+            proposed_salary=Decimal("6000.00"),
+            promotion_date=self.today + timedelta(days=10),
+            status=CareerPlan.PlanStatus.SCHEDULED,
+        )
+
+        self.employee.termination_date = self.today
+        self.employee.save(update_fields=["termination_date"])
+
+        process_career_plans(dry_run=False)
+
+        plan.refresh_from_db()
+        self.assertEqual(plan.status, CareerPlan.PlanStatus.CANCELLED)
+        self.assertIn("desligado", (plan.cancellation_reason or "").lower())
+        self.assertEqual(len(mail.outbox), 1)

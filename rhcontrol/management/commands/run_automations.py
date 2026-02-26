@@ -3,17 +3,13 @@ import sys
 import logging
 from django.core.management.base import BaseCommand
 
-from rhcontrol.services import process_notifications
+from rhcontrol.services import process_career_plans, process_notifications
 
 logger = logging.getLogger(__name__)
 
-# ==========================================
-# REGISTRY DE AUTOMAÇÕES
-# Para adicionar novas rotinas no futuro, 
-# basta importar a função e mapeá-la aqui.
-# ==========================================
 AUTOMATIONS_REGISTRY = {
     'notifications': process_notifications,
+    'career_plans': process_career_plans,
  
 }
 
