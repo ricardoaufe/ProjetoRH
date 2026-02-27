@@ -1,0 +1,162 @@
+{% extends 'global/base.html' %} 
+{% block title %} Plano de Carreira {% endblock title %} 
+
+{% block content %}
+<div class="container-fluid mt-4">
+  <div class="career-table-container">
+    <div class="career-page-header">
+      <h2><i class="fas fa-chart-line text-primary"></i> Planos de Carreira</h2>
+      <a href="{% url 'rhcontrol:career_plan_create' %}" class="btn btn-primary shadow-sm">
+        <i class="fas fa-plus"></i> Novo Plano
+      </a>
+    </div>
+
+    <table class="table-career">
+      <thead>
+        <tr>
+          <th>Funcionário</th>
+          <th>Setor</th>
+          <th>Transição de Cargo</th>
+          <th>Salário Proposto</th>
+          <th>Data</th>
+          <th>Status</th>
+          <th class="text-center">Ações</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for plan in plans %}
+        <tr>
+          <td class="fw-bold text-uppercase">{{ plan.employee.name }}</td>
+          <td>{{ plan.current_department.name|default:"-" }}</td>
+
+          <td>
+            <div class="job-transition">
+              <span class="job-old">{{ plan.current_job.name|default:"-" }}
+                <i class="fas fa-arrow-down text-muted" style="font-size: 0.7em"></i>
+              </span>
+              <span class="job-new">{{ plan.proposed_job.name }}</span>
+            </div>
+          </td>
+
+          <td class="fw-bold text-success">R$ {{ plan.proposed_salary }}</td>
+          <td>{{ plan.promotion_date|date:"d/m/Y" }}</td>
+
+          <td>
+            {% if plan.status == 'SCHEDULED' %}
+            <span class="status-badge badge-scheduled">Agendado</span>
+            {% elif plan.status == 'AWAITING_CONFIRMATION' %}
+            <span class="status-badge badge-awaiting">Aguardando Confirmação</span>
+            {% elif plan.status == 'CONFIRMED' %}
+            <span class="status-badge badge-confirmed">Confirmado</span>
+            {% elif plan.status == 'EFFECTIVE' %}
+            <span class="status-badge badge-effective">Efetivado</span>
+            {% elif plan.status == 'CANCELLED' %}
+            <span class="status-badge badge-cancelled">Cancelado</span>
+            {% else %}
+            <span class="status-badge badge-scheduled">{{ plan.get_status_display }}</span>
+            {% endif %}
+          </td>
+
+          <td class="text-center">
+            <div class="action-buttons">
+              {% if plan.status == 'SCHEDULED' or plan.status == 'AWAITING_CONFIRMATION' %}
+              <a href="{% url 'rhcontrol:career_plan_update' plan.id %}" class="btn btn-sm btn-outline-primary" title="Editar Plano">
+                <i class="fas fa-edit"></i> Editar
+              </a>
+              {% else %}
+              <button class="btn btn-sm btn-outline-secondary" disabled title="Este plano faz parte do histórico e não pode ser editado.">
+                <i class="fas fa-lock"></i> Bloqueado
+              </button>
+              {% endif %} 
+              
+              {% if plan.status == 'AWAITING_CONFIRMATION' %} 
+              {# Formulário oculto enviado pelo botão de confirmação do modal #}
+              <form id="confirm-form-{{ plan.id }}" method="post" action="{% url 'rhcontrol:career_plan_confirm' plan.id %}" style="display: none">
+                {% csrf_token %}
+              </form>
+
+              <button type="button" class="btn btn-sm btn-success shadow-sm" onclick="openCareerModal('{{ plan.id }}', '{{ plan.employee.name|escapejs }}', '{{ plan.proposed_job.name|escapejs }}', 'R$ {{ plan.proposed_salary }}', '{{ plan.promotion_date|date:'d/m/Y' }}')">
+                <i class="fas fa-check-circle"></i> Efetivar
+              </button>
+              {% endif %}
+            </div>
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="7">
+            <i class="fas fa-folder-open fa-3x mb-3 text-light"></i>
+            <h5>Nenhum plano de carreira cadastrado.</h5>
+            <p>Clique em "Novo Plano" para agendar a primeira promoção.</p>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<div id="career-modal-overlay" class="career-modal-overlay" onclick="closeCareerModal(event)">
+  <div class="career-modal">
+    <div class="career-modal-icon">
+      <i class="fas fa-check-circle"></i>
+    </div>
+
+    <h3>Confirmar Promoção</h3>
+    <p>Você está prestes a efetivar a seguinte promoção:</p>
+
+    <div class="career-modal-info">
+      <span><strong>Funcionário:</strong> <span id="modal-employee"></span></span>
+      <span><strong>Novo Cargo:</strong> <span id="modal-job"></span></span>
+      <span><strong>Salário Proposto:</strong> <span id="modal-salary"></span></span>
+      <span><strong>Data de Promoção:</strong> <span id="modal-date"></span></span>
+    </div>
+
+    <p>O sistema atualizará o cargo do funcionário automaticamente na data indicada.</p>
+
+    <div class="career-modal-actions">
+      <button type="button" class="btn-cancel" onclick="closeCareerModal()">
+        <i class="fas fa-times"></i> Cancelar
+      </button>
+      <button type="button" class="btn-confirm" onclick="submitCareerModal()">
+        <i class="fas fa-check-circle"></i> Confirmar Promoção
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+  let _careerFormId = null;
+
+  function openCareerModal(planId, employee, job, salary, date) {
+    _careerFormId = planId;
+    document.getElementById("modal-employee").textContent = employee;
+    document.getElementById("modal-job").textContent = job;
+    document.getElementById("modal-salary").textContent = salary;
+    document.getElementById("modal-date").textContent = date;
+    document.getElementById("career-modal-overlay").classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeCareerModal(event) {
+    if (event && event.target !== document.getElementById("career-modal-overlay")) return;
+    document.getElementById("career-modal-overlay").classList.remove("active");
+    document.body.style.overflow = "";
+    _careerFormId = null;
+  }
+
+  function submitCareerModal() {
+    if (_careerFormId) {
+      document.getElementById("confirm-form-" + _careerFormId).submit();
+    }
+  }
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      document.getElementById("career-modal-overlay").classList.remove("active");
+      document.body.style.overflow = "";
+      _careerFormId = null;
+    }
+  });
+</script>
+{% endblock %}

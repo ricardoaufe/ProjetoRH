@@ -2,8 +2,9 @@ import time
 import sys
 import logging
 from django.core.management.base import BaseCommand
-
 from rhcontrol.services import process_career_plans, process_notifications
+
+#The commands are: run_automations (career_plans or notifications)
 
 logger = logging.getLogger(__name__)
 

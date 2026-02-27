@@ -959,7 +959,14 @@ def ajax_load_employee_data(request):
 
             available_jobs = JobTitle.objects.filter(department=department).order_by('name')
 
-            jobs_list = [{'id': job.id, 'name': job.name} for job in available_jobs]
+            jobs_list = [
+            {
+                'id': job.id, 
+                'name': job.name, 
+                'salary':str(job.base_salary) if job.base_salary else '0.00'
+            } 
+            for job in available_jobs
+        ]
             
             return JsonResponse({
                 'success': True,
