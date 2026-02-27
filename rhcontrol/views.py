@@ -982,12 +982,48 @@ def ajax_load_employee_data(request):
 
 @login_required
 def career_plan_list(request):
-    """ View para listar todos os planos com um painel de controle para o RH """
+    """ View para listar todos os planos com filtros de busca, data, status e ordenação """
 
-    plans = CareerPlan.objects.select_related('employee', 'proposed_job').order_by('-created_at')
-    
+    plans = CareerPlan.objects.select_related('employee', 'proposed_job', 'employee__department')
+
+    # ── Filters ──────────────────────────────────────────
+    search_query = request.GET.get('search', '').strip()
+    date_from    = request.GET.get('date_from', '')
+    date_to      = request.GET.get('date_to', '')
+    status_filter = request.GET.get('status', '')
+    sort_by      = request.GET.get('sort', '-created_at')
+
+    if search_query:
+        plans = plans.filter(employee__name__icontains=search_query)
+
+    if date_from:
+        plans = plans.filter(promotion_date__gte=date_from)
+
+    if date_to:
+        plans = plans.filter(promotion_date__lte=date_to)
+
+    if status_filter:
+        plans = plans.filter(status=status_filter)
+
+    # ── Sorting ───────────────────────────────────────────
+    valid_sorts = {
+        'employee__name':  'employee__name',
+        '-employee__name': '-employee__name',
+        'promotion_date':  'promotion_date',
+        '-promotion_date': '-promotion_date',
+        'created_at':      'created_at',
+        '-created_at':     '-created_at',
+    }
+    plans = plans.order_by(valid_sorts.get(sort_by, '-created_at'))
+
     context = {
-        'plans': plans
+        'plans': plans,
+        'search_query': search_query,
+        'date_from': date_from,
+        'date_to': date_to,
+        'status_filter': status_filter,
+        'current_sort': sort_by,
+        'has_filters': any([search_query, date_from, date_to, status_filter]),
     }
     return render(request, 'dashboard/pages/career/list.html', context)
 
@@ -1105,4 +1141,30 @@ def cancel_career_plan(request, pk):
         request,
         f"Plano de carreira de {plan.employee.name} foi cancelado."
     )
+    return redirect('rhcontrol:career_plan_list')
+
+
+@login_required
+@require_POST
+def career_plan_delete(request, pk):
+    """ Ação: Hard Delete — apaga fisicamente do banco. Permitido apenas para planos AGENDADOS, AGUARDANDO CONFIRMAÇÃO ou CANCELADOS. """
+    plan = get_object_or_404(CareerPlan, pk=pk)
+
+    deletable_statuses = [
+        CareerPlan.PlanStatus.SCHEDULED,
+        CareerPlan.PlanStatus.AWAITING_CONFIRMATION,
+        CareerPlan.PlanStatus.CANCELLED,
+    ]
+
+    if plan.status in deletable_statuses:
+        employee_name = plan.employee.name
+        plan.delete()
+        messages.warning(request, f"O plano de {employee_name} foi excluído permanentemente do banco de dados.")
+    elif plan.status == CareerPlan.PlanStatus.CONFIRMED:
+        messages.warning(request, "Planos confirmados não podem ser excluídos — cancele-o primeiro se necessário.")
+    elif plan.status == CareerPlan.PlanStatus.EFFECTIVE:
+        messages.warning(request, "Planos efetivados não podem ser excluídos, pois fazem parte do histórico do funcionário.")
+    else:
+        messages.warning(request, "Este plano não pode ser excluído.")
+
     return redirect('rhcontrol:career_plan_list')
