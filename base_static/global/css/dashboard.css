@@ -1,0 +1,259 @@
+/* ════════════════════════════════════════════════════════════
+   dashboard.css  —  Dashboard card styles
+   ════════════════════════════════════════════════════════════ */
+
+/* ── Upcoming Events Card ─────────────────────────────────── */
+.upcoming-events-card {
+    cursor: default;
+    display: flex;
+    flex-direction: column;
+    min-height: 220px;
+}
+
+.upcoming-events-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 2px;
+}
+
+.upcoming-events-badge {
+    background: #3498db;
+    color: #fff;
+    font-size: 1.3rem;
+    font-weight: 700;
+    border-radius: 20px;
+    padding: 0.2rem 0.8rem;
+    min-width: 32px;
+    text-align: center;
+    line-height: 1.6;
+}
+
+.upcoming-events-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 12px 0;
+    flex: 1;
+}
+
+.upcoming-event-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 0;
+    border-bottom: 1px solid #f1f3f5;
+    font-size: 1.35rem;
+    overflow: hidden;
+}
+
+.upcoming-event-item:last-child { border-bottom: none; }
+
+.upcoming-event-date {
+    font-weight: 700;
+    color: #333;
+    white-space: nowrap;
+    min-width: 32px;
+    font-size: 1.25rem;
+}
+
+.upcoming-event-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 0.9rem;
+    flex-shrink: 0;
+}
+
+/* ── Category colour palette ──────────────────────────────── */
+.upcoming-event-pill--birthday            { background: #dbeafe; color: #1d4ed8; }
+.upcoming-event-pill--company_anniversary { background: #dbeafe; color: #1d4ed8; }
+.upcoming-event-pill--vacation_start      { background: #dcfce7; color: #15803d; }
+.upcoming-event-pill--vacation_return     { background: #dcfce7; color: #15803d; }
+.upcoming-event-pill--training_date       { background: #ede9fe; color: #7c3aed; }
+.upcoming-event-pill--career_plan_promotion_date   { background: #ffedd5; color: #c2410c; }
+.upcoming-event-pill--career_plan_reminder_window  { background: #ffedd5; color: #c2410c; }
+.upcoming-event-pill--trial_60_warning    { background: #fee2e2; color: #b91c1c; }
+.upcoming-event-pill--trial_90_warning    { background: #fee2e2; color: #b91c1c; }
+
+.upcoming-event-title {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #555;
+    font-size: 1.25rem;
+}
+
+.upcoming-event-action-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: #e74c3c;
+    flex-shrink: 0;
+}
+
+.upcoming-event-empty {
+    color: #888;
+    font-size: 1.25rem;
+    padding: 8px 0;
+}
+
+.upcoming-events-see-all {
+    display: block;
+    text-align: center;
+    font-size: 1.3rem;
+    color: #3498db;
+    text-decoration: none;
+    padding-top: 8px;
+    border-top: 1px solid #f1f3f5;
+    transition: color 0.15s;
+}
+
+.upcoming-events-see-all:hover { color: #1d6fa5; }
+
+
+/* ════════════════════════════════════════════════════════════
+   Upcoming Events page — filters, table, empty state
+   ════════════════════════════════════════════════════════════ */
+
+.events-window-label {
+    font-size: 1.3rem;
+    color: #666;
+    background: #f1f3f5;
+    padding: 0.3rem 0.9rem;
+    border-radius: 20px;
+}
+
+.events-filter-form {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.events-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.events-email-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 1.3rem;
+    cursor: pointer;
+    color: #555;
+    margin: 0;
+}
+.events-email-toggle input[type="checkbox"] {
+    width: auto;
+    height: auto;
+    cursor: pointer;
+}
+
+/* ── Category pills filter ── */
+.events-cat-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.events-cat-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    background: #f1f3f5;
+    color: #495057;
+    font-size: 1.25rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid transparent;
+    transition: all 0.15s;
+    user-select: none;
+}
+.events-cat-pill input[type="checkbox"] { display: none; }
+.events-cat-pill:hover { background: #e9ecef; border-color: #dee2e6; }
+.events-cat-pill.active {
+    background: #3498db;
+    color: #fff;
+    border-color: transparent;
+    box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+}
+
+/* ── Results summary ── */
+.events-results-summary {
+    font-size: 1.3rem;
+    color: #555;
+    margin-bottom: 12px;
+}
+.events-cap-warning {
+    color: #e67e22;
+    font-weight: 600;
+    margin-left: 6px;
+}
+
+/* ── Table extras ── */
+.events-row--action-required { background-color: #fff9f0 !important; }
+.events-row--action-required:hover { background-color: #fef3e2 !important; }
+
+.events-date-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 48px;
+}
+.events-date-cell strong { font-size: 1.4rem; }
+.events-date-cell small  { color: #999; font-size: 1.1rem; }
+
+.events-cat-label {
+    font-size: 1.25rem;
+    color: #555;
+    margin-left: 6px;
+    vertical-align: middle;
+}
+
+.events-title-cell { max-width: 300px; }
+
+.events-action-badge {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffc107;
+    border-radius: 20px;
+    padding: 0.2rem 0.7rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+/* ── Empty state ── */
+.events-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #aaa;
+}
+.events-empty-state i {
+    font-size: 48px;
+    color: #dee2e6;
+    margin-bottom: 16px;
+}
+.events-empty-state h3 {
+    font-size: 2rem;
+    color: #555;
+    margin-bottom: 8px;
+}
+.events-empty-state p {
+    font-size: 1.4rem;
+    color: #777;
+    margin-bottom: 20px;
+}

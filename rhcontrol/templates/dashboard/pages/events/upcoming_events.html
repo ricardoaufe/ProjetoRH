@@ -1,0 +1,167 @@
+{% extends 'global/base.html' %} 
+
+{% block title %}Próximos Eventos{% endblock title %} 
+
+{% block content %}
+<div class="list-container">
+  {# ── Page Header ── #}
+  <div class="page-header">
+    <h1>
+      <i class="fas fa-calendar-alt" style="color: #3498db; margin-right: 8px"></i>Próximos Eventos
+    </h1>
+    <span class="events-window-label">
+      {{ start_date|date:"d/m/Y" }} → {{ end_date|date:"d/m/Y" }}
+    </span>
+  </div>
+
+  {# ── Filter Form ── #}
+  <form method="GET" action="{% url 'rhcontrol:upcoming_events' %}" class="events-filter-form">
+    
+    {# Row 1: date range + only_email #}
+    <div class="events-filter-row">
+      <div class="date-group">
+        <label for="f-start">De:</label>
+        <input type="date" id="f-start" name="start" value="{{ raw_start }}" max="{{ raw_end }}" />
+      </div>
+      
+      <div class="date-group">
+        <label for="f-end">Até:</label>
+        <input type="date" id="f-end" name="end" value="{{ raw_end }}" min="{{ raw_start }}" />
+      </div>
+      
+      <label class="events-email-toggle">
+        <input type="checkbox" name="only_email" value="true" {% if only_email %}checked{% endif %} />
+        Apenas e-mail
+      </label>
+      
+      <div class="filter-actions">
+        <button type="submit" class="btn-filter">
+          <i class="fas fa-search"></i> Buscar
+        </button>
+        {% if has_filters %}
+        <a href="{% url 'rhcontrol:upcoming_events' %}" class="btn-clear" title="Limpar filtros">
+          <i class="fas fa-times"></i>
+        </a>
+        {% endif %}
+      </div>
+    </div>
+
+    {# Row 2: category pills as toggleable checkboxes #}
+    <div class="events-cat-row">
+      {% for value, label in category_choices %}
+      <label class="events-cat-pill {% if value in selected_cats %}active{% endif %}">
+        <input type="checkbox" name="cat_{{ value }}" value="{{ value }}" {% if value in selected_cats %}checked{% endif %} onchange="syncCategories(this)" />
+        {{ label }}
+      </label>
+      {% endfor %} 
+      
+      {# Hidden field that carries the comma-separated list to GET #}
+      <input type="hidden" name="categories" id="categories-hidden" value="{{ raw_categories }}" />
+    </div>
+  </form>
+
+  {# ── Results summary ── #}
+  <div class="events-results-summary">
+    <strong>{{ event_count }}</strong> evento{{ event_count|pluralize }} encontrado{{ event_count|pluralize }} 
+    {% if event_count == 200 %}
+      <span class="events-cap-warning">(limite de 200 atingido)</span>
+    {% endif %}
+  </div>
+
+  {# ── Events table ── #} 
+  {% if events %}
+  <div style="overflow-x: auto">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Categoria</th>
+          <th>Evento</th>
+          <th>Funcionário</th>
+          <th>Setor</th>
+          <th class="text-center">Ação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for event in events %}
+        <tr {% if event.requires_action %}class="events-row--action-required"{% endif %}>
+          <td class="events-date-cell">
+            <strong>{{ event.date|date:"d/m" }}</strong>
+            <small>{{ event.date|date:"Y" }}</small>
+          </td>
+          <td>
+            <span class="upcoming-event-pill upcoming-event-pill--{{ event.pill_class }}" title="{{ event.category_label }}">
+              <i class="fas {{ event.icon }}"></i>
+            </span>
+            <span class="events-cat-label">{{ event.category_label }}</span>
+          </td>
+          <td class="events-title-cell">{{ event.title }}</td>
+          <td>
+            {% if event.employee_name %} 
+              {{ event.employee_name }} 
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if event.department_name %} 
+              {{ event.department_name }} 
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if event.requires_action %}
+              <span class="events-action-badge">⚠ Pendente</span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  {% else %} 
+  
+  {# ── Empty state ── #}
+  <div class="events-empty-state">
+    <i class="fas fa-calendar-check"></i>
+    <h3>Nenhum evento encontrado</h3>
+    <p>
+      Não há eventos agendados para o período de
+      <strong>{{ start_date|date:"d/m/Y" }}</strong> a
+      <strong>{{ end_date|date:"d/m/Y" }}</strong>.
+    </p>
+    {% if has_filters %}
+    <a href="{% url 'rhcontrol:upcoming_events' %}" class="btn">Limpar Filtros</a>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  // Sync category checkboxes → hidden "categories" field (comma-separated)
+  function syncCategories(changedCheckbox) {
+    // Toggle pill style
+    changedCheckbox
+      .closest(".events-cat-pill")
+      .classList.toggle("active", changedCheckbox.checked);
+
+    // Rebuild comma list from all checked cat_* inputs
+    const checked = Array.from(
+      document.querySelectorAll('input[name^="cat_"]:checked'),
+    ).map((cb) => cb.value);
+    
+    document.getElementById("categories-hidden").value = checked.join(",");
+  }
+
+  // On page load, restore pill active states from existing checked boxes
+  document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('input[name^="cat_"]:checked').forEach((cb) => {
+      cb.closest(".events-cat-pill").classList.add("active");
+    });
+  });
+</script>
+{% endblock content %}

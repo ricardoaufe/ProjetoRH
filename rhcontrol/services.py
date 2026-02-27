@@ -355,3 +355,433 @@ def process_career_plans(dry_run: bool = False) -> None:
 
     if dry_run:
         logger.info("=== [DRY-RUN] Finalizado ===")
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#
+#  UPCOMING EVENTS ENGINE
+#  ──────────────────────
+#  Centralized service that aggregates "upcoming events" across all HR models
+#  for use in the dashboard card, filtered events page, and future analytics.
+#
+#  HOW TO ADD A NEW CATEGORY
+#  ─────────────────────────
+#  1. Choose a category name string (e.g. "MEDICAL_EXAM_DUE").
+#  2. Write a private generator:
+#         def _ue_generate_<category>(start, end, filters) -> list[dict]
+#     Use _ue_append() to build each dict, _ue_in_range() to test dates.
+#  3. Register it in _UE_GENERATORS at the bottom of this section.
+#  4. Done — get_upcoming_events() calls all registered generators automatically.
+#
+# ═══════════════════════════════════════════════════════════════════════════════
+
+import calendar as _calendar
+from typing import Optional as _Optional
+
+_UE_MAX_RANGE    = 180
+_UE_DEFAULT_DAYS = 30
+_UE_MAX_LIMIT    = 500
+_UE_REMINDER_DAYS = 30   # days before promotion_date to generate CAREER_PLAN_REMINDER_WINDOW
+
+_UE_ACTIVE_CAREER_STATUSES = {
+    CareerPlan.PlanStatus.SCHEDULED,
+    CareerPlan.PlanStatus.AWAITING_CONFIRMATION,
+    CareerPlan.PlanStatus.CONFIRMED,
+    CareerPlan.PlanStatus.EFFECTIVE,
+    CareerPlan.PlanStatus.CANCELLED,
+}
+
+# ── Category metadata: icon / pill CSS class / human label ─────
+# Add one entry here whenever you register a new category.
+
+_UE_CATEGORY_META: dict[str, dict] = {
+    "BIRTHDAY":                      {"icon": "fa-birthday-cake",        "pill_class": "birthday",                      "category_label": "Aniversário"},
+    "COMPANY_ANNIVERSARY":           {"icon": "fa-building",             "pill_class": "company_anniversary",           "category_label": "Aniversário de Empresa"},
+    "VACATION_START":                {"icon": "fa-umbrella-beach",       "pill_class": "vacation_start",                "category_label": "Início de Férias"},
+    "VACATION_RETURN":               {"icon": "fa-plane-arrival",        "pill_class": "vacation_return",               "category_label": "Retorno de Férias"},
+    "TRAINING_DATE":                 {"icon": "fa-chalkboard-teacher",   "pill_class": "training_date",                 "category_label": "Treinamento"},
+    "CAREER_PLAN_PROMOTION_DATE":    {"icon": "fa-chart-line",           "pill_class": "career_plan_promotion_date",    "category_label": "Promoção"},
+    "CAREER_PLAN_REMINDER_WINDOW":   {"icon": "fa-chart-line",           "pill_class": "career_plan_reminder_window",   "category_label": "Aviso de Promoção (30d)"},
+    "TRIAL_60_WARNING":              {"icon": "fa-exclamation-triangle",  "pill_class": "trial_60_warning",              "category_label": "Contrato (60 dias)"},
+    "TRIAL_90_WARNING":              {"icon": "fa-exclamation-triangle",  "pill_class": "trial_90_warning",              "category_label": "Contrato (90 dias)"},
+}
+_UE_META_FALLBACK = {"icon": "fa-calendar", "pill_class": "default", "category_label": "Evento"}
+
+
+# ── Low-level helpers ───────────────────────────────────────────
+
+def _ue_clamp(start: _Optional[date], end: _Optional[date]) -> tuple[date, date]:
+    """Enforce default and maximum date range."""
+    today = timezone.localdate()
+    if start is None:
+        start = today
+    if end is None:
+        end = start + timedelta(days=_UE_DEFAULT_DAYS)
+    if (end - start).days > _UE_MAX_RANGE:
+        end = start + timedelta(days=_UE_MAX_RANGE)
+    return start, end
+
+
+def _ue_in_range(d: date, start: date, end: date) -> bool:
+    return start <= d <= end
+
+
+def _ue_append(
+    events: list,
+    *,
+    date:            date,
+    category:        str,
+    title:           str,
+    object_type:     str,
+    object_id:       int,
+    status:          str           = "PENDING",
+    employee_id:     _Optional[int] = None,
+    employee_name:   _Optional[str] = None,
+    department_name: _Optional[str] = None,
+    email_event:     bool           = False,
+    requires_action: bool           = False,
+) -> None:
+    meta = _UE_CATEGORY_META.get(category, _UE_META_FALLBACK)
+    events.append({
+        "date":            date,
+        "category":        category,
+        "title":           title,
+        "employee_id":     employee_id,
+        "employee_name":   employee_name,
+        "department_name": department_name,
+        "object_type":     object_type,
+        "object_id":       object_id,
+        "status":          status,
+        "email_event":     email_event,
+        "requires_action": requires_action,
+        # ── Template helpers (Fix C) ──────────────────────────
+        "icon":            meta["icon"],
+        "pill_class":      meta["pill_class"],
+        "category_label":  meta["category_label"],
+    })
+
+
+def _ue_next_annual(ref: date, start: date, end: date) -> _Optional[date]:
+    """
+    Return the next occurrence of a recurring annual date (birthday, anniversary)
+    that falls within [start, end]. Handles Feb-29 gracefully.
+    """
+    m, d = ref.month, ref.day
+    for year in range(start.year, end.year + 1):
+        safe_d = min(d, _calendar.monthrange(year, m)[1])
+        try:
+            occ = date(year, m, safe_d)
+        except ValueError:
+            continue
+        if _ue_in_range(occ, start, end):
+            return occ
+    return None
+
+
+# ── Event generators ────────────────────────────────────────────
+
+def _ue_generate_birthday(start: date, end: date, filters: dict) -> list[dict]:
+    events: list[dict] = []
+    qs = Employee.objects.select_related("department").filter(
+        termination_date__isnull=True, birth_date__isnull=False
+    )
+    if filters.get("employee_id"):
+        qs = qs.filter(pk=filters["employee_id"])
+    if filters.get("department_id"):
+        qs = qs.filter(department_id=filters["department_id"])
+
+    for emp in qs:
+        occ = _ue_next_annual(emp.birth_date, start, end)
+        if occ is None:
+            continue
+        age = occ.year - emp.birth_date.year
+        _ue_append(
+            events,
+            date=occ, category="BIRTHDAY",
+            title=f"Aniversário de {emp.name} ({age} anos)",
+            object_type="employee", object_id=emp.pk,
+            employee_id=emp.pk, employee_name=emp.name,
+            department_name=emp.department.name if emp.department_id else None,
+            email_event=True,
+        )
+    return events
+
+
+def _ue_generate_company_anniversary(start: date, end: date, filters: dict) -> list[dict]:
+    events: list[dict] = []
+    qs = Employee.objects.select_related("department").filter(
+        termination_date__isnull=True, hire_date__isnull=False
+    )
+    if filters.get("employee_id"):
+        qs = qs.filter(pk=filters["employee_id"])
+    if filters.get("department_id"):
+        qs = qs.filter(department_id=filters["department_id"])
+
+    for emp in qs:
+        occ = _ue_next_annual(emp.hire_date, start, end)
+        if occ is None:
+            continue
+        years = occ.year - emp.hire_date.year
+        _ue_append(
+            events,
+            date=occ, category="COMPANY_ANNIVERSARY",
+            title=f"{emp.name} — {years} ano{'s' if years != 1 else ''} de empresa",
+            object_type="employee", object_id=emp.pk,
+            employee_id=emp.pk, employee_name=emp.name,
+            department_name=emp.department.name if emp.department_id else None,
+            email_event=True,
+        )
+    return events
+
+
+def _ue_generate_vacations(start: date, end: date, filters: dict) -> list[dict]:
+    events: list[dict] = []
+
+    # Two separate queries then deduplicated via distinct() on union
+    qs = (
+        Vacation.objects.select_related("employee", "employee__department")
+        .filter(start_date__range=(start, end))
+        | Vacation.objects.select_related("employee", "employee__department")
+        .filter(return_date__range=(start, end))
+    ).distinct()
+
+    if filters.get("employee_id"):
+        qs = qs.filter(employee_id=filters["employee_id"])
+    if filters.get("department_id"):
+        qs = qs.filter(employee__department_id=filters["department_id"])
+
+    for vac in qs:
+        emp  = vac.employee
+        dept = emp.department.name if emp.department_id else None
+
+        if vac.start_date and _ue_in_range(vac.start_date, start, end):
+            _ue_append(
+                events,
+                date=vac.start_date, category="VACATION_START",
+                title=f"Início de férias — {emp.name}",
+                object_type="vacation", object_id=vac.pk,
+                employee_id=emp.pk, employee_name=emp.name, department_name=dept,
+            )
+
+        if vac.return_date and _ue_in_range(vac.return_date, start, end):
+            _ue_append(
+                events,
+                date=vac.return_date, category="VACATION_RETURN",
+                title=f"Retorno de férias — {emp.name}",
+                object_type="vacation", object_id=vac.pk,
+                employee_id=emp.pk, employee_name=emp.name, department_name=dept,
+            )
+    return events
+
+
+def _ue_generate_trainings(start: date, end: date, filters: dict) -> list[dict]:
+    events: list[dict] = []
+    qs = Training.objects.filter(training_date__range=(start, end))
+
+    if filters.get("department_id"):
+        qs = qs.filter(target_department_id=filters["department_id"])
+    if filters.get("employee_id"):
+        qs = qs.filter(scheduled_employees__pk=filters["employee_id"])
+
+    for t in qs:
+        _ue_append(
+            events,
+            date=t.training_date, category="TRAINING_DATE",
+            title=f"Treinamento: {t.training_name}",
+            object_type="training", object_id=t.pk,
+            department_name=t.target_department.name if t.target_department_id else None,
+            email_event=True,
+        )
+    return events
+
+
+def _ue_generate_career_plans(start: date, end: date, filters: dict) -> list[dict]:
+    events: list[dict] = []
+
+    # ── Promotion date events ─────────────────────────────────────
+    promo_qs = (
+        CareerPlan.objects
+        .select_related("employee", "employee__department", "proposed_job")
+        .filter(promotion_date__range=(start, end), status__in=_UE_ACTIVE_CAREER_STATUSES)
+    )
+
+    # ── Reminder window: (promotion_date - 30d) falls in [start, end]
+    #    ⟹  promotion_date ∈ [start+30, end+30]
+    r_start = start + timedelta(days=_UE_REMINDER_DAYS)
+    r_end   = end   + timedelta(days=_UE_REMINDER_DAYS)
+    reminder_qs = (
+        CareerPlan.objects
+        .select_related("employee", "employee__department", "proposed_job")
+        .filter(
+            promotion_date__range=(r_start, r_end),
+            status__in={
+                CareerPlan.PlanStatus.SCHEDULED,
+                CareerPlan.PlanStatus.AWAITING_CONFIRMATION,
+                CareerPlan.PlanStatus.CONFIRMED,
+            },
+        )
+    )
+
+    for qs, extra_filter in ((promo_qs, True), (reminder_qs, True)):
+        if filters.get("employee_id"):
+            qs = qs.filter(employee_id=filters["employee_id"])
+        if filters.get("department_id"):
+            qs = qs.filter(employee__department_id=filters["department_id"])
+        if filters.get("status"):
+            qs = qs.filter(status=filters["status"])
+
+        if qs is promo_qs:
+            for plan in qs:
+                emp  = plan.employee
+                dept = emp.department.name if emp.department_id else None
+                _ue_append(
+                    events,
+                    date=plan.promotion_date, category="CAREER_PLAN_PROMOTION_DATE",
+                    title=f"Promoção de {emp.name} → {plan.proposed_job.name} ({plan.get_status_display()})",
+                    object_type="careerplan", object_id=plan.pk,
+                    status=plan.status,
+                    employee_id=emp.pk, employee_name=emp.name, department_name=dept,
+                    email_event=True,
+                    requires_action=(plan.status == CareerPlan.PlanStatus.AWAITING_CONFIRMATION),
+                )
+        else:
+            for plan in qs:
+                emp  = plan.employee
+                dept = emp.department.name if emp.department_id else None
+                reminder_date = plan.promotion_date - timedelta(days=_UE_REMINDER_DAYS)
+                if not _ue_in_range(reminder_date, start, end):
+                    continue
+                _ue_append(
+                    events,
+                    date=reminder_date, category="CAREER_PLAN_REMINDER_WINDOW",
+                    title=f"Aviso: promoção de {emp.name} em {plan.promotion_date.strftime('%d/%m/%Y')} (30 dias)",
+                    object_type="careerplan", object_id=plan.pk,
+                    status=plan.status,
+                    employee_id=emp.pk, employee_name=emp.name, department_name=dept,
+                    email_event=True, requires_action=True,
+                )
+    return events
+
+
+def _ue_generate_trial(start: date, end: date, filters: dict) -> list[dict]:
+    """
+    TRIAL_60_WARNING / TRIAL_90_WARNING — 5 days before each trial milestone.
+
+    Reverse-engineer the hire_date window instead of scanning all employees:
+        warning_date = hire_date + milestone - 5
+        hire_date    = warning_date - milestone + 5
+        If warning_date ∈ [start, end] → hire_date ∈ [start - milestone + 5, end - milestone + 5]
+    """
+    events: list[dict] = []
+    WARNING_OFFSET = 5
+
+    milestones = [
+        (60, "TRIAL_60_WARNING",  "Fim do 1º período de experiência (60 dias) — {name}"),
+        (90, "TRIAL_90_WARNING",  "Fim do contrato de experiência (90 dias) — {name}"),
+    ]
+
+    for days, category, title_tpl in milestones:
+        hire_start = start - timedelta(days=days - WARNING_OFFSET)
+        hire_end   = end   - timedelta(days=days - WARNING_OFFSET)
+
+        qs = Employee.objects.select_related("department").filter(
+            is_trial_contract=True,
+            hire_date__range=(hire_start, hire_end),
+            termination_date__isnull=True,
+        )
+        if filters.get("employee_id"):
+            qs = qs.filter(pk=filters["employee_id"])
+        if filters.get("department_id"):
+            qs = qs.filter(department_id=filters["department_id"])
+
+        for emp in qs:
+            warning_date = emp.hire_date + timedelta(days=days - WARNING_OFFSET)
+            if not _ue_in_range(warning_date, start, end):
+                continue
+            _ue_append(
+                events,
+                date=warning_date, category=category,
+                title=title_tpl.format(name=emp.name),
+                object_type="employee", object_id=emp.pk,
+                employee_id=emp.pk, employee_name=emp.name,
+                department_name=emp.department.name if emp.department_id else None,
+                email_event=True, requires_action=True,
+            )
+    return events
+
+
+# ── Generator registry ──────────────────────────────────────────
+# Maps frozenset(categories_produced) → generator_function.
+# Add new generators here — no other code changes needed.
+
+_UE_GENERATORS = {
+    frozenset({"BIRTHDAY"}):                              _ue_generate_birthday,
+    frozenset({"COMPANY_ANNIVERSARY"}):                   _ue_generate_company_anniversary,
+    frozenset({"VACATION_START", "VACATION_RETURN"}):     _ue_generate_vacations,
+    frozenset({"TRAINING_DATE"}):                         _ue_generate_trainings,
+    frozenset({
+        "CAREER_PLAN_PROMOTION_DATE",
+        "CAREER_PLAN_REMINDER_WINDOW",
+    }):                                                   _ue_generate_career_plans,
+    frozenset({"TRIAL_60_WARNING", "TRIAL_90_WARNING"}):  _ue_generate_trial,
+}
+
+
+# ── Public API ──────────────────────────────────────────────────
+
+def get_upcoming_events(
+    start_date:        _Optional[date] = None,
+    end_date:          _Optional[date] = None,
+    categories:        _Optional[list[str]] = None,
+    only_email_events: bool = False,
+    employee_id:       _Optional[int] = None,
+    department_id:     _Optional[int] = None,
+    status:            _Optional[str] = None,
+    limit:             int = 200,
+) -> list[dict]:
+    """
+    Return a sorted list of upcoming HR event dicts.
+
+    Parameters
+    ----------
+    start_date        : Range start (defaults to today).
+    end_date          : Range end (defaults to start + 30 days; max 180 days).
+    categories        : Whitelist of category strings. None = all categories.
+    only_email_events : Return only events where email_event=True.
+    employee_id       : Filter to a single employee.
+    department_id     : Filter to a single department.
+    status            : Filter career plan events by status value.
+    limit             : Max results (hard cap: 500).
+
+    Returns
+    -------
+    list[dict] sorted by (date, category), each dict has:
+        date, category, title, employee_id, employee_name,
+        department_name, object_type, object_id, status,
+        email_event, requires_action
+    """
+    start, end = _ue_clamp(start_date, end_date)
+    limit = min(limit, _UE_MAX_LIMIT)
+
+    filters = {
+        "employee_id":   employee_id,
+        "department_id": department_id,
+        "status":        status,
+    }
+
+    requested = set(categories) if categories else None
+    events: list[dict] = []
+
+    for category_set, generator_fn in _UE_GENERATORS.items():
+        if requested is not None and category_set.isdisjoint(requested):
+            continue
+        events.extend(generator_fn(start, end, filters))
+
+    # Post-generation filters
+    if requested:
+        events = [e for e in events if e["category"] in requested]
+    if only_email_events:
+        events = [e for e in events if e["email_event"]]
+
+    events.sort(key=lambda e: (e["date"], e["category"]))
+    return events[:limit]

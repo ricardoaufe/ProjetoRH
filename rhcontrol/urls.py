@@ -26,6 +26,7 @@ urlpatterns = [
     path('career-de-carreira/<int:pk>/confirm/', views.confirm_career_plan_action, name='career_plan_confirm'),
     path('career/<int:pk>/cancel/', views.cancel_career_plan, name='career_plan_cancel'),
     path('career/<int:pk>/delete/', views.career_plan_delete, name='career_plan_delete'),
+    path('events/upcoming/', views.upcoming_events_view, name='upcoming_events'),
 
     #VACATIONS
     path('vacations/', views.vacation_view, name='vacation_list'),
