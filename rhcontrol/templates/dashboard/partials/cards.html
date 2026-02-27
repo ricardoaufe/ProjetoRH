@@ -1,64 +1,60 @@
 <main class="main-content">
   <h1>{{ company_name_settings }}</h1>
+
   <div class="cards-container">
-    <div
-      class="card"
-      onclick="location.href='{% url 'rhcontrol:employee_list' %}'"
-    >
+    <div class="card" onclick="location.href='{% url 'rhcontrol:employee_list' %}'">
       <h2 class="card-title">Funcionários Cadastrados</h2>
       <p class="card-number">{{ employees_count }}</p>
       <h4 class="desc">Funcionários que estão cadastrados atualmente</h4>
     </div>
 
-    <div
-      class="card"
-      onclick="location.href='{% url 'rhcontrol:vacation_list' %}'"
-    >
+    <div class="card" onclick="location.href='{% url 'rhcontrol:vacation_list' %}'">
       <h2 class="card-title">Férias Programadas</h2>
       <p class="card-number">{{ vacations_count }}</p>
       <h4 class="desc">Quantidade de férias programadas</h4>
     </div>
+  </div>
 
-    {# ── Upcoming Events Card ─────────────────────────────── #}
+  {# ── Row 2: Upcoming Events (full width) ───────────────────── #}
+  <div class="upcoming-events-row">
     <div class="card upcoming-events-card">
       <div class="upcoming-events-header">
         <h2 class="card-title">Próximos Eventos</h2>
         <span class="upcoming-events-badge">{{ upcoming_events_count }}</span>
       </div>
+      
       <p class="desc" style="margin-bottom: 12px">Próximos 30 dias</p>
 
       <ul class="upcoming-events-list">
-        {% for event in upcoming_events_top5 %}
+        {% for event in upcoming_events_top %}
         <li class="upcoming-event-item">
           <span class="upcoming-event-date">{{ event.date|date:"d/m" }}</span>
-          <span
-            class="upcoming-event-pill upcoming-event-pill--{{ event.pill_class }}"
-            title="{{ event.category_label }}"
-          >
+          
+          <span class="upcoming-event-pill upcoming-event-pill--{{ event.pill_class }}" title="{{ event.category_label }}">
             <i class="fas {{ event.icon }}"></i>
           </span>
+          
           <span class="upcoming-event-title">{{ event.title }}</span>
-          {% if event.requires_action %}<span
-            class="upcoming-event-action-dot"
-            title="Requer ação"
-          ></span
-          >{% endif %}
+          
+          {% if event.requires_action %}
+            <span class="upcoming-event-action-dot" title="Requer ação"></span>
+          {% endif %}
         </li>
         {% empty %}
         <li class="upcoming-event-empty">
-          <i
-            class="fas fa-check-circle"
-            style="color: #28a745; margin-right: 6px"
-          ></i>
+          <i class="fas fa-check-circle" style="color: #28a745; margin-right: 6px"></i>
           Nenhum evento nos próximos 30 dias
         </li>
         {% endfor %}
       </ul>
 
-      <a
-        href="{% url 'rhcontrol:upcoming_events' %}"
-        class="upcoming-events-see-all"
-      >
+      {% if upcoming_events_more_count > 0 %}
+      <p class="upcoming-events-more">
+        +{{ upcoming_events_more_count }} mais evento{{ upcoming_events_more_count|pluralize:"s" }}
+      </p>
+      {% endif %}
+
+      <a href="{% url 'rhcontrol:upcoming_events' %}" class="upcoming-events-see-all">
         Ver Todos <i class="fas fa-arrow-right"></i>
       </a>
     </div>

@@ -90,11 +90,13 @@ def dashboard_view(request):
         limit=200,
     )
 
+    _VISIBLE_LIMIT = 8
     context = {
-        'employees_count':       employees_count,
-        'vacations_count':       vacations_count,
-        'upcoming_events_count': len(events),
-        'upcoming_events_top5':  events[:5],
+        'employees_count':            employees_count,
+        'vacations_count':            vacations_count,
+        'upcoming_events_count':      len(events),
+        'upcoming_events_top':        events[:_VISIBLE_LIMIT],
+        'upcoming_events_more_count': max(0, len(events) - _VISIBLE_LIMIT),
     }
 
     return render(request, 'dashboard/pages/dashboard.html', context)

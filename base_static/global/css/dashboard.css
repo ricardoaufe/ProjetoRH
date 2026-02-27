@@ -2,12 +2,30 @@
    dashboard.css  —  Dashboard card styles
    ════════════════════════════════════════════════════════════ */
 
+/* ── Full-width second row ───────────────────────────────── */
+.upcoming-events-row {
+    margin-top: 20px;
+}
+.upcoming-events-row .upcoming-events-card {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* ── "+X mais eventos" overflow label ───────────────────── */
+.upcoming-events-more {
+    font-size: 1.2rem;
+    color: #888;
+    margin: 2px 0 8px 0;
+    text-align: right;
+}
+
 /* ── Upcoming Events Card ─────────────────────────────────── */
 .upcoming-events-card {
     cursor: default;
     display: flex;
     flex-direction: column;
-    min-height: 220px;
+    min-height: unset;
 }
 
 .upcoming-events-header {
