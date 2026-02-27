@@ -340,6 +340,7 @@ def process_career_plans(dry_run: bool = False) -> None:
             try:
                 with transaction.atomic():
                     employee.job_title = plan.proposed_job
+                    employee.department = plan.proposed_job.department
                     employee.current_salary = plan.proposed_salary
                     employee.save(update_fields=['job_title', 'current_salary'])
                     

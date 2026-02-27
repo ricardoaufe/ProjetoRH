@@ -428,9 +428,6 @@ class CareerPlan(models.Model):
             if self.promotion_date <= timezone.now().date():
                 raise ValidationError({'promotion_date': 'A data da promoção deve ser estritamente no futuro.'})
 
-        if self.employee and self.proposed_job:
-            if self.proposed_job.department != self.employee.department:
-                raise ValidationError({'proposed_job': 'O próximo cargo deve pertencer ao mesmo setor atual do funcionário.'})
 
         if not self.pk and self.employee:
             has_active_plan = CareerPlan.objects.filter(

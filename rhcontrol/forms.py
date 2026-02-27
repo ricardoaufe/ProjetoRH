@@ -342,10 +342,16 @@ JobTitleFormSet = forms.inlineformset_factory(
 )
 
 class CareerPlanForm(forms.ModelForm):
+    # Campo extra (não vai pro banco de dados do Plano, serve só pra tela)
+    proposed_department = forms.ModelChoiceField(
+        queryset=Department.objects.all(),
+        label='Novo Setor',
+        required=True
+    )
+
     class Meta:
         model = CareerPlan
-
-        fields = ['employee', 'proposed_job', 'proposed_salary', 'promotion_date']
+        fields = ['employee', 'proposed_department', 'proposed_job', 'proposed_salary', 'promotion_date']
         
         widgets = {
             'promotion_date': forms.DateInput(attrs={'type': 'date'}),
@@ -366,17 +372,17 @@ class CareerPlanForm(forms.ModelForm):
 
         self.fields['proposed_job'].queryset = JobTitle.objects.none()
 
-        if 'employee' in self.data:
+        if 'proposed_department' in self.data:
             try:
-                employee_id = int(self.data.get('employee'))
-                employee = Employee.objects.get(id=employee_id)
+                department_id = int(self.data.get('proposed_department'))
                 self.fields['proposed_job'].queryset = JobTitle.objects.filter(
-                    department=employee.department
+                    department_id=department_id
                 ).order_by('name')
-            except (ValueError, TypeError, Employee.DoesNotExist):
+            except (ValueError, TypeError):
                 pass 
 
-        elif self.instance.pk and self.instance.employee:
+        elif self.instance.pk and self.instance.proposed_job:
+            self.fields['proposed_department'].initial = self.instance.proposed_job.department
             self.fields['proposed_job'].queryset = JobTitle.objects.filter(
-                department=self.instance.employee.department
+                department=self.instance.proposed_job.department
             ).order_by('name')

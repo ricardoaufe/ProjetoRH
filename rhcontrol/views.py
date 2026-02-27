@@ -951,34 +951,39 @@ def create_vacation_list_pdf(request):
 @login_required
 def ajax_load_employee_data(request):
     employee_id = request.GET.get('employee_id')
-    
     if employee_id:
         try:
             employee = Employee.objects.get(id=employee_id)
             department = employee.department
-
-            available_jobs = JobTitle.objects.filter(department=department).order_by('name')
-
-            jobs_list = [
-            {
-                'id': job.id, 
-                'name': job.name, 
-                'salary':str(job.base_salary) if job.base_salary else '0.00'
-            } 
-            for job in available_jobs
-        ]
             
             return JsonResponse({
                 'success': True,
                 'department_name': department.name if department else 'Nenhum',
+                'department_id': department.id if department else '', # IMPORTANTE PARA A CASCATA
                 'current_job_name': employee.job_title.name if employee.job_title else 'Nenhum',
                 'current_salary': str(employee.current_salary) if employee.current_salary else '0.00',
-                'jobs': jobs_list
             })
         except Employee.DoesNotExist:
             return JsonResponse({'success': False, 'error': 'Funcionário não encontrado'})
             
     return JsonResponse({'success': False, 'error': 'ID não fornecido'})
+
+@login_required
+def ajax_load_jobs_by_department(request):
+    department_id = request.GET.get('department_id')
+    if department_id:
+        available_jobs = JobTitle.objects.filter(department_id=department_id).order_by('name')
+        jobs_list = [
+            {
+                'id': job.id, 
+                'name': job.name, 
+                'salary': str(job.base_salary) if job.base_salary else '0.00'
+            } 
+            for job in available_jobs
+        ]
+        return JsonResponse({'success': True, 'jobs': jobs_list})
+        
+    return JsonResponse({'success': False, 'jobs': []})
 
 @login_required
 def career_plan_list(request):

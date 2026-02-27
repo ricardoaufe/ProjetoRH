@@ -3,12 +3,11 @@
 {% block title %} {% if is_update %}Editar{% else %}Novo{% endif %} Plano de Carreira {% endblock %}
 
 {% block extra_css %}
-  <link rel="stylesheet" href="{% static 'css/career.css' %}">
+  <link rel="stylesheet" href="{% static 'css/career.css' %}?v=2.0">
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid">
-  
   <div class="career-table-container" style="background-color: #ffffff; padding: 25px; margin: 80px 30px 30px 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
     
     <div class="career-page-header" style="border-bottom: 1px solid #e0e0e0; margin-bottom: 20px; padding-bottom: 15px;">
@@ -36,119 +35,171 @@
 
             <div class="col-md-4" style="margin-bottom: 20px;">
                 <label style="font-weight: 600; color: #6c757d; margin-bottom: 5px; display: block;">Setor Atual:</label>
-                <input type="text" id="display_dept" class="form-control" readonly placeholder="Aguardando funcionário..." style="background-color: #e9ecef;">
+                <input type="text" id="display_dept" class="form-control" readonly placeholder="Aguardando..." style="background-color: #e9ecef;">
             </div>
             <div class="col-md-4" style="margin-bottom: 20px;">
                 <label style="font-weight: 600; color: #6c757d; margin-bottom: 5px; display: block;">Cargo Atual:</label>
-                <input type="text" id="display_job" class="form-control" readonly placeholder="Aguardando funcionário..." style="background-color: #e9ecef;">
+                <input type="text" id="display_job" class="form-control" readonly placeholder="Aguardando..." style="background-color: #e9ecef;">
             </div>
             <div class="col-md-4" style="margin-bottom: 20px;">
                 <label style="font-weight: 600; color: #6c757d; margin-bottom: 5px; display: block;">Salário Atual:</label>
-                <input type="text" id="display_salary" class="form-control" readonly placeholder="Aguardando funcionário..." style="background-color: #e9ecef;">
+                <input type="text" id="display_salary" class="form-control" readonly placeholder="Aguardando..." style="background-color: #e9ecef;">
             </div>
 
-            <div class="col-md-4" style="margin-bottom: 20px;">
-                <label for="{{ form.proposed_job.id_for_label }}" style="font-weight: 600; margin-bottom: 5px; display: block;">Próximo Cargo:</label>
+            <div class="col-md-3" style="margin-bottom: 20px;">
+                <label for="{{ form.proposed_department.id_for_label }}" style="font-weight: 600; margin-bottom: 5px; display: block;">Novo Setor:</label>
+                {{ form.proposed_department }}
+                {% if form.proposed_department.errors %}<small style="color: red;">{{ form.proposed_department.errors.0 }}</small>{% endif %}
+            </div>
+            <div class="col-md-3" style="margin-bottom: 20px;">
+                <label for="{{ form.proposed_job.id_for_label }}" style="font-weight: 600; margin-bottom: 5px; display: block;">Novo Cargo:</label>
                 {{ form.proposed_job }}
                 {% if form.proposed_job.errors %}<small style="color: red;">{{ form.proposed_job.errors.0 }}</small>{% endif %}
             </div>
-            <div class="col-md-4" style="margin-bottom: 20px;">
+            <div class="col-md-3" style="margin-bottom: 20px;">
                 <label for="{{ form.proposed_salary.id_for_label }}" style="font-weight: 600; margin-bottom: 5px; display: block;">Salário Proposto (R$):</label>
                 {{ form.proposed_salary }}
                 {% if form.proposed_salary.errors %}<small style="color: red;">{{ form.proposed_salary.errors.0 }}</small>{% endif %}
             </div>
-            <div class="col-md-4" style="margin-bottom: 20px;">
+            <div class="col-md-3" style="margin-bottom: 20px;">
                 <label for="{{ form.promotion_date.id_for_label }}" style="font-weight: 600; margin-bottom: 5px; display: block;">Data da Promoção:</label>
                 {{ form.promotion_date }}
                 {% if form.promotion_date.errors %}<small style="color: red;">{{ form.promotion_date.errors.0 }}</small>{% endif %}
             </div>
         </div>
 
-        <div style="margin-top: 20px; border-top: 1px solid #e0e0e0; padding-top: 15px;">
-            <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Salvar Plano</button>
-            <a href="{% url 'rhcontrol:career_plan_list' %}" class="btn btn-secondary">Cancelar</a>
+        <div style="margin-top: 20px; border-top: 1px solid #e0e0e0; padding-top: 15px; display: flex; justify-content: space-between;">
+            <div>
+                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Salvar Plano</button>
+                <a href="{% url 'rhcontrol:career_plan_list' %}" class="btn btn-secondary">Voltar</a>
+            </div>
+            {% if is_update and plan.status in 'SCHEDULED, AWAITING_CONFIRMATION' %}
+            <div>
+                <button type="button" class="btn btn-danger" onclick="if(confirm('ATENÇÃO: Isso apagará o plano do banco de dados. Tem certeza?')) document.getElementById('delete-plan-form').submit();">
+                    <i class="fas fa-trash"></i> Excluir Definitivamente
+                </button>
+            </div>
+            {% endif %}
         </div>
     </form>
+    
+    {% if is_update %}
+    <form id="delete-plan-form" method="post" action="{% url 'rhcontrol:career_plan_delete' plan.id %}" style="display: none;">
+        {% csrf_token %}
+    </form>
+    {% endif %}
   </div>
 </div>
 
 <script>
 document.addEventListener("DOMContentLoaded", function() {
     const employeeSelect = document.getElementById("id_employee");
+    const proposedDeptSelect = document.getElementById("id_proposed_department");
     const proposedJobSelect = document.getElementById("id_proposed_job");
+    const salaryInput = document.getElementById("id_proposed_salary");
+    
     const displayDept = document.getElementById("display_dept");
     const displayJob = document.getElementById("display_job");
     const displaySalary = document.getElementById("display_salary");
 
-    function loadEmployeeData(employeeId, preselectedJobId = null) {
+    // 1. FORMATAÇÃO MONETÁRIA
+    function formatCurrency(valueStr) {
+        let val = valueStr.replace(/\D/g, "");
+        if (val === "") return "";
+        val = (parseInt(val, 10) / 100).toFixed(2);
+        val = val.replace(".", ",");
+        val = val.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1.");
+        return "R$ " + val;
+    }
+
+    if (salaryInput) {
+        if (salaryInput.value && !salaryInput.value.includes("R$")) {
+            let floatValue = parseFloat(salaryInput.value.replace(",", "."));
+            if (!isNaN(floatValue)) {
+                let rawString = (floatValue * 100).toFixed(0); 
+                salaryInput.value = formatCurrency(rawString);
+            }
+        }
+        salaryInput.addEventListener("input", function (e) {
+            e.target.value = formatCurrency(e.target.value);
+        });
+        document.getElementById("careerPlanForm").addEventListener("submit", function() {
+            if (salaryInput.value) {
+                salaryInput.value = salaryInput.value.replace("R$ ", "").replace(/\./g, "").replace(",", ".");
+            }
+        });
+    }
+
+    // 2. BUSCA DADOS DO FUNCIONÁRIO
+    function loadEmployeeData(employeeId) {
         if (!employeeId) {
-            proposedJobSelect.innerHTML = '<option value="">---------</option>';
-            proposedJobSelect.disabled = false;
-            displayDept.value = "";
-            displayJob.value = "";
-            displaySalary.value = "";
+            displayDept.value = ""; displayJob.value = ""; displaySalary.value = "";
             return;
         }
-
-        proposedJobSelect.disabled = true;
-        proposedJobSelect.innerHTML = '<option value="">Carregando cargos...</option>';
-
-        const url = `{% url 'rhcontrol:ajax_load_employee_data' %}?employee_id=${employeeId}`;
-
-        fetch(url)
-            .then(response => {
-                if (!response.ok) throw new Error(`Erro HTTP: ${response.status}`);
-                return response.json();
-            })
+        fetch(`{% url 'rhcontrol:ajax_load_employee_data' %}?employee_id=${employeeId}`)
+            .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     displayDept.value = data.department_name;
                     displayJob.value = data.current_job_name;
                     displaySalary.value = "R$ " + data.current_salary;
-
-                    const currentJobValue = preselectedJobId || (proposedJobSelect.value !== "Carregando cargos..." ? proposedJobSelect.value : null);
-
-                    proposedJobSelect.innerHTML = '<option value="">--- Selecione o Cargo ---</option>';
                     
+                    // Se não for edição, define o Novo Setor como o Setor Atual por padrão e carrega os cargos
+                    if (!"{{ is_update }}" === "True" || !proposedDeptSelect.value) {
+                        proposedDeptSelect.value = data.department_id;
+                        loadJobsByDepartment(data.department_id);
+                    }
+                }
+            });
+    }
+
+    // 3. BUSCA CARGOS PELO SETOR (CASCATA)
+    function loadJobsByDepartment(departmentId, preselectedJobId = null) {
+        proposedJobSelect.innerHTML = '<option value="">Carregando...</option>';
+        if (!departmentId) {
+            proposedJobSelect.innerHTML = '<option value="">---------</option>';
+            salaryInput.value = "";
+            return;
+        }
+
+        fetch(`{% url 'rhcontrol:ajax_load_jobs_by_department' %}?department_id=${departmentId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    proposedJobSelect.innerHTML = '<option value="">--- Selecione o Cargo ---</option>';
                     data.jobs.forEach(function(job) {
                         const option = document.createElement("option");
                         option.value = job.id;
                         option.textContent = job.name;
                         option.setAttribute("data-salary", job.salary);
                         
-                        if (currentJobValue && job.id.toString() === currentJobValue.toString()) {
+                        if (preselectedJobId && job.id.toString() === preselectedJobId.toString()) {
                             option.selected = true;
                         }
                         proposedJobSelect.appendChild(option);
                     });
-                } else {
-                    console.error("Erro da View:", data.error);
-                    alert("Não foi possível carregar os dados: " + data.error);
-                    proposedJobSelect.innerHTML = '<option value="">Erro ao carregar</option>';
                 }
-            })
-            .catch(error => {
-                console.error("Erro no AJAX:", error);
-                alert("Falha de conexão ao buscar os cargos do setor.");
-                proposedJobSelect.innerHTML = '<option value="">Erro de conexão</option>';
-            })
-            .finally(() => {
-                proposedJobSelect.disabled = false;
             });
     }
 
+    // GATILHOS (EVENT LISTENERS)
+    employeeSelect.addEventListener("change", function() {
+        loadEmployeeData(this.value);
+    });
+
+    proposedDeptSelect.addEventListener("change", function() {
+        loadJobsByDepartment(this.value);
+        salaryInput.value = ""; // Limpa salário ao trocar setor
+    });
+
     proposedJobSelect.addEventListener("change", function() {
         const selectedOption = this.options[this.selectedIndex];
-        
         if (selectedOption && selectedOption.value) {
             const baseSalary = selectedOption.getAttribute("data-salary");
-            
             if (baseSalary && baseSalary !== "0.00") {
-
                 let floatValue = parseFloat(baseSalary.replace(",", "."));
                 if (!isNaN(floatValue)) {
-                    let rawString = (floatValue * 100).toFixed(0); 
-                    salaryInput.value = formatCurrency(rawString);
+                    salaryInput.value = formatCurrency((floatValue * 100).toFixed(0));
                 }
             } else {
                 salaryInput.value = "";
@@ -158,52 +209,13 @@ document.addEventListener("DOMContentLoaded", function() {
         }
     });
 
-
-    employeeSelect.addEventListener("change", function() {
-        loadEmployeeData(this.value);
-    });
-
-    if (employeeSelect.value) {
-        const oldJobId = proposedJobSelect.value;
-        loadEmployeeData(employeeSelect.value, oldJobId);
+    if ("{{ is_update }}" === "True") {
+        const initialJob = proposedJobSelect.value;
+        loadEmployeeData(employeeSelect.value);
+        if (proposedDeptSelect.value) {
+            loadJobsByDepartment(proposedDeptSelect.value, initialJob);
+        }
     }
 });
-
-    const salaryInput = document.getElementById("id_proposed_salary");
-    const form = document.getElementById("careerPlanForm");
-
-    function formatCurrency(valueStr) {
-        let val = valueStr.replace(/\D/g, ""); 
-        if (val === "") return "";
-        
-        val = (parseInt(val, 10) / 100).toFixed(2); 
-        val = val.replace(".", ",");
-        val = val.replace(/(\d)(?=(\d{3})+(?!\d))/g, "$1."); 
-        
-        return "R$ " + val; 
-    }
-
-    if (salaryInput) {
-
-        if (salaryInput.value) {
-
-            let floatValue = parseFloat(salaryInput.value.replace(",", "."));
-            if (!isNaN(floatValue)) {
-                let rawString = (floatValue * 100).toFixed(0); 
-                salaryInput.value = formatCurrency(rawString);
-            }
-        }
-
-        salaryInput.addEventListener("input", function (e) {
-            e.target.value = formatCurrency(e.target.value);
-        });
-
-        form.addEventListener("submit", function() {
-            if (salaryInput.value) {
-                let cleanValue = salaryInput.value.replace("R$ ", "").replace(/\./g, "").replace(",", ".");
-                salaryInput.value = cleanValue;
-            }
-        });
-    }
 </script>
 {% endblock %}
