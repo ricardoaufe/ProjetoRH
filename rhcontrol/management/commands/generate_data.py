@@ -80,6 +80,7 @@ class Command(BaseCommand):
                     name=fake.name(),
                     cpf=cpf_valido,
                     birth_date=fake.date_of_birth(minimum_age=18, maximum_age=65),
+                    current_salary=cargo_sorteado.base_salary,
                     department=setor_sorteado,
                     job_title=cargo_sorteado
                 )

@@ -1066,3 +1066,43 @@ def confirm_career_plan_action(request, pk):
         messages.error(request, "Ação inválida: Este plano não está aguardando confirmação.")
         
     return redirect('rhcontrol:career_plan_list')
+
+
+@login_required
+@require_POST
+def cancel_career_plan(request, pk):
+    """ Ação de botão: Cancela um plano de carreira. Permitido apenas para planos AGENDADOS ou AGUARDANDO CONFIRMAÇÃO. """
+    plan = get_object_or_404(CareerPlan, pk=pk)
+
+    cancellable_statuses = [
+        CareerPlan.PlanStatus.SCHEDULED,
+        CareerPlan.PlanStatus.AWAITING_CONFIRMATION,
+        CareerPlan.PlanStatus.CONFIRMED,
+    ]
+
+    if plan.status not in cancellable_statuses:
+        if plan.status == CareerPlan.PlanStatus.EFFECTIVE:
+            messages.error(
+                request,
+                f"Não é possível cancelar o plano de {plan.employee.name}: "
+                "a promoção já foi efetivada no sistema."
+            )
+        else:
+            messages.error(
+                request,
+                f"Não é possível cancelar o plano de {plan.employee.name}: "
+                f"status atual é '{plan.get_status_display()}'."
+            )
+        return redirect('rhcontrol:career_plan_list')
+
+    cancellation_reason = request.POST.get('cancellation_reason', '').strip()
+
+    plan.status = CareerPlan.PlanStatus.CANCELLED
+    plan.cancellation_reason = cancellation_reason or 'Cancelado manualmente pelo usuário.'
+    plan.save(update_fields=['status', 'cancellation_reason', 'updated_at'])
+
+    messages.success(
+        request,
+        f"Plano de carreira de {plan.employee.name} foi cancelado."
+    )
+    return redirect('rhcontrol:career_plan_list')

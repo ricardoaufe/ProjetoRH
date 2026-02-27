@@ -31,7 +31,8 @@
 
           <td>
             <div class="job-transition">
-              <span class="job-old">{{ plan.current_job.name|default:"-" }}
+              <span class="job-old">
+                {{ plan.current_job.name|default:"-" }}
                 <i class="fas fa-arrow-down text-muted" style="font-size: 0.7em"></i>
               </span>
               <span class="job-new">{{ plan.proposed_job.name }}</span>
@@ -43,42 +44,52 @@
 
           <td>
             {% if plan.status == 'SCHEDULED' %}
-            <span class="status-badge badge-scheduled">Agendado</span>
+              <span class="status-badge badge-scheduled">Agendado</span>
             {% elif plan.status == 'AWAITING_CONFIRMATION' %}
-            <span class="status-badge badge-awaiting">Aguardando Confirmação</span>
+              <span class="status-badge badge-awaiting">Aguardando Confirmação</span>
             {% elif plan.status == 'CONFIRMED' %}
-            <span class="status-badge badge-confirmed">Confirmado</span>
+              <span class="status-badge badge-confirmed">Confirmado</span>
             {% elif plan.status == 'EFFECTIVE' %}
-            <span class="status-badge badge-effective">Efetivado</span>
+              <span class="status-badge badge-effective">Efetivado</span>
             {% elif plan.status == 'CANCELLED' %}
-            <span class="status-badge badge-cancelled">Cancelado</span>
+              <span class="status-badge badge-cancelled">Cancelado</span>
             {% else %}
-            <span class="status-badge badge-scheduled">{{ plan.get_status_display }}</span>
+              <span class="status-badge badge-scheduled">{{ plan.get_status_display }}</span>
             {% endif %}
           </td>
 
           <td class="text-center">
             <div class="action-buttons">
+              
               {% if plan.status == 'SCHEDULED' or plan.status == 'AWAITING_CONFIRMATION' %}
-              <a href="{% url 'rhcontrol:career_plan_update' plan.id %}" class="btn btn-sm btn-outline-primary" title="Editar Plano">
-                <i class="fas fa-edit"></i> Editar
-              </a>
+                <a href="{% url 'rhcontrol:career_plan_update' plan.id %}" class="btn btn-sm btn-outline-primary" title="Editar Plano">
+                  <i class="fas fa-edit"></i> Editar
+                </a>
               {% else %}
-              <button class="btn btn-sm btn-outline-secondary" disabled title="Este plano faz parte do histórico e não pode ser editado.">
-                <i class="fas fa-lock"></i> Bloqueado
-              </button>
+                <button class="btn btn-sm btn-outline-secondary" disabled title="Este plano faz parte do histórico e não pode ser editado.">
+                  <i class="fas fa-lock"></i> Bloqueado
+                </button>
               {% endif %} 
               
-              {% if plan.status == 'AWAITING_CONFIRMATION' %} 
-              {# Formulário oculto enviado pelo botão de confirmação do modal #}
-              <form id="confirm-form-{{ plan.id }}" method="post" action="{% url 'rhcontrol:career_plan_confirm' plan.id %}" style="display: none">
-                {% csrf_token %}
-              </form>
-
-              <button type="button" class="btn btn-sm btn-success shadow-sm" onclick="openCareerModal('{{ plan.id }}', '{{ plan.employee.name|escapejs }}', '{{ plan.proposed_job.name|escapejs }}', 'R$ {{ plan.proposed_salary }}', '{{ plan.promotion_date|date:'d/m/Y' }}')">
-                <i class="fas fa-check-circle"></i> Efetivar
-              </button>
+              {% if plan.status == 'AWAITING_CONFIRMATION' or plan.status == 'CONFIRMED' %} 
+                <form id="confirm-form-{{ plan.id }}" method="post" action="{% url 'rhcontrol:career_plan_confirm' plan.id %}" style="display: none">
+                  {% csrf_token %}
+                </form>
+                <button type="button" class="btn btn-sm btn-success shadow-sm" title="Efetivar" onclick="openCareerModal('{{ plan.id }}', '{{ plan.employee.name|escapejs }}', '{{ plan.proposed_job.name|escapejs }}', 'R$ {{ plan.proposed_salary }}', '{{ plan.promotion_date|date:'d/m/Y' }}')">
+                  <i class="fas fa-check-circle"></i> Efetivar
+                </button>
+              {% endif %} 
+              
+              {% if plan.status == 'SCHEDULED' or plan.status == 'AWAITING_CONFIRMATION' or plan.status == 'CONFIRMED' %}
+                <form id="cancel-form-{{ plan.id }}" method="post" action="{% url 'rhcontrol:career_plan_cancel' plan.id %}" style="display: none">
+                  {% csrf_token %}
+                  <input type="hidden" name="cancellation_reason" id="cancel-reason-input-{{ plan.id }}" />
+                </form>
+                <button type="button" class="btn btn-sm btn-danger shadow-sm" style="background: var(--danger, #e74c3c)" title="Cancelar Plano" onclick="openCancelModal('{{ plan.id }}', '{{ plan.employee.name|escapejs }}')">
+                  <i style="background: var(--danger, #e74c3c)" class="fas fa-ban"></i>
+                </button>
               {% endif %}
+
             </div>
           </td>
         </tr>
@@ -96,6 +107,7 @@
   </div>
 </div>
 
+{# ========== MODAL: CONFIRMAR PROMOÇÃO ========== #}
 <div id="career-modal-overlay" class="career-modal-overlay" onclick="closeCareerModal(event)">
   <div class="career-modal">
     <div class="career-modal-icon">
@@ -125,7 +137,37 @@
   </div>
 </div>
 
+{# ========== MODAL: CANCELAR PLANO ========== #}
+<div id="cancel-modal-overlay" class="career-modal-overlay" onclick="closeCancelModal(event)">
+  <div class="career-modal">
+    <div class="career-modal-icon" style="color: var(--danger, #e74c3c)">
+      <i class="fas fa-ban"></i>
+    </div>
+
+    <h3>Cancelar Plano de Carreira</h3>
+    <p>Você está prestes a cancelar o plano de carreira de <strong id="cancel-modal-employee"></strong>.</p>
+    <p>Esta ação não pode ser desfeita.</p>
+
+    <div class="career-modal-info">
+      <label for="cancel-reason-field" style="font-weight: 600; margin-bottom: 0.3rem; display: block; font-size: 1.1rem">
+        Motivo do cancelamento (opcional):
+      </label>
+      <textarea id="cancel-reason-field" rows="3" placeholder="Ex.: Mudança de estratégia, funcionário desistiu, etc." style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid #ccc; font-size: 1.2rem; resize: vertical;"></textarea>
+    </div>
+
+    <div class="career-modal-actions">
+      <button type="button" class="btn-cancel" onclick="closeCancelModal()">
+        <i class="fas fa-arrow-left"></i> Voltar
+      </button>
+      <button type="button" class="btn-confirm" style="background: var(--danger, #e74c3c)" onclick="submitCancelModal()">
+        <i class="fas fa-ban"></i> Confirmar Cancelamento
+      </button>
+    </div>
+  </div>
+</div>
+
 <script>
+  // ===== MODAL: CONFIRMAR PROMOÇÃO =====
   let _careerFormId = null;
 
   function openCareerModal(planId, employee, job, salary, date) {
@@ -151,11 +193,39 @@
     }
   }
 
+  // ===== MODAL: CANCELAR PLANO =====
+  let _cancelFormId = null;
+
+  function openCancelModal(planId, employeeName) {
+    _cancelFormId = planId;
+    document.getElementById("cancel-modal-employee").textContent = employeeName;
+    document.getElementById("cancel-reason-field").value = "";
+    document.getElementById("cancel-modal-overlay").classList.add("active");
+    document.body.style.overflow = "hidden";
+  }
+
+  function closeCancelModal(event) {
+    if (event && event.target !== document.getElementById("cancel-modal-overlay")) return;
+    document.getElementById("cancel-modal-overlay").classList.remove("active");
+    document.body.style.overflow = "";
+    _cancelFormId = null;
+  }
+
+  function submitCancelModal() {
+    if (_cancelFormId) {
+      const reason = document.getElementById("cancel-reason-field").value.trim();
+      document.getElementById("cancel-reason-input-" + _cancelFormId).value = reason;
+      document.getElementById("cancel-form-" + _cancelFormId).submit();
+    }
+  }
+
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
       document.getElementById("career-modal-overlay").classList.remove("active");
+      document.getElementById("cancel-modal-overlay").classList.remove("active");
       document.body.style.overflow = "";
       _careerFormId = null;
+      _cancelFormId = null;
     }
   });
 </script>

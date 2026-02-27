@@ -24,8 +24,8 @@
     }
   },
   "[html]": {
-    "editor.formatOnSave": true,
-    "editor.defaultFormatter": "vscode.html-language-features",
+    "editor.formatOnSave": false,
+    "editor.defaultFormatter": null,
     "editor.quickSuggestions": {
       "other": true,
       "comments": true,
