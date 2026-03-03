@@ -1,5 +1,98 @@
 {% extends 'global/base.html' %} {% block title %} Ocorrências | {{
 employee.name }} | {% endblock title %} {% block content %}
+
+<style>
+  /* ── Occurrence accordion — mirrors the job-row pattern ───────── */
+  .occ-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  .occ-row {
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    overflow: hidden;
+    margin-bottom: 8px;
+    background: #fff;
+  }
+
+  .occ-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    background: #f8f9fa;
+    cursor: pointer;
+    border: none;
+    width: 100%;
+    text-align: left;
+    border-bottom: 1px solid transparent;
+    transition: background 0.15s;
+  }
+  .occ-header:hover {
+    background: #eef0f2;
+  }
+  .occ-header[aria-expanded="true"] {
+    border-bottom-color: #e0e0e0;
+  }
+
+  .occ-arrow {
+    transition: transform 0.2s;
+    color: #6c757d;
+    flex-shrink: 0;
+  }
+  .occ-header[aria-expanded="true"] .occ-arrow {
+    transform: rotate(90deg);
+  }
+
+  .occ-date {
+    white-space: nowrap;
+    font-weight: 700;
+    color: #6c757d;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+  .occ-title {
+    flex: 1;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: #333;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .occ-body {
+    display: none;
+    padding: 16px 20px;
+  }
+  .occ-body.open {
+    display: block;
+  }
+
+  .occ-description {
+    font-size: 1.4rem;
+    color: #444;
+    white-space: pre-wrap;
+    margin-bottom: 12px;
+    line-height: 1.6;
+  }
+  .occ-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding-top: 10px;
+    border-top: 1px solid #f0f0f0;
+  }
+  .occ-actions {
+    display: flex;
+    gap: 8px;
+  }
+</style>
+
 <div class="list-container">
   <div
     class="page-header"
@@ -32,76 +125,80 @@ employee.name }} | {% endblock title %} {% block content %}
     </div>
   </div>
 
-  <table class="data-table">
-    <thead>
-      <tr>
-        <th>Data</th>
-        <th>Título</th>
-        <th>Descrição</th>
-        <th>Anexo</th>
-        <th>Registrado por</th>
-        <th>Ações</th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for occurrence in occurrences %}
-      <tr>
-        <td style="white-space: nowrap">
-          {{ occurrence.occurrence_date|date:"d/m/Y" }}
-        </td>
-        <td><strong>{{ occurrence.title }}</strong></td>
-        <td style="max-width: 400px">
-          {{ occurrence.description|truncatechars:120 }}
-        </td>
-        <td>
-          {% if occurrence.attachment %}
-          <a
-            href="{{ occurrence.attachment.url }}"
-            target="_blank"
-            title="Ver anexo"
-          >
-            <i class="fa fa-paperclip"></i> Anexo
-          </a>
-          {% else %}
-          <span style="color: #aaa">—</span>
-          {% endif %}
-        </td>
-        <td>
-          {{
-          occurrence.created_by.get_full_name|default:occurrence.created_by.username|default:"—"
-          }}
-        </td>
-        <td style="white-space: nowrap">
-          <a
-            href="{% url 'rhcontrol:occurrence_update' employee_id=employee.pk pk=occurrence.pk %}"
-            class="btn btn-sm btn-outline-primary"
-            title="Editar"
-          >
-            <i class="fa fa-edit"></i>
-          </a>
-          <a
-            href="{% url 'rhcontrol:occurrence_delete' employee_id=employee.pk pk=occurrence.pk %}"
-            class="btn btn-sm btn-outline-danger"
-            title="Excluir"
-          >
-            <i class="fa fa-trash"></i>
-          </a>
-        </td>
-      </tr>
-      {% empty %}
-      <tr>
-        <td
-          colspan="6"
-          style="text-align: center; padding: 2rem; color: #6c757d"
-        >
-          Nenhuma ocorrência registrada para este funcionário.
-        </td>
-      </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  {% if occurrences %}
+  <ul class="occ-list" id="occ-accordion">
+    {% for occ in occurrences %}
+    <li class="occ-row">
+      <button
+        type="button"
+        class="occ-header"
+        aria-expanded="false"
+        aria-controls="occ-body-{{ occ.pk }}"
+        onclick="toggleOcc(this)"
+      >
+        <i class="fa fa-chevron-right occ-arrow"></i>
+        <span class="occ-date">{{ occ.occurrence_date|date:"d/m/Y" }}</span>
+        <span class="occ-title">{{ occ.title }}</span>
+      </button>
 
-  {% if is_paginated %}
+      <div class="occ-body" id="occ-body-{{ occ.pk }}">
+        <p class="occ-description">{{ occ.description }}</p>
+
+        <div class="occ-meta">
+          <div style="font-size: 1.25rem; color: #6c757d">
+            {% if occ.created_by %} Registrado por
+            <strong
+              >{{ occ.created_by.get_full_name|default:occ.created_by.username
+              }}</strong
+            >
+            {% if occ.updated_by and occ.updated_by != occ.created_by %} ·
+            Editado por
+            <strong
+              >{{ occ.updated_by.get_full_name|default:occ.updated_by.username
+              }}</strong
+            >
+            {% endif %} {% endif %} {% if occ.attachment %} &nbsp;·&nbsp;
+            <a href="{{ occ.attachment.url }}" target="_blank">
+              <i class="fa fa-paperclip"></i> Anexo
+            </a>
+            {% endif %}
+          </div>
+
+          <div class="occ-actions">
+            <a
+              href="{% url 'rhcontrol:occurrence_update' employee_id=employee.pk pk=occ.pk %}"
+              class="btn btn-sm btn-outline-primary"
+              title="Editar"
+            >
+              <i class="fa fa-pencil"></i> Editar
+            </a>
+            <a
+              href="{% url 'rhcontrol:occurrence_delete' employee_id=employee.pk pk=occ.pk %}"
+              class="btn btn-sm btn-outline-danger"
+              title="Excluir"
+            >
+              <i class="fa fa-trash"></i> Excluir
+            </a>
+          </div>
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+
+  {% else %}
+  <div
+    style="
+      padding: 2rem;
+      text-align: center;
+      color: #6c757d;
+      background: #f8f9fa;
+      border-radius: 6px;
+    "
+  >
+    Nenhuma ocorrência registrada para este funcionário.
+  </div>
+  {% endif %} {% if is_paginated %}
   <div
     style="
       display: flex;
@@ -130,4 +227,14 @@ employee.name }} | {% endblock title %} {% block content %}
   </div>
   {% endif %}
 </div>
+
+<script>
+  function toggleOcc(btn) {
+    const body = document.getElementById(btn.getAttribute("aria-controls"));
+    const expanded = btn.getAttribute("aria-expanded") === "true";
+    btn.setAttribute("aria-expanded", !expanded);
+    body.classList.toggle("open", !expanded);
+  }
+</script>
+
 {% endblock content %}
