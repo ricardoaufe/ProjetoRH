@@ -2,6 +2,7 @@ from django.urls import path
 from django.contrib import admin
 
 from . import views
+from . import views_occurrence as occurrence_views
 
 app_name = 'rhcontrol'
 urlpatterns = [
@@ -67,4 +68,10 @@ urlpatterns = [
     path('departments/pdf/department-and-jobtitles/', views.create_department_and_jobtitle_pdf, name='department_and_jobtitles_pdf'),
     path('departments/pdf/employees-department/', views.create_employees_department_pdf, name='employees_department_pdf'),
     path('vacation/pdf/', views.create_vacation_list_pdf, name='vacation_list_pdf'),
+
+    #OCCURRENCES
+    path('employees/<int:employee_id>/occurrences/',          occurrence_views.OccurrenceListView.as_view(),   name='occurrence_list'),
+    path('employees/<int:employee_id>/occurrences/create/',   occurrence_views.OccurrenceCreateView.as_view(), name='occurrence_create'),
+    path('employees/<int:employee_id>/occurrences/<int:pk>/edit/',   occurrence_views.OccurrenceUpdateView.as_view(), name='occurrence_update'),
+    path('employees/<int:employee_id>/occurrences/<int:pk>/delete/', occurrence_views.OccurrenceDeleteView.as_view(), name='occurrence_delete'),
 ]
