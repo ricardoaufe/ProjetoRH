@@ -528,24 +528,58 @@ class NotificationLog(models.Model):
         return f"Log: {self.rule.event_type} - {self.employee.name} ({self.reference_year})"
 
 class Occurrence(models.Model):
-    employee = models.ForeignKey('Employee', on_delete= models.CASCADE , related_name='occurrences')
-    title = models.CharField(max_length=100, verbose_name="Título", blank=False)
-    description = models.TextField(verbose_name="Descrição", blank=False)
-    occurrence_date = models.DateField(verbose_name="Data", blank=False)   
+    employee = models.ForeignKey(
+        'Employee',
+        on_delete=models.CASCADE,
+        related_name='occurrences',
+        verbose_name='Funcionário',
+    )
+    title = models.CharField(max_length=100, verbose_name='Título')
+    description = models.TextField(verbose_name='Descrição')
+    occurrence_date = models.DateField(verbose_name='Data da Ocorrência')
+    attachment = models.FileField(
+        upload_to='occurrences/',
+        null=True,
+        blank=True,
+        verbose_name='Anexo',
+    )
 
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='occurrencies')
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='occurrences_created',
+        verbose_name='Criado por',
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='occurrences_updated',
+        verbose_name='Atualizado por',
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = 'Ocorrência'
         verbose_name_plural = 'Ocorrências'
-        ordering = ["occurrence_date"]
+        ordering = ['-occurrence_date', '-created_at']
 
     def clean(self):
         super().clean()
+        if self.occurrence_date and self.occurrence_date > timezone.localdate():
+            raise ValidationError({
+                'occurrence_date': 'A data da ocorrência não pode ser no futuro.'
+            })
 
-        if self.occurrence_date > timezone.now().date():
-            raise ValidationError({'date': 'A data não pode ser no futuro.'})
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f'{self.title} — {self.employee.name} ({self.occurrence_date})'
 
         
