@@ -85,9 +85,11 @@ class OccurrenceCreateView(RhAdminRequiredMixin, CreateView):
         occurrence.employee = self.employee
         occurrence.created_by = self.request.user
         occurrence.updated_by = self.request.user
-        # Skip model-level full_clean re-run — form already validated.
-        # We call super().save() directly to avoid double full_clean.
-        occurrence.save()
+        # Form already validated occurrence_date via clean_occurrence_date().
+        # Use Model.save() directly to skip Occurrence.save()'s full_clean() call
+        # and avoid raising the same error a second time as a non-field error.
+        from django.db.models import Model
+        Model.save(occurrence)
         return redirect(_occurrence_list_url(self.employee.pk))
 
     def get_context_data(self, **kwargs):
@@ -125,7 +127,10 @@ class OccurrenceUpdateView(RhAdminRequiredMixin, UpdateView):
     def form_valid(self, form):
         occurrence = form.save(commit=False)
         occurrence.updated_by = self.request.user
-        occurrence.save()
+        # Form already validated occurrence_date via clean_occurrence_date().
+        # Use Model.save() directly to skip Occurrence.save()'s full_clean() call.
+        from django.db.models import Model
+        Model.save(occurrence)
         return redirect(_occurrence_list_url(self.employee.pk))
 
     def get_context_data(self, **kwargs):

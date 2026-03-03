@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 from django import forms 
 from django.contrib.auth.models import User
-from rhcontrol.models import Dependent, Employee, JobTitle, Training, Vacation, Department, CareerPlan
+from rhcontrol.models import Dependent, Employee, JobTitle, Training, Vacation, Department, CareerPlan, Occurrence
 
 class LoginForm(forms.Form):
     email = forms.CharField(label='Usuário ou Email', max_length=100, widget=forms.TextInput(attrs={
@@ -289,7 +289,6 @@ class TrainingForm(forms.ModelForm):
 
 class OccurrenceForm(forms.ModelForm):
     class Meta:
-        from rhcontrol.models import Occurrence
         model = Occurrence
         fields = ['title', 'description', 'occurrence_date', 'attachment']
         widgets = {
@@ -315,6 +314,13 @@ class OccurrenceForm(forms.ModelForm):
         if not self.instance.pk and not self.initial.get('occurrence_date'):
             from django.utils import timezone
             self.initial['occurrence_date'] = timezone.localdate()
+
+    def clean_occurrence_date(self):
+        from django.utils import timezone
+        date = self.cleaned_data.get('occurrence_date')
+        if date and date > timezone.localdate():
+            raise forms.ValidationError("A data não pode ser no futuro.")
+        return date
 
 
 class DepartmentForm(forms.ModelForm):
