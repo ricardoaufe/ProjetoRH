@@ -1,91 +1,135 @@
 {% extends 'global/base.html' %}
 
-{% block title %} Cadastrar Funcionário | {% endblock title %}
+{% block title %} Cadastrar Funcionário {% endblock title %}
 
 {% block content %}
-{% include 'dashboard/pages/employee/components/_styles.html' %}
+  {% include 'dashboard/pages/employee/components/_styles.html' %}
 
-<div class="form-container">
-    
+  <div class="form-container">
     <div class="form-header">
-        <h2 style="margin: 0;">{{ title|default:"Cadastrar Funcionário" }}</h2>
+      <h2 style="margin: 0">{{ title|default:"Cadastrar Funcionário" }}</h2>
 
+      <div style="display: flex; gap: 0.5rem; align-items: center">
         {% if form.instance.pk %}
-        <div class="dropdown">
+          <div class="dropdown">
             <button type="button" class="btn-dropdown-trigger">
-                <i class="fa fa-print"></i> Gerar Documento <i class="fa fa-caret-down"></i>
+              <i class="fa fa-print"></i> Gerar Documento
+              <i class="fa fa-caret-down"></i>
             </button>
             <div class="dropdown-content">
-                <a href="{% url 'rhcontrol:employee_registration_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-id-text-o"></i> Ficha Cadastral
-                    <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
-                </a>
-                <a href="{% url 'rhcontrol:confidenciality_term_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-file-text-o"></i> Confidencialidade
-                    <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
-                </a>
-                <a href="{% url 'rhcontrol:bank_presentation_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-file-text-o"></i> Conta Bancária
-                    <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
-                </a>
-                <a href="{% url 'rhcontrol:personal_data_consent_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-file-text-o"></i> Uso de Dados Pessoais
-                    <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
-                </a>
-                <a href="{% url 'rhcontrol:term_of_commitment_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-file-text-o"></i> Compromisso
-                    <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
-                </a>
-                <a href="{% url 'rhcontrol:term_of_consent_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-file-text-o"></i> Uso de Imagem
-                    <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
-                </a>
-                <a href="{% url 'rhcontrol:benefits_acquisition_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-file-text-o"></i> Aquisição de Benefícios
-                    <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>  
-                </a>
-                <a href="{% url 'rhcontrol:internal_regulation_pdf' pk=form.instance.pk %}" target="_blank">
-                    <i class="fa fa-file-text-o"></i> Regulamento Interno
-                    <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px;"></i>
-                </a> 
+              <a href="{% url 'rhcontrol:employee_registration_pdf' pk=form.instance.pk %}" target="_blank">
+                <i class="fa fa-id-text-o"></i> Ficha Cadastral
+                <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+              </a>
+              <a href="{% url 'rhcontrol:confidenciality_term_pdf' pk=form.instance.pk %}" target="_blank">
+                <i class="fa fa-file-text-o"></i> Confidencialidade
+                <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+              </a>
+              <a href="{% url 'rhcontrol:bank_presentation_pdf' pk=form.instance.pk %}" target="_blank">
+                <i class="fa fa-file-text-o"></i> Conta Bancária
+                <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+              </a>
+              <a href="{% url 'rhcontrol:personal_data_consent_pdf' pk=form.instance.pk %}" target="_blank">
+                <i class="fa fa-file-text-o"></i> Uso de Dados Pessoais
+                <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+              </a>
+              <a href="{% url 'rhcontrol:term_of_commitment_pdf' pk=form.instance.pk %}" target="_blank">
+                <i class="fa fa-file-text-o"></i> Compromisso
+                <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+              </a>
+              <a href="{% url 'rhcontrol:term_of_consent_pdf' pk=form.instance.pk %}" target="_blank">
+                <i class="fa fa-file-text-o"></i> Uso de Imagem
+                <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+              </a>
+              <a href="{% url 'rhcontrol:benefits_acquisition_pdf' pk=form.instance.pk %}" target="_blank">
+                <i class="fa fa-file-text-o"></i> Aquisição de Benefícios
+                <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+              </a>
+              <a href="{% url 'rhcontrol:internal_regulation_pdf' pk=form.instance.pk %}" target="_blank">
+                <i class="fa fa-file-text-o"></i> Regulamento Interno
+                <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+              </a>
             </div>
-        </div>
+          </div>
         {% endif %}
+
+        {% if form.instance.pk and is_rh_admin %}
+          <a href="{% url 'rhcontrol:occurrence_list' employee_id=form.instance.pk %}" class="btn-dropdown-trigger" title="Ver todas as ocorrências">
+            <i class="fa fa-exclamation-circle"></i> Ocorrências
+          </a>
+          <a href="{% url 'rhcontrol:occurrence_create' employee_id=form.instance.pk %}" class="btn-dropdown-trigger" style="background: #198754; border-color: #198754" title="Nova ocorrência">
+            <i class="fa fa-plus"></i> Nova Ocorrência
+          </a>
+        {% endif %}
+      </div>
     </div>
 
     <form method="POST" id="employeeForm" data-jobs-url="{% url 'rhcontrol:ajax_load_job_titles' %}" novalidate>
-        {% csrf_token %}
-        
-        {% include 'dashboard/pages/employee/components/_form_fields.html' %}
+      {% csrf_token %}
+      {% include 'dashboard/pages/employee/components/_form_fields.html' %}
 
-        <div class="form-buttons">
-            <button type="submit" class="btn-save">Salvar Cadastro</button>
-
-            {% if form.instance.pk %}
-                <a href="{% url 'rhcontrol:employee_delete' pk=form.instance.pk %}" class="btn-delete" onclick="event.preventDefault(); openDeleteModal(this.href);">
-                    <i class="fa fa-trash"></i> Excluir Funcionário
-                </a>
-            {% endif %}
-        </div>
+      <div class="form-buttons">
+        <button type="submit" class="btn-save">Salvar Cadastro</button>
+        {% if form.instance.pk %}
+          <a href="{% url 'rhcontrol:employee_delete' pk=form.instance.pk %}" class="btn-delete" onclick="event.preventDefault(); openDeleteModal(this.href);">
+            <i class="fa fa-trash"></i> Excluir Funcionário
+          </a>
+        {% endif %}
+      </div>
     </form>
-</div>
+  </div>
 
-{% if history_enabled %}
+  {% if history_enabled %}
     {% include 'dashboard/pages/employee/components/_history.html' %}
-{% endif %}
-
-    <dialog id="deleteModal" class="delete-dialog">
-        <div class="dialog-content">
-            <i class="fa fa-exclamation-circle" style="font-size: 3rem; color: #dc3545; margin-bottom: 10px;"></i>
-            <h3>Excluir Registro?</h3>
-            <p>Essa ação não poderá ser desfeita.</p>
-            
-            <div class="dialog-actions">
-                <button onclick="closeDeleteModal()" class="btn-cancel-modal">Cancelar</button>
-                <a id="btnConfirmDelete" href="#" class="btn-confirm-modal">Sim, Excluir</a>
-            </div>
+    
+    {% if is_rh_admin and form.instance.pk %}
+      <div class="history-container">
+        <div class="history-header" style="display: flex; justify-content: space-between; align-items: center">
+          <h3>⚠️ Ocorrências</h3>
+          <div style="display: flex; gap: 0.5rem">
+            <a href="{% url 'rhcontrol:occurrence_create' employee_id=form.instance.pk %}" style="font-size: 1.3rem; color: #198754; text-decoration: none; font-weight: 600;">
+              <i class="fa fa-plus"></i> Nova
+            </a>
+            <a href="{% url 'rhcontrol:occurrence_list' employee_id=form.instance.pk %}" style="font-size: 1.3rem; color: #0d6efd; text-decoration: none; font-weight: 600;">
+              Ver todas <i class="fa fa-arrow-right"></i>
+            </a>
+          </div>
         </div>
-    </dialog>
 
-{% include 'dashboard/pages/employee/components/_scripts.html' %}
+        <ul class="history-list" style="margin: 0; padding: 0">
+          {% for occ in occurrences_top5 %}
+            <li class="history-item" style="display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem;">
+              <span style="white-space: nowrap; font-weight: 700; color: #6c757d; font-size: 1.3rem;">
+                {{ occ.occurrence_date|date:"d/m/Y" }}
+              </span>
+              <span style="flex: 1; font-size: 1.35rem; color: #333">
+                {{ occ.title }}
+              </span>
+              <a href="{% url 'rhcontrol:occurrence_update' employee_id=form.instance.pk pk=occ.pk %}" style="color: #6c757d; font-size: 1.2rem" title="Editar">
+                <i class="fa fa-pencil"></i>
+              </a>
+            </li>
+          {% empty %}
+            <li class="history-empty" style="padding: 1.25rem; text-align: center; color: #999">
+              Nenhuma ocorrência registrada.
+            </li>
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+  {% endif %}
+
+  <dialog id="deleteModal" class="delete-dialog">
+    <div class="dialog-content">
+      <i class="fa fa-exclamation-circle" style="font-size: 3rem; color: #dc3545; margin-bottom: 10px"></i>
+      <h3>Excluir Registro?</h3>
+      <p>Essa ação não poderá ser desfeita.</p>
+      <div class="dialog-actions">
+        <button onclick="closeDeleteModal()" class="btn-cancel-modal">Cancelar</button>
+        <a id="btnConfirmDelete" href="#" class="btn-confirm-modal">Sim, Excluir</a>
+      </div>
+    </div>
+  </dialog>
+
+  {% include 'dashboard/pages/employee/components/_scripts.html' %}
 {% endblock %}

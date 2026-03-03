@@ -410,6 +410,12 @@ def employee_update(request, pk):
     vacations = employee.vacations.all().order_by('-start_date')
     total_hours = sum(t.training_total_hours or 0 for t in attended)
 
+    occurrences_top5 = (
+        employee.occurrences
+        .order_by('-occurrence_date', '-created_at')[:5]
+    )
+    is_rh_admin = request.user.groups.filter(name='RhAdmin').exists()
+
     return render(request, 'dashboard/pages/employee/form.html', {
         'form': form,
         'dependent_formset': formset,
@@ -418,7 +424,9 @@ def employee_update(request, pk):
         'trainings': attended.distinct().order_by('-start_date'),
         'history_log': history_log,
         'vacations': vacations,
-        'total_hours': total_hours
+        'total_hours': total_hours,
+        'occurrences_top5': occurrences_top5,
+        'is_rh_admin': is_rh_admin,
     })
 
 @login_required
