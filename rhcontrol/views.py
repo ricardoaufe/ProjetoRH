@@ -3,7 +3,7 @@ from django.conf import settings
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
-from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department, CareerPlan
+from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department, CareerPlan, Occurrence
 from django.db.models import Q, Prefetch
 from django.core.paginator import Paginator
 from rhcontrol.forms import DependentFormSet, LoginForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet, CareerPlanForm
@@ -405,17 +405,17 @@ def employee_update(request, pk):
     
     # Contexto para renderização (Mantido igual)
     scheduled = employee.scheduled_trainings.all()
-    attended = employee.attended_trainings.all().order_by('-training_date')
+    attended = employee.attended_trainings.all().order_by('-start_date')
     history_log = employee.history.all().order_by('-date_changed')
     vacations = employee.vacations.all().order_by('-start_date')
-    total_hours = sum(t.training_duration for t in attended)
+    total_hours = sum(t.training_total_hours or 0 for t in attended)
 
     return render(request, 'dashboard/pages/employee/form.html', {
         'form': form,
         'dependent_formset': formset,
         'title': 'Editar Funcionário',
         'history_enabled': True,
-        'trainings': attended.distinct().order_by('-training_date'),
+        'trainings': attended.distinct().order_by('-start_date'),
         'history_log': history_log,
         'vacations': vacations,
         'total_hours': total_hours
@@ -572,7 +572,7 @@ def vacation_delete(request, pk):
 
 @login_required
 def training_view(request):
-    training_list = Training.objects.all().order_by('-training_date')
+    training_list = Training.objects.all().order_by('-start_date')
     
     search_query = request.GET.get('search', '')
     date_from = request.GET.get('date_from', '')
@@ -585,10 +585,10 @@ def training_view(request):
         )
 
     if date_from:
-        training_list = training_list.filter(training_date__gte=date_from)
+        training_list = training_list.filter(start_date__gte=date_from)
     
     if date_to:
-        training_list = training_list.filter(training_date__lte=date_to)
+        training_list = training_list.filter(start_date__lte=date_to)
 
     paginator = Paginator(training_list, 15)
     page_number = request.GET.get('page')
@@ -743,6 +743,18 @@ def department_delete(request, pk):
     return render(request, 'dashboard/pages/departments/delete.html', {
         'department': department
     })
+
+
+def occurrences_view(request,pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    occurrence = get_object_or_404(Occurrence, id=pk, employee=employee)
+
+    context = {'employee': employee,}
+
+    return render(request, 'dashboard/pages/employee/orcurrencies.html', context)
+
+
+
 
 # ========= PDFs =========
 @login_required

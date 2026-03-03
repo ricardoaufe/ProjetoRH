@@ -34,9 +34,11 @@ class Vacation(models.Model):
     
 class Training(models.Model):
     training_name = models.CharField(max_length=200, verbose_name="Nome do Treinamento")
-    training_date = models.DateField(verbose_name="Data do Treinamento")
+    start_date = models.DateField(verbose_name="Data de Início", blank=True, null=True)
+    end_date = models.DateField(blank=True, null=True, verbose_name="Data de Fim")
+
     training_provider = models.CharField(max_length=200, blank=True, null=True, verbose_name="Fornecedor do Treinamento")
-    training_duration = models.IntegerField(help_text='Duração em horas', verbose_name="Duração (horas)")
+    training_total_hours = models.IntegerField(help_text='Duração em horas', verbose_name="Duração (horas)")
     training_description = models.TextField(blank=True, null=True, verbose_name="Descrição do Treinamento")
 
     is_fundamental = models.BooleanField(default=False, verbose_name="É Treinamento Fundamental?")
@@ -45,8 +47,16 @@ class Training(models.Model):
     scheduled_employees = models.ManyToManyField('Employee', related_name='scheduled_trainings', blank=True, verbose_name="Funcionários Previstos")
     attended_employees = models.ManyToManyField('Employee', related_name='attended_trainings', blank=True, verbose_name="Funcionários Que Compareceram")
 
+    def clean(self):
+        super().clean()
+        if self.start_date and self.end_date:
+            if self.end_date < self.start_date:
+                raise ValidationError({
+                    'end_date': 'A data de término não pode ser anterior à data de início.'
+                })
+
     def __str__(self):
-        return f'Treinamento: {self.training_name} para {self.employee.name} em {self.training_date}'
+        return f'Treinamento: {self.training_name} em {self.start_date}'
 
 class Department(models.Model):
     name = models.CharField(max_length=100)
@@ -284,9 +294,6 @@ class Employee(models.Model):
                 'cipa_mandate_start_date', 'cipa_mandate_end_date'
             ])
 
-        
-
-
     @property
     def cipa_status(self):
 
@@ -519,3 +526,26 @@ class NotificationLog(models.Model):
 
     def __str__(self):
         return f"Log: {self.rule.event_type} - {self.employee.name} ({self.reference_year})"
+
+class Occurrence(models.Model):
+    employee = models.ForeignKey('Employee', on_delete= models.CASCADE , related_name='occurrences')
+    title = models.CharField(max_length=100, verbose_name="Título", blank=False)
+    description = models.TextField(verbose_name="Descrição", blank=False)
+    occurrence_date = models.DateField(verbose_name="Data", blank=False)   
+
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='occurrencies')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Ocorrência'
+        verbose_name_plural = 'Ocorrências'
+        ordering = ["occurrence_date"]
+
+    def clean(self):
+        super().clean()
+
+        if self.occurrence_date > timezone.now().date():
+            raise ValidationError({'date': 'A data não pode ser no futuro.'})
+
+        

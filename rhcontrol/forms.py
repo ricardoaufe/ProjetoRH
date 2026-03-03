@@ -259,25 +259,38 @@ class TrainingForm(forms.ModelForm):
     class Meta:
         model = Training
         fields = '__all__'
-        
+
         widgets = {
-            'training_date': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'start_date': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'end_date': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'training_total_hours': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 8'}),
             'is_fundamental': forms.CheckboxInput(attrs={'class': 'form-check-input', 'id': 'id_is_fundamental'}),
             'target_department': forms.Select(attrs={'class': 'form-control', 'id': 'id_target_department'}),
-            
             'scheduled_employees': forms.SelectMultiple(attrs={'class': 'form-control', 'size': '10', 'id': 'id_scheduled_employees'}),
             'attended_employees': forms.SelectMultiple(attrs={'class': 'form-control', 'size': '10'}),
         }
 
-    
-    
-        
+    def clean(self):
+        cleaned_data = super().clean()
+        start_date = cleaned_data.get('start_date')
+        end_date = cleaned_data.get('end_date')
+
+        if start_date and end_date and end_date < start_date:
+            self.add_error('end_date', 'A data de término não pode ser anterior à data de início.')
+
+        return cleaned_data
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance.pk:
             self.fields['attended_employees'].queryset = self.instance.scheduled_employees.all()
         else:
             self.fields['attended_employees'].queryset = Employee.objects.none()
+
+class OccurrenceForm(forms.ModelForm):
+    class Meta:
+        model = Employee
+        fields = []
         
 class DepartmentForm(forms.ModelForm):
     class Meta:
@@ -341,8 +354,9 @@ JobTitleFormSet = forms.inlineformset_factory(
     can_delete=True
 )
 
+
+
 class CareerPlanForm(forms.ModelForm):
-    # Campo extra (não vai pro banco de dados do Plano, serve só pra tela)
     proposed_department = forms.ModelChoiceField(
         queryset=Department.objects.all(),
         label='Novo Setor',

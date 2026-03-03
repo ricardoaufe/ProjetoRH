@@ -917,3 +917,77 @@ class CareerPlanEffectiveTests(TestCase):
 
         process_career_plans(dry_run=False)
         self.assertEqual(len(mail.outbox), 1)
+
+
+class TrainingModelTests(TestCase):
+    def setUp(self):
+        self.department = Department.objects.create(name="Produção")
+        self.job_title = JobTitle.objects.create(
+            name="Operador",
+            department=self.department,
+            base_salary=2500.00
+        )
+        self.employee = Employee.objects.create(
+            name="Funcionário Teste",
+            cpf="67134509206",
+            birth_date="1990-01-01",
+            department=self.department,
+            job_title=self.job_title
+        )
+
+    def _make_training(self, **kwargs):
+        defaults = {
+            "training_name": "NR-12 Segurança",
+            "start_date": "2026-03-10",
+            "training_total_hours": 8,
+        }
+        defaults.update(kwargs)
+        return Training(**defaults)
+
+    def test_training_str_is_correct(self):
+        t = Training.objects.create(
+            training_name="NR-10",
+            start_date="2026-03-01",
+            training_total_hours=4,
+        )
+        self.assertIn("NR-10", str(t))
+        self.assertIn("2026-03-01", str(t))
+
+    def test_end_date_before_start_date_raises_validation_error(self):
+        from django.core.exceptions import ValidationError
+        t = self._make_training(start_date="2026-03-10", end_date="2026-03-05")
+        with self.assertRaises(ValidationError) as cm:
+            t.full_clean()
+        self.assertIn("end_date", cm.exception.message_dict)
+
+    def test_end_date_equal_to_start_date_is_valid(self):
+        from django.core.exceptions import ValidationError
+        t = self._make_training(start_date="2026-03-10", end_date="2026-03-10")
+        try:
+            t.full_clean()
+        except ValidationError as e:
+            if "end_date" in e.message_dict:
+                self.fail("ValidationError raised for equal start/end date: " + str(e))
+
+    def test_end_date_after_start_date_is_valid(self):
+        from django.core.exceptions import ValidationError
+        t = self._make_training(start_date="2026-03-10", end_date="2026-03-20")
+        try:
+            t.full_clean()
+        except ValidationError as e:
+            if "end_date" in e.message_dict:
+                self.fail("Unexpected end_date ValidationError: " + str(e))
+
+    def test_total_hours_sum_uses_training_total_hours(self):
+        t1 = Training.objects.create(
+            training_name="NR-10", start_date="2026-03-01", training_total_hours=4
+        )
+        t2 = Training.objects.create(
+            training_name="NR-12", start_date="2026-03-05", training_total_hours=8
+        )
+        t1.attended_employees.add(self.employee)
+        t2.attended_employees.add(self.employee)
+
+        attended = self.employee.attended_trainings.all()
+        total = sum(t.training_total_hours or 0 for t in attended)
+        self.assertEqual(total, 12)

@@ -71,20 +71,10 @@ def get_events_for_notification() -> list[dict]:
                 })
 
         elif rule.event_type == EventTypes.TRAINING_DUE:
-            trainings = Training.objects.filter(
-                due_date=target_date
-            ).select_related('employee')
-            
-            for training in trainings:
-                events_to_notify.append({
-                    'event_type': rule.event_type,
-                    'rule': rule,
-                    'employee': training.employee,
-                    'related_object': training,
-                    'event_date': training.due_date,
-                    'reference_year': training.due_date.year
-                })
-        
+            # NOTE: Training model does not have a 'due_date' or per-employee FK.
+            # This handler is intentionally left as a no-op until those fields are added.
+            pass
+
     return events_to_notify
 
 def get_active_recipients_queryset_for_rule(rule) -> QuerySet:
@@ -576,7 +566,7 @@ def _ue_generate_vacations(start: date, end: date, filters: dict) -> list[dict]:
 
 def _ue_generate_trainings(start: date, end: date, filters: dict) -> list[dict]:
     events: list[dict] = []
-    qs = Training.objects.filter(training_date__range=(start, end))
+    qs = Training.objects.filter(start_date__range=(start, end))
 
     if filters.get("department_id"):
         qs = qs.filter(target_department_id=filters["department_id"])
@@ -586,7 +576,7 @@ def _ue_generate_trainings(start: date, end: date, filters: dict) -> list[dict]:
     for t in qs:
         _ue_append(
             events,
-            date=t.training_date, category="TRAINING_DATE",
+            date=t.start_date, category="TRAINING_DATE",
             title=f"Treinamento: {t.training_name}",
             object_type="training", object_id=t.pk,
             department_name=t.target_department.name if t.target_department_id else None,

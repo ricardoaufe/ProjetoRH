@@ -143,9 +143,10 @@
         <thead>
             <tr>
                 <th><a href="?sort=training_name&q={{ request.GET.search|default_if_none:''}}&start={{ request.GET.status|default_if_none:''}}"><span>Treinamento</span></a></th>
-                <th><a href="?sort=training_date&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Data do treinamento</span></a></th>
+                <th><a href="?sort=start_date&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Data de Início</span></a></th>
+                <th><a href="?sort=end_date&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Data de Término</span></a></th>
                 <th><a href="?sort=training_provider&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Ministrado por:</span></a></th>
-                <th><a href="?sort=training_duration&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Duração treinamento (horas)</span></a></th>
+                <th><a href="?sort=training_total_hours&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Duração (horas)</span></a></th>
             </tr>
         </thead>
 
@@ -153,9 +154,10 @@
             {% for training in object_list %}
             <tr>
                 <td><a href="{% url 'rhcontrol:training_update' training.pk %}">{{training.training_name}}</a></td>
-                <td>{{training.training_date|date:"d/m/Y"}}</td>
+                <td>{{training.start_date|date:"d/m/Y"}}</td>
+                <td>{{training.end_date|date:"d/m/Y"|default:"-"}}</td>
                 <td>{{training.training_provider}}</td>
-                <td>{{training.training_duration}}</td>
+                <td>{{training.training_total_hours}}</td>
             </tr>
             {% empty %}
             <tr>

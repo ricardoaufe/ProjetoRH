@@ -14,9 +14,10 @@
 
         <div class="form-content">  
             {% include 'partials/form_field.html' with field=form.training_name label="Nome do Treinamento" %}
-            {% include 'partials/form_field.html' with field=form.training_date label="Data do Treinamento" %}
+            {% include 'partials/form_field.html' with field=form.start_date label="Data de Início" %}
+            {% include 'partials/form_field.html' with field=form.end_date label="Data de Término" %}
             {% include 'partials/form_field.html' with field=form.training_provider label="Fornecedor" %}
-            {% include 'partials/form_field.html' with field=form.training_duration label="Duração (horas)" %}
+            {% include 'partials/form_field.html' with field=form.training_total_hours label="Duração (horas)" %}
             
             <div style="grid-column: 1 / -1;">
                 {% include 'partials/form_field.html' with field=form.training_description label="Descrição" %}
