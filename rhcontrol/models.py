@@ -537,12 +537,6 @@ class Occurrence(models.Model):
     title = models.CharField(max_length=100, verbose_name='Título')
     description = models.TextField(verbose_name='Descrição')
     occurrence_date = models.DateField(verbose_name='Data da Ocorrência')
-    attachment = models.FileField(
-        upload_to='occurrences/',
-        null=True,
-        blank=True,
-        verbose_name='Anexo',
-    )
 
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,

@@ -1,12 +1,11 @@
 from decimal import Decimal
 import inspect
 
-from attrs import inspect
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
 from django.contrib.staticfiles import finders
-from rhcontrol.models import CareerPlan, Employee, EventTypes, JobTitle, NotificationRecipient, NotificationRule,NotificationLog, Training, Vacation, Department
+from rhcontrol.models import CareerPlan, Employee, EventTypes, JobTitle, NotificationRecipient, NotificationRule,NotificationLog, Training, Vacation, Department, Occurrence
 from rhcontrol.forms import EmployeeForm
 from datetime import datetime, timedelta
 from django.utils import timezone

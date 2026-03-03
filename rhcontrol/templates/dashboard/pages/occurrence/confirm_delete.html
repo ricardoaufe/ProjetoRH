@@ -1,9 +1,9 @@
-{% extends 'global/base.html' %} {% block title %} Excluir Ocorrência | {{
-employee.name }} | {% endblock title %} {% block content %}
-<div
-  class="form-container"
-  style="max-width: 600px; text-align: center; padding: 40px"
->
+{% extends 'global/base.html' %}
+
+{% block title %} Excluir Ocorrência | {{ employee.name }} | {% endblock title %}
+
+{% block content %}
+<div class="form-container" style="max-width: 600px; text-align: center; padding: 40px; margin: 0 auto;">
   <h2 style="color: #dc3545">Tem certeza?</h2>
 
   <p style="font-size: 2rem; margin: 20px 0">
@@ -11,16 +11,7 @@ employee.name }} | {% endblock title %} {% block content %}
     <strong>{{ employee.name }}</strong>
   </p>
 
-  <div
-    style="
-      background: #f8d7da;
-      border: 1px solid #f5c2c7;
-      border-radius: 6px;
-      padding: 16px;
-      margin-bottom: 8px;
-      text-align: left;
-    "
-  >
+  <div style="background: #f8d7da; border: 1px solid #f5c2c7; border-radius: 6px; padding: 16px; margin-bottom: 20px; text-align: left;">
     <p style="margin: 0; font-size: 1.5rem">
       <strong>Título:</strong> {{ object.title }}
     </p>
@@ -32,49 +23,20 @@ employee.name }} | {% endblock title %} {% block content %}
     </p>
   </div>
 
-  <div
-    style="
-      background: #fff3cd;
-      color: #856404;
-      padding: 15px;
-      border-radius: 5px;
-      margin-bottom: 20px;
-    "
-  >
+  <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
     ⚠️ Esta ação é irreversível.
   </div>
 
   <form method="POST">
     {% csrf_token %}
-
     <div style="display: flex; gap: 15px; justify-content: center">
-      <a
-        href="{% url 'rhcontrol:occurrence_list' employee_id=employee.pk %}"
-        style="
-          padding: 10px 20px;
-          background: #6c757d;
-          color: white;
-          text-decoration: none;
-          border-radius: 5px;
-        "
-      >
+      <a href="{% url 'rhcontrol:occurrence_list' employee_id=employee.pk %}" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px;">
         Cancelar
       </a>
-
-      <button
-        type="submit"
-        style="
-          padding: 10px 20px;
-          background: #dc3545;
-          color: white;
-          border: none;
-          border-radius: 5px;
-          cursor: pointer;
-        "
-      >
+      <button type="submit" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
         Confirmar Exclusão
       </button>
     </div>
   </form>
 </div>
-{% endblock %}
+{% endblock content %}

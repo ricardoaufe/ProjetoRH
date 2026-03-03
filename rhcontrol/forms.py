@@ -290,7 +290,7 @@ class TrainingForm(forms.ModelForm):
 class OccurrenceForm(forms.ModelForm):
     class Meta:
         model = Occurrence
-        fields = ['title', 'description', 'occurrence_date', 'attachment']
+        fields = ['title', 'description', 'occurrence_date']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
