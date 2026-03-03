@@ -745,17 +745,6 @@ def department_delete(request, pk):
     })
 
 
-def occurrences_view(request,pk):
-    employee = get_object_or_404(Employee, pk=pk)
-    occurrence = get_object_or_404(Occurrence, id=pk, employee=employee)
-
-    context = {'employee': employee,}
-
-    return render(request, 'dashboard/pages/employee/orcurrencies.html', context)
-
-
-
-
 # ========= PDFs =========
 @login_required
 def create_employee_list_pdf(request):

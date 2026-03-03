@@ -289,9 +289,34 @@ class TrainingForm(forms.ModelForm):
 
 class OccurrenceForm(forms.ModelForm):
     class Meta:
-        model = Employee
-        fields = []
-        
+        from rhcontrol.models import Occurrence
+        model = Occurrence
+        fields = ['title', 'description', 'occurrence_date', 'attachment']
+        widgets = {
+            'title': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Título da ocorrência',
+            }),
+            'description': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Descreva a ocorrência...',
+            }),
+            'occurrence_date': forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'class': 'form-control', 'type': 'date'},
+            ),
+            'attachment': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Default occurrence_date to today when creating a new record
+        if not self.instance.pk and not self.initial.get('occurrence_date'):
+            from django.utils import timezone
+            self.initial['occurrence_date'] = timezone.localdate()
+
+
 class DepartmentForm(forms.ModelForm):
     class Meta:
         model = Department

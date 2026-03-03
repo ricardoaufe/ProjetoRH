@@ -1,0 +1,47 @@
+{% extends 'global/base.html' %} {% block title %} {{ title|default:"Ocorrência"
+}} | {{ employee.name }} | {% endblock title %} {% block content %}
+<div class="form-container">
+  <h2>{{ title|default:"Ocorrência" }}</h2>
+  <p style="color: #6c757d; font-size: 1.4rem; margin-top: -0.5rem">
+    Funcionário: <strong>{{ employee.name }}</strong>
+  </p>
+
+  <form
+    method="POST"
+    action="{{ form_action }}"
+    enctype="multipart/form-data"
+    id="occurrenceForm"
+  >
+    {% csrf_token %}
+
+    <div class="form-content">
+      {% include 'partials/form_field.html' with field=form.title label="Título"
+      %} {% include 'partials/form_field.html' with field=form.description
+      label="Descrição" %} {% include 'partials/form_field.html' with
+      field=form.occurrence_date label="Data da Ocorrência" %} {% include
+      'partials/form_field.html' with field=form.attachment label="Anexo
+      (opcional)" %}
+    </div>
+
+    <div class="form-actions">
+      <a
+        href="{% url 'rhcontrol:occurrence_list' employee_id=employee.pk %}"
+        class="btn btn-secondary"
+      >
+        Cancelar
+      </a>
+
+      <button type="submit" class="btn-save">Salvar Ocorrência</button>
+
+      {% if object.pk %}
+      <a
+        href="{% url 'rhcontrol:occurrence_delete' employee_id=employee.pk pk=object.pk %}"
+        class="btn-delete"
+      >
+        <i class="fa fa-trash"></i> Excluir
+      </a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+{% endblock content %}

@@ -1,0 +1,133 @@
+{% extends 'global/base.html' %} {% block title %} Ocorrências | {{
+employee.name }} | {% endblock title %} {% block content %}
+<div class="list-container">
+  <div
+    class="page-header"
+    style="
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    "
+  >
+    <div>
+      <h1>Ocorrências</h1>
+      <p style="margin: 0; color: #6c757d; font-size: 1.4rem">
+        Funcionário: <strong>{{ employee.name }}</strong>
+      </p>
+    </div>
+    <div class="header-actions" style="display: flex; gap: 0.625rem">
+      <a
+        href="{% url 'rhcontrol:employee_update' pk=employee.pk %}"
+        class="btn btn-secondary"
+      >
+        <i class="fa fa-arrow-left"></i> Voltar
+      </a>
+      <a
+        href="{% url 'rhcontrol:occurrence_create' employee_id=employee.pk %}"
+        class="btn btn-primary"
+      >
+        <i class="fa fa-plus"></i> Nova Ocorrência
+      </a>
+    </div>
+  </div>
+
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Data</th>
+        <th>Título</th>
+        <th>Descrição</th>
+        <th>Anexo</th>
+        <th>Registrado por</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for occurrence in occurrences %}
+      <tr>
+        <td style="white-space: nowrap">
+          {{ occurrence.occurrence_date|date:"d/m/Y" }}
+        </td>
+        <td><strong>{{ occurrence.title }}</strong></td>
+        <td style="max-width: 400px">
+          {{ occurrence.description|truncatechars:120 }}
+        </td>
+        <td>
+          {% if occurrence.attachment %}
+          <a
+            href="{{ occurrence.attachment.url }}"
+            target="_blank"
+            title="Ver anexo"
+          >
+            <i class="fa fa-paperclip"></i> Anexo
+          </a>
+          {% else %}
+          <span style="color: #aaa">—</span>
+          {% endif %}
+        </td>
+        <td>
+          {{
+          occurrence.created_by.get_full_name|default:occurrence.created_by.username|default:"—"
+          }}
+        </td>
+        <td style="white-space: nowrap">
+          <a
+            href="{% url 'rhcontrol:occurrence_update' employee_id=employee.pk pk=occurrence.pk %}"
+            class="btn btn-sm btn-outline-primary"
+            title="Editar"
+          >
+            <i class="fa fa-edit"></i>
+          </a>
+          <a
+            href="{% url 'rhcontrol:occurrence_delete' employee_id=employee.pk pk=occurrence.pk %}"
+            class="btn btn-sm btn-outline-danger"
+            title="Excluir"
+          >
+            <i class="fa fa-trash"></i>
+          </a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td
+          colspan="6"
+          style="text-align: center; padding: 2rem; color: #6c757d"
+        >
+          Nenhuma ocorrência registrada para este funcionário.
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  {% if is_paginated %}
+  <div
+    style="
+      display: flex;
+      justify-content: center;
+      margin-top: 1.5rem;
+      gap: 0.5rem;
+    "
+  >
+    {% if page_obj.has_previous %}
+    <a
+      href="?page={{ page_obj.previous_page_number }}"
+      class="btn btn-sm btn-outline-secondary"
+      >&laquo; Anterior</a
+    >
+    {% endif %}
+    <span style="padding: 0.4rem 0.8rem; font-size: 1.3rem; color: #6c757d">
+      Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+    </span>
+    {% if page_obj.has_next %}
+    <a
+      href="?page={{ page_obj.next_page_number }}"
+      class="btn btn-sm btn-outline-secondary"
+      >Próxima &raquo;</a
+    >
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+{% endblock content %}
