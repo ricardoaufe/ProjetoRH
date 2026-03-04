@@ -70,8 +70,8 @@ urlpatterns = [
     path('vacation/pdf/', views.create_vacation_list_pdf, name='vacation_list_pdf'),
 
     #OCCURRENCES
-    path('employees/<int:employee_id>/occurrences/',          occurrence_views.OccurrenceListView.as_view(),   name='occurrence_list'),
-    path('employees/<int:employee_id>/occurrences/create/',   occurrence_views.OccurrenceCreateView.as_view(), name='occurrence_create'),
-    path('employees/<int:employee_id>/occurrences/<int:pk>/edit/',   occurrence_views.OccurrenceUpdateView.as_view(), name='occurrence_update'),
+    path('employees/<int:employee_id>/occurrences/', occurrence_views.OccurrenceListView.as_view(), name='occurrence_list'),
+    path('employees/<int:employee_id>/occurrences/create/', occurrence_views.OccurrenceCreateView.as_view(), name='occurrence_create'),
+    path('employees/<int:employee_id>/occurrences/<int:pk>/edit/', occurrence_views.OccurrenceUpdateView.as_view(), name='occurrence_update'),
     path('employees/<int:employee_id>/occurrences/<int:pk>/delete/', occurrence_views.OccurrenceDeleteView.as_view(), name='occurrence_delete'),
 ]
