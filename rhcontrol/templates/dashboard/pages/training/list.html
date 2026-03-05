@@ -4,7 +4,6 @@
 
 {% block content %}
 <style>
-
     .filter-bar {
         background-color: #f8f9fa;
         padding: 15px;
@@ -103,27 +102,35 @@
         text-decoration: none;
     }
     
-    .btn-clear:hover btn-delete:hover{
+    .btn-clear:hover, .btn-delete:hover {
         background-color: #a71d2a;
         color: white;
     }
-
-
 </style>
-<body>
-<div class= "list-container">
 
-    <div class= "page-header">
+<div class="list-container">
+    <div class="page-header">
         <h1>Lista de Treinamentos</h1>
-        <a href="{% url 'rhcontrol:training_create' %}"  class="btn btn-primary">Adicionar treinamentos</a>
+        <a href="{% url 'rhcontrol:training_create' %}" class="btn btn-primary">Adicionar treinamentos</a>
     </div>
 
     <div class="status-filters">
-        <a href="{% url 'rhcontrol:training_list' %}" class="{% if not request.GET.status %}active{% endif %}">Todos</a>
+        <a href="?status=&search={{ search_query }}&date_from={{ date_from }}&date_to={{ date_to }}" 
+           class="{% if not status %}active{% endif %}">Todos</a>
+           
+        <a href="?status=proximos&search={{ search_query }}&date_from={{ date_from }}&date_to={{ date_to }}" 
+           class="{% if status == 'proximos' %}active{% endif %}">Próximos</a>
+           
+        <a href="?status=pendentes&search={{ search_query }}&date_from={{ date_from }}&date_to={{ date_to }}" 
+           class="{% if status == 'pendentes' %}active{% endif %}">Pendentes de Presença</a>
+           
+        <a href="?status=realizados&search={{ search_query }}&date_from={{ date_from }}&date_to={{ date_to }}" 
+           class="{% if status == 'realizados' %}active{% endif %}">Realizados</a>
     </div>
 
     <div class="filter-bar">
         <form method="GET" action="{% url 'rhcontrol:training_list' %}" class="search-form">
+            <input type="hidden" name="status" value="{{ status|default_if_none:'' }}">
             
             <div class="filter-group name-group">
                 <input type="text" name="search" placeholder="Treinamento ou Fornecedor..." value="{{ search_query }}">
@@ -145,7 +152,7 @@
                 </button>
                 
                 {% if search_query or date_from or date_to %}
-                    <a href="{% url 'rhcontrol:training_list' %}" class="btn-clear" title="Limpar Filtros">
+                    <a href="?status={{ status|default_if_none:'' }}" class="btn-clear" title="Limpar Filtros">
                         <i class="fa fa-times"></i>
                     </a>
                 {% endif %}
@@ -156,11 +163,11 @@
     <table class="data-table">
         <thead>
             <tr>
-                <th><a href="?sort=training_name&q={{ request.GET.search|default_if_none:''}}&start={{ request.GET.status|default_if_none:''}}"><span>Treinamento</span></a></th>
-                <th><a href="?sort=start_date&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Data de Início</span></a></th>
-                <th><a href="?sort=end_date&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Data de Término</span></a></th>
-                <th><a href="?sort=training_provider&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Ministrado por:</span></a></th>
-                <th><a href="?sort=training_total_hours&q={{ request.GET.q|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Duração (horas)</span></a></th>
+                <th><a href="?sort=training_name&search={{ request.GET.search|default_if_none:''}}&status={{ request.GET.status|default_if_none:''}}"><span>Treinamento</span></a></th>
+                <th><a href="?sort=start_date&search={{ request.GET.search|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Data de Início</span></a></th>
+                <th><a href="?sort=end_date&search={{ request.GET.search|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Data de Término</span></a></th>
+                <th><a href="?sort=training_provider&search={{ request.GET.search|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Ministrado por:</span></a></th>
+                <th><a href="?sort=training_total_hours&search={{ request.GET.search|default_if_none:'' }}&status={{ request.GET.status|default_if_none:'' }}"><span>Duração (horas)</span></a></th>
             </tr>
         </thead>
 
@@ -175,13 +182,10 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6" style="text-align: center;" >Nenhum treinamento cadastrado.</td>
+                <td colspan="5" style="text-align: center;">Nenhum treinamento cadastrado.</td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
-            
-</body>
-
-</html>
-{% endblock content%}
+</div> 
+{% endblock content %}

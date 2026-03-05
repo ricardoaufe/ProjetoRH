@@ -4,7 +4,7 @@ from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
 from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department, CareerPlan, Occurrence
-from django.db.models import Q, Prefetch
+from django.db.models import Q, Prefetch, Count
 from django.core.paginator import Paginator
 from rhcontrol.forms import DependentFormSet, LoginForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet, CareerPlanForm
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
@@ -580,11 +580,14 @@ def vacation_delete(request, pk):
 
 @login_required
 def training_view(request):
-    training_list = Training.objects.all().order_by('-start_date')
+    training_list = Training.objects.annotate(
+        num_attended=Count('attended_employees')
+    ).order_by('-start_date')
     
     search_query = request.GET.get('search', '')
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
+    status = request.GET.get('status', '')
 
     if search_query:
         training_list = training_list.filter(
@@ -598,6 +601,17 @@ def training_view(request):
     if date_to:
         training_list = training_list.filter(start_date__lte=date_to)
 
+    today = timezone.now().date()
+
+    if status == 'proximos':
+        training_list = training_list.filter(start_date__gte=today)
+    elif status == 'pendentes':
+        training_list = training_list.filter(start_date__lt=today, num_attended=0)
+    elif status == 'realizados':
+        training_list = training_list.filter(start_date__lt=today, num_attended__gt=0)
+
+
+
     paginator = Paginator(training_list, 15)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -607,6 +621,7 @@ def training_view(request):
         'search_query': search_query,
         'date_from': date_from,
         'date_to': date_to,
+        'status': status,
     }
     return render(request, 'dashboard/pages/training/list.html', context)
 
