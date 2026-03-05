@@ -12,11 +12,35 @@
         <div class="menu-item dropdown-container">
             <span class="menu-link"><i class="fa-solid fa-user-plus"></i> Cadastros <i class="fa-solid fa-caret-down"></i></span>
             <div class="dropdown">
+                {% if perms.rhcontrol.view_employee %}
                 <a href="{% url 'rhcontrol:employee_list' %}">Funcionários</a>
+                {% else%}
+                <a href="#" class="disabled-link" title="Sem permissão">Funcionários</a>
+                {% endif %}
+
+                {% if perms.rhcontrol.view_vacation %}
                 <a href="{% url 'rhcontrol:vacation_list'%}">Férias</a>
+                {% else %}
+                <a href="#" class="disabled-link" title="Sem permissão">Férias </a>
+                {% endif %}
+
+                {% if perms.rhcontrol.view_training %}
                 <a href="{% url 'rhcontrol:training_list'%}">Treinamentos</a>
+                {% else %}
+                <a href="#" class="disabled-link" title="Sem permissão">Treinamentos </i></a>
+                {% endif %}
+
+                {% if perms.rhcontrol.view_department %}    
                 <a href="{% url 'rhcontrol:department_list'%}">Setores</a>
+                {% else %}
+                <a href="#" class="disabled-link" title="Sem permissão">Setores </a>
+                {% endif %}
+
+                {% if perms.rhcontrol.view_careerplan %}
                 <a href="{% url 'rhcontrol:career_plan_list'%}">Plano de Carreira</a>
+                {% else %}
+                <a href="#" class="disabled-link" title="Sem permissão">Plano de Carreira </a>
+                {% endif %}
             </div>
         </div>
         

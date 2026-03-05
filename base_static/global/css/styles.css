@@ -899,3 +899,10 @@ small{
     position: relative !important;
     z-index: 1;
 }
+
+.disabled-link {
+    color: #a0a0a0 !important;
+    pointer-events: none; 
+    cursor: not-allowed;
+    background-color: transparent !important;
+}

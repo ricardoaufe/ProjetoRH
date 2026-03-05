@@ -10,7 +10,7 @@ from rhcontrol.forms import DependentFormSet, LoginForm, UserUpdateForm, Employe
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import User
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.http import require_POST
 from django.contrib import messages 
@@ -123,7 +123,7 @@ def dashboard_view(request):
 
     return render(request, 'dashboard/pages/dashboard.html', context)
 
-
+@permission_required('rhcontrol.view_event', raise_exception=True)
 @login_required
 def upcoming_events_view(request):
     """
@@ -260,10 +260,12 @@ def change_password(request):
     })
 
 #Funcionários
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 @login_required
 def employees(request):
     return render(request, 'dashboard/pages/employee/list.html')
 
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 @login_required
 def employee_view(request):
     limit_date = timezone.now().date() - timedelta(days=366)
@@ -310,6 +312,7 @@ def employee_view(request):
     }
     return render(request, 'dashboard/pages/employee/list.html', context)
 
+@permission_required('rhcontrol.add_employee', raise_exception=True)
 @login_required
 def employee_create(request):
     if request.method == 'POST':
@@ -347,6 +350,7 @@ def employee_create(request):
         'title': 'Cadastrar Funcionário'
     })
 
+@permission_required('rhcontrol.change_employee', raise_exception=True)
 @login_required
 def employee_update(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
@@ -461,6 +465,7 @@ def delete_history_log(request, pk):
     # Redireciona de volta para a edição do funcionário
     return redirect('rhcontrol:employee_update', pk=employee_id)
 
+@permission_required('rhcontrol.delete_employee', raise_exception=True)
 @login_required
 def employee_delete(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
@@ -495,6 +500,7 @@ def get_job_salary(request):
     return JsonResponse({'salary': job.base_salary})
 
 #VACATIONS
+@permission_required('rhcontrol.view_vacation', raise_exception=True)
 @login_required
 def vacation_view(request):
     vacation_list = Vacation.objects.select_related('employee').all()
@@ -534,6 +540,7 @@ def vacation_view(request):
     }
     return render(request, 'dashboard/pages/vacation/list.html', context)
 
+@permission_required('rhcontrol.add_vacation', raise_exception=True)
 @login_required
 def vacation_create(request):
     if request.method == 'POST':
@@ -572,6 +579,7 @@ def vacation_create(request):
         'title': 'Cadastrar Férias'
     })
 
+@permission_required('rhcontrol.change_vacation', raise_exception=True)
 @login_required
 def vacation_update(request, pk):
     vacation = get_object_or_404(Vacation, pk=pk)
@@ -587,6 +595,7 @@ def vacation_update(request, pk):
         'title': 'Editar Férias'
     })
 
+@permission_required('rhcontrol.delete_vacation', raise_exception=True)
 @login_required
 def vacation_delete(request, pk):
     vacation = get_object_or_404(Vacation, pk=pk)
@@ -600,6 +609,7 @@ def vacation_delete(request, pk):
         'vacation': vacation
     })
 
+@permission_required('rhcontrol.view_training', raise_exception=True)
 @login_required
 def training_view(request):
     training_list = Training.objects.annotate(
@@ -647,6 +657,7 @@ def training_view(request):
     }
     return render(request, 'dashboard/pages/training/list.html', context)
 
+@permission_required('rhcontrol.add_training', raise_exception=True)
 @login_required
 def training_create(request):
     if request.method == 'POST':
@@ -680,6 +691,7 @@ def training_create(request):
     
     return render(request, 'dashboard/pages/training/form.html', {'form': form})
 
+@permission_required('rhcontrol.change_training', raise_exception=True)
 @login_required
 def training_update(request, pk):
     training = get_object_or_404(Training, pk=pk)
@@ -695,6 +707,7 @@ def training_update(request, pk):
         'title': 'Editar Treinamento'
     })    
 
+@permission_required('rhcontrol.delete_training', raise_exception=True)
 @login_required
 def training_delete(request, pk):
     training = get_object_or_404(Training, pk=pk)
@@ -708,6 +721,7 @@ def training_delete(request, pk):
         'training': training
     })
 
+@permission_required('rhcontrol.view_department', raise_exception=True)
 @login_required
 def department_list(request):
     departments = Department.objects.all().order_by('name') 
@@ -727,6 +741,7 @@ def department_list(request):
     
     return render(request, 'dashboard/pages/departments/list.html', context)
 
+@permission_required('rhcontrol.add_department', raise_exception=True)
 @login_required
 def department_create(request):
     if request.method == 'POST':
@@ -750,6 +765,7 @@ def department_create(request):
         'title': 'Cadastrar Setores'
     })
 
+@permission_required('rhcontrol.change_department', raise_exception=True)
 @login_required
 def department_update(request, pk):
     department = get_object_or_404(Department, pk=pk)
@@ -776,6 +792,7 @@ def department_update(request, pk):
         'title': 'Editar Setor'
     })    
 
+@permission_required('rhcontrol.delete_department', raise_exception=True)
 @login_required
 def department_delete(request, pk):
     department = get_object_or_404(Department, pk=pk)
@@ -1144,6 +1161,7 @@ def ajax_load_jobs_by_department(request):
         
     return JsonResponse({'success': False, 'jobs': []})
 
+@permission_required('rhcontrol.view_careerplan', raise_exception=True)
 @login_required
 def career_plan_list(request):
     """ View para listar todos os planos com filtros de busca, data, status e ordenação """
