@@ -2,14 +2,42 @@
    dashboard.css  —  Dashboard card styles
    ════════════════════════════════════════════════════════════ */
 
-/* ── Full-width second row ───────────────────────────────── */
+/* ── Full-width second row (Split Flexbox) ───────────────── */
 .upcoming-events-row {
     margin-top: 20px;
+    display: flex;
+    gap: 20px;
+    align-items: stretch; /* Faz os dois cards terem a mesma altura */
 }
-.upcoming-events-row .upcoming-events-card {
-    width: 100%;
-    max-width: 100%;
+
+/* Os dois cards dividem o espaço igualmente (50/50) */
+.upcoming-events-card,
+.chart-card {
+    flex: 1;
+    min-width: 0; /* Previne que o card vaze da tela em resoluções menores */
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    cursor: default;
+}
+
+/* ── Chart Container ─────────────────────────────────────── */
+.chart-wrapper {
+    position: relative;
+    width: 100%;
+    flex: 1;
+    min-height: 350px; /* Garante o espaço mínimo para pintar o gráfico */
+    margin-top: 15px;
+}
+
+/* Responsividade: Empilha o gráfico debaixo dos eventos em telas menores */
+@media (max-width: 992px) {
+    .upcoming-events-row {
+        flex-direction: column;
+    }
+    .chart-wrapper {
+        height: 350px;
+    }
 }
 
 /* ── "+X mais eventos" overflow label ───────────────────── */

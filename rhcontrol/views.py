@@ -81,22 +81,44 @@ def dashboard_view(request):
 
     employees_count = Employee.objects.count()
     vacations_count = Vacation.objects.count()
-
-    # Fixed 30-day window — no query parameters accepted
+    hire_date = Employee.hire_date
     today = timezone.localdate()
+   
+    date_1_year = today - timedelta(days=365)
+    date_3_years = today - timedelta(days=365*3)
+    date_5_years = today - timedelta(days=365*5)
+    date_10_years = today - timedelta(days=365*10)
+    date_15_years = today - timedelta(days=365*15)
+
+    count_less_1 = Employee.objects.filter(hire_date__gte=date_1_year).count()
+    count_1_to_3 = Employee.objects.filter(hire_date__lt=date_1_year, hire_date__gte=date_3_years).count()
+    count_3_to_5 = Employee.objects.filter(hire_date__lt=date_3_years, hire_date__gte=date_5_years).count()
+    count_5_to_10 = Employee.objects.filter(hire_date__lt=date_5_years, hire_date__gte=date_10_years).count()
+    count_10_to_15 = Employee.objects.filter(hire_date__lt=date_10_years, hire_date__gte=date_15_years).count()
+    count_more_15 = Employee.objects.filter(hire_date__lt=date_15_years).count()
+
     events = get_upcoming_events(
         start_date=today,
         end_date=today + timedelta(days=30),
         limit=200,
     )
-
     _VISIBLE_LIMIT = 8
+
     context = {
         'employees_count':            employees_count,
         'vacations_count':            vacations_count,
         'upcoming_events_count':      len(events),
         'upcoming_events_top':        events[:_VISIBLE_LIMIT],
         'upcoming_events_more_count': max(0, len(events) - _VISIBLE_LIMIT),
+
+        'chart_data': [
+            count_less_1,
+            count_1_to_3,
+            count_3_to_5,
+            count_5_to_10,
+            count_10_to_15,
+            count_more_15,  
+        ]
     }
 
     return render(request, 'dashboard/pages/dashboard.html', context)
