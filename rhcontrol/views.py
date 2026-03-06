@@ -6,10 +6,10 @@ from django.urls import reverse
 from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department, CareerPlan, Occurrence
 from django.db.models import Q, Prefetch, Count
 from django.core.paginator import Paginator
-from rhcontrol.forms import DependentFormSet, LoginForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet, CareerPlanForm
+from rhcontrol.forms import DependentFormSet, LoginForm, RoleGroupFrom, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet, CareerPlanForm
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, Permission, User
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.http import require_POST
@@ -18,6 +18,8 @@ from datetime import timedelta, timezone
 from django.utils import timezone
 from django.template.loader import render_to_string
 from weasyprint import HTML
+
+from rhcontrol.utils import RH_PERMISSION_MATRIX
 
 
 def login_view(request):
@@ -1350,3 +1352,38 @@ def career_plan_delete(request, pk):
         messages.warning(request, "Este plano não pode ser excluído.")
 
     return redirect('rhcontrol:career_plan_list')
+
+@login_required
+def role_create_view(request):
+    if request.method == 'POST':
+        form = RoleGroupFrom(request.POST)
+        if form.is_valid():
+            new_group = form.save()
+            permissions_selected = request.POST.getlist('permissions')
+
+            if permissions_selected:
+                real_permissions = Permission.objects.filter(codename__in=permissions_selected)
+                new_group.permissions.set(real_permissions)
+
+            return redirect('rhcontrol:role_list')
+        
+        else:
+            form = RoleGroupFrom()
+        
+
+        context = {
+            'form': form,
+            'permission_matrix': RH_PERMISSION_MATRIX
+        }
+        return render(request, 'dashboard/pages/role/form.html', context)
+
+@login_required
+@permission_required('auth.view_group', raise_exception=True)
+def role_list_view(request):
+
+    roles = Group.objects.annotate(num_users=Count('user')).order_by('name')
+    
+    context = {
+        'roles': roles
+    }
+    return render(request, 'rhcontrol/role_list.html', context)

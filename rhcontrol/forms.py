@@ -1,7 +1,7 @@
 from datetime import date
 from decimal import Decimal
 from django import forms 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Group, User
 from rhcontrol.models import Dependent, Employee, JobTitle, Training, Vacation, Department, CareerPlan, Occurrence
 
 class LoginForm(forms.Form):
@@ -431,3 +431,21 @@ class CareerPlanForm(forms.ModelForm):
             self.fields['proposed_job'].queryset = JobTitle.objects.filter(
                 department=self.instance.proposed_job.department
             ).order_by('name')
+
+class RoleGroupFrom(forms.ModelForm):
+    class Meta:
+        model = Group
+        fields = ['name']
+        labels = {
+            'name': 'Nome do Perfil de Acesso',
+        }
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Nome do Perfil de Acesso'}),
+        }
+
+    def save(self, commit=True):
+        group = super().save(commit=False)
+        if commit:
+            group.save()
+        
+        return group

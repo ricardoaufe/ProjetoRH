@@ -1,0 +1,58 @@
+{% extends 'global/base.html' %}
+
+{% block title %} Perfis de Acesso | {% endblock title %}
+
+{% block content %}
+<div class="list-container">
+
+    <div class="page-header">
+        <h1>Perfis de Acesso</h1>
+        <a href="{% url 'rhcontrol:role_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Novo Perfil
+        </a>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Nome do Perfil de Acesso</th>
+                <th style="text-align: center;">Usuários com este perfil</th>
+                <th style="text-align: center;">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for role in roles %}
+            <tr>
+                <td style="font-weight: 500; font-size: 1.4rem;">
+                    {{ role.name }}
+                </td>
+                
+                <td style="text-align: center;">
+                    <span style="background: #e2e8f0; color: #475569; padding: 4px 10px; border-radius: 20px; font-weight: 600; font-size: 1.2rem;">
+                        {{ role.num_users }} usuário(s)
+                    </span>
+                </td>
+                
+                <td style="text-align: center; display: flex; justify-content: center; gap: 8px;">
+                    <a href="#" class="btn-filter" title="Editar Perfil" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; height: 32px; width: 32px; padding: 0;">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    
+                    <a href="#" class="btn-delete" title="Excluir Perfil" style="text-decoration: none; display: inline-flex; align-items: center; justify-content: center; height: 32px; width: 32px; padding: 0;">
+                        <i class="fas fa-trash"></i>
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3" style="text-align: center; padding: 30px; color: #64748b; font-size: 1.4rem;">
+                    <i class="fas fa-users-slash" style="font-size: 2rem; display: block; margin-bottom: 10px; color: #cbd5e1;"></i>
+                    Nenhum perfil de acesso cadastrado.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock content %}

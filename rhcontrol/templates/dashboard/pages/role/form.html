@@ -1,0 +1,164 @@
+{% extends 'global/base.html' %}
+
+{% block title %} Novo Perfil de Acesso | {% endblock title %}
+
+{% block content %}
+<style>
+    .matrix-card {
+        background: #ffffff;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        border: 1px solid #e5e7eb;
+        padding: 24px;
+        margin-top: 20px;
+    }
+
+    .matrix-title {
+        font-size: 1.5rem;
+        color: #111827;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .matrix-desc {
+        color: #6b7280;
+        font-size: 1.3rem;
+        margin-bottom: 24px;
+    }
+
+    .form-group label {
+        display: block;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+        font-size: 1.3rem;
+    }
+
+    /* Tabela Moderna */
+    .table-modern {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 20px;
+    }
+
+    .table-modern th {
+        background-color: #f9fafb;
+        color: #4b5563;
+        font-weight: 600;
+        font-size: 1.2rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 12px 16px;
+        text-align: center;
+        border-bottom: 2px solid #e5e7eb;
+    }
+
+    .table-modern th:first-child { text-align: left; }
+
+    .table-modern td {
+        padding: 14px 16px;
+        border-bottom: 1px solid #e5e7eb;
+        color: #1f2937;
+        font-size: 1.35rem;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .table-modern td:first-child { 
+        text-align: left; 
+        font-weight: 500; 
+    }
+
+    .table-modern tr:hover {
+        background-color: #f3f4f6; 
+    }
+
+    .modern-checkbox {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+        accent-color: #3498db;
+    }
+
+    /* Destaque para a coluna "Todos" */
+    .col-all {
+        background-color: #f8fafc;
+        border-left: 1px solid #e5e7eb;
+    }
+</style>
+
+<div class="list-container">
+    <div class="page-header">
+        <h1>Gerenciar Perfis de Acesso</h1>
+        <a href="{% url 'rhcontrol:role_list' %}" class="btn btn-secondary">Voltar</a>
+    </div>
+
+    <div class="matrix-card">
+        <h2 class="matrix-title">Definição de Permissões</h2>
+        <p class="matrix-desc">Escolha quais ações os usuários com este perfil poderão realizar no sistema.</p>
+
+        <form method="POST">
+            {% csrf_token %}
+            
+            <div class="form-group" style="margin-bottom: 30px; max-width: 400px;">
+                {{ form.name.label_tag }}
+                {{ form.name }}
+            </div>
+
+            <table class="table-modern">
+                <thead>
+                    <tr>
+                        <th>Módulo do Sistema</th>
+                        <th>Ler (Ver)</th>
+                        <th>Criar</th>
+                        <th>Editar</th>
+                        <th>Excluir</th>
+                        <th class="col-all">Marcar Todos</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for module_name, data in permission_matrix.items %}
+                    <tr>
+                        <td>{{ module_name }}</td>
+                        
+                        <td>
+                            <input type="checkbox" name="permissions" value="{{ data.actions.read }}" class="modern-checkbox row-{{ forloop.counter }}">
+                        </td>
+                        <td>
+                            <input type="checkbox" name="permissions" value="{{ data.actions.create }}" class="modern-checkbox row-{{ forloop.counter }}">
+                        </td>
+                        <td>
+                            <input type="checkbox" name="permissions" value="{{ data.actions.update }}" class="modern-checkbox row-{{ forloop.counter }}">
+                        </td>
+                        <td>
+                            <input type="checkbox" name="permissions" value="{{ data.actions.delete }}" class="modern-checkbox row-{{ forloop.counter }}">
+                        </td>
+                        
+                        <td class="col-all">
+                            <input type="checkbox" class="modern-checkbox" title="Selecionar todos de {{ module_name }}" 
+                                   onchange="toggleRow('row-{{ forloop.counter }}', this)">
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div style="margin-top: 30px; text-align: right;">
+                <button type="submit" class="btn btn-primary" style="padding: 10px 24px; font-size: 1.4rem;">
+                    Salvar Perfil de Acesso
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleRow(rowClass, masterCheckbox) {
+        const checkboxes = document.querySelectorAll('.' + rowClass);
+
+        checkboxes.forEach(function(checkbox) {
+            checkbox.checked = masterCheckbox.checked;
+        });
+    }
+</script>
+{% endblock content %}
