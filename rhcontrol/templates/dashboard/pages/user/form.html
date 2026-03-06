@@ -98,6 +98,31 @@
                     </small>
                 </div>
 
+                <hr style="margin: 30px 0; border: 0; border-top: 1px solid #e5e7eb;">
+
+                <div class="form-group">
+                    <label style="font-size: 1.4rem; color: #111827;">Alertas de E-mail</label>
+                    <p style="color: #6b7280; margin-bottom: 15px; font-size: 1.25rem;">
+                        Selecione quais notificações este usuário receberá:
+                    </p>
+
+                    <div style="background: #eff6ff; border: 1px solid #bfdbfe; padding: 12px 16px; border-radius: 8px; margin-bottom: 15px;">
+                        <label style="font-weight: 600; font-size: 1.35rem; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #1e3a8a; margin: 0;">
+                            {{ form.receive_all_events }}
+                            {{ form.receive_all_events.label }}
+                        </label>
+                        {{ form.receive_all_events.errors }}
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;" id="alertsGrid">
+                        {% for checkbox in form.alerts %}
+                            <label class="alert-label" style="font-weight: 400; font-size: 1.35rem; display: flex; align-items: center; gap: 8px; cursor: pointer; color: #334155;">
+                                {{ checkbox.tag }} {{ checkbox.choice_label }}
+                            </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
                 <div style="margin-top: 40px; text-align: right;">
                     <button type="submit" class="btn btn-primary" style="padding: 12px 30px; font-size: 1.4rem; border-radius: 8px;">
                         Criar Usuário
@@ -107,4 +132,35 @@
         </div>
     </div>
 </div>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const emailInput = document.getElementById("id_email");
+        const alertCheckboxes = document.querySelectorAll("input[name='alerts']");
+        const receiveAllCheckbox = document.getElementById("id_receive_all");
+        const alertsGrid = document.getElementById("alertsGrid");
+
+        function toggleAlerts() {
+            const hasEmail = emailInput.value.trim() !== "";
+            const isReceiveAll = receiveAllCheckbox.checked;
+
+            receiveAllCheckbox.disabled = !hasEmail;
+            if (!hasEmail) receiveAllCheckbox.checked = false;
+
+            const shouldDisableSpecifics = !hasEmail || isReceiveAll;
+            
+            alertCheckboxes.forEach(cb => {
+                cb.disabled = shouldDisableSpecifics;
+                if (shouldDisableSpecifics) cb.checked = false;
+            });
+
+            alertsGrid.style.opacity = shouldDisableSpecifics ? "0.5" : "1";
+        }
+
+        if (emailInput && receiveAllCheckbox) {
+            emailInput.addEventListener("input", toggleAlerts);
+            receiveAllCheckbox.addEventListener("change", toggleAlerts);
+            toggleAlerts();
+        }
+    });
+</script>
 {% endblock content %}

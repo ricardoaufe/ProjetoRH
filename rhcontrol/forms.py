@@ -2,7 +2,7 @@ from datetime import date
 from decimal import Decimal
 from django import forms 
 from django.contrib.auth.models import Group, User
-from rhcontrol.models import Dependent, Employee, JobTitle, Training, Vacation, Department, CareerPlan, Occurrence
+from rhcontrol.models import Dependent, Employee, JobTitle, NotificationRecipient, NotificationRule, Training, UserAlertPreference, Vacation, Department, CareerPlan, Occurrence
 
 class LoginForm(forms.Form):
     email = forms.CharField(label='Usuário ou Email', max_length=100, widget=forms.TextInput(attrs={
@@ -500,6 +500,19 @@ class SystemUserUpdateForm(forms.ModelForm):
         widget=forms.Select(attrs={'class': 'form-control'})
     )
 
+    receive_all_events = forms.BooleanField(
+        label="Receber notificações de TODOS os eventos",
+        required=False,
+        widget=forms.CheckboxInput(attrs={'id': 'id_receive_all'})
+    )
+
+    alerts = forms.ModelMultipleChoiceField(
+        queryset=NotificationRule.objects.filter(is_active=True),
+        widget=forms.CheckboxSelectMultiple,
+        label="Notificações Específicas",
+        required=False 
+    )
+
     class Meta:
         model = User
         fields = ['first_name', 'last_name', 'email', 'username']
@@ -512,23 +525,82 @@ class SystemUserUpdateForm(forms.ModelForm):
             'first_name': forms.TextInput(attrs={'class': 'form-control'}),
             'last_name': forms.TextInput(attrs={'class': 'form-control'}),
             'email': forms.EmailInput(attrs={'class': 'form-control'}),
-            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: joao.silva', 'readonly': 'readonly'}),
+            'username': forms.TextInput(attrs={'class': 'form-control'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
-            user_group = self.instance.groups.first()
-            if user_group:
-                self.fields['role'].initial = user_group
-    
+
+            grupo_atual = self.instance.groups.first()
+            if grupo_atual:
+                self.fields['role'].initial = grupo_atual
+
+            email = self.instance.email
+            if email:
+                recipient = NotificationRecipient.objects.filter(email=email).first()
+                if recipient:
+                    self.fields['receive_all_events'].initial = recipient.receive_all_events
+                    self.fields['alerts'].initial = recipient.subscribed_rules.all()
+
+    def clean(self):
+        cleaned_data = super().clean()
+        email = cleaned_data.get('email')
+        alerts = cleaned_data.get('alerts')
+        receive_all = cleaned_data.get('receive_all_events')
+
+        if (alerts or receive_all) and not email:
+            self.add_error('email', 'Para ativar alertas, é obrigatório cadastrar um e-mail.')
+            self.add_error('receive_all_events', 'Preencha o e-mail antes de ativar as notificações.')
+
+        return cleaned_data
+
     def save(self, commit=True):
+
+        old_email = None
+        if self.instance.pk:
+            old_email = User.objects.get(pk=self.instance.pk).email
+
         user = super().save(commit=False)
         if commit:
             user.save()
+
             role = self.cleaned_data.get('role')
             if role:
                 user.groups.set([role])
             else:
                 user.groups.clear()
+
+            email = self.cleaned_data.get('email')
+            receive_all = self.cleaned_data.get('receive_all_events', False)
+            alerts = self.cleaned_data.get('alerts', [])
+
+            if email:
+
+                recipient = NotificationRecipient.objects.filter(email=old_email).first()
+                if not recipient:
+                    recipient = NotificationRecipient.objects.filter(email=email).first()
+
+                if alerts or receive_all:
+                    if not recipient:
+                        recipient = NotificationRecipient(email=email)
+                    
+                    nome_completo = f"{user.first_name} {user.last_name}".strip()
+                    recipient.name = nome_completo if nome_completo else user.username
+                    recipient.email = email
+                    recipient.receive_all_events = receive_all
+                    recipient.is_active = True
+                    recipient.save()
+
+                    if receive_all:
+                        recipient.subscribed_rules.clear() 
+                        recipient.subscribed_rules.set(alerts)
+
+                else:
+                    if recipient:
+                        recipient.receive_all_events = False
+                        recipient.subscribed_rules.clear()
+                        recipient.is_active = False 
+                        recipient.save()
+
         return user

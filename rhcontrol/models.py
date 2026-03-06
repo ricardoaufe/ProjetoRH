@@ -4,6 +4,8 @@ from django.forms import ValidationError
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.auth.models import User
+
 import holidays
 
 from django.conf import settings
@@ -465,7 +467,7 @@ class EventTypes(models.TextChoices):
     BIRTHDAY = 'BIRTHDAY', 'Aniversário do Colaborador'
     COMPANY_ANNIVERSARY = 'COMPANY_ANNIVERSARY', 'Aniversário de Empresa'
 
-    CAREER_PLAN_REMINDER = 'CAREER_PLAN_REMINDER', 'Aviso de Promoção (30 dias)'
+    CAREER_PLAN_REMINDER = 'CAREER_PLAN_REMINDER', 'Aviso de Promoção'
     CAREER_PLAN_CANCELLED = 'CAREER_PLAN_CANCELLED', 'Plano de Carreira Cancelado'
     CAREER_PLAN_EFFECTIVE = 'CAREER_PLAN_EFFECTIVE', 'Promoção Efetivada'
 
@@ -576,4 +578,25 @@ class Occurrence(models.Model):
     def __str__(self):
         return f'{self.title} — {self.employee.name} ({self.occurrence_date})'
 
-        
+class UserAlertPreference(models.Model):
+
+    ALERT_CHOICES = [
+        ('vacation_start', 'Início de Férias'),
+        ('training_due', 'Vencimento de Treinamento'),
+        ('trial_end', 'Fim do Contrato de Experiência'),
+        ('exam_due', 'Exame Ocupacional a Vencer'),
+        ('birthday', 'Aniversário do Colaborador'),
+        ('company_anniversary', 'Aniversário de Empresa'),
+        ('career_plan_reminder', 'Aviso de Promoção'),
+        ('career_plan_cancelled', 'Plano de Carreira Cancelado'),
+        ('career_plan_effective', 'Promoção Efetivada'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='alert_preferences')
+    alert_type = models.CharField(max_length=30, choices=ALERT_CHOICES)
+
+    class Meta:
+        unique_together = ('user', 'alert_type')
+
+    def __str__(self):
+        return f"{self.user.username} - {self.get_alert_type_display()}"
