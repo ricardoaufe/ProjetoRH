@@ -14,9 +14,13 @@ urlpatterns = [
     #PERFIS E PERMISSÕES
     path('roles/', views.role_list_view, name='role_list'),
     path('roles/create/', views.role_create_view, name='role_create'),
+    path('roles/<int:pk>/edit/', views.role_update_view, name='role_update'),
+    path('roles/<int:pk>/delete/', views.role_delete_view, name='role_delete'),
+
     path('user/', views.user_list_view, name='user_list'),
     path('user/create/', views.user_create_view, name='user_create'),
-
+    path('user/<int:pk>/edit/', views.user_update_view, name='user_update'),
+    path('user/<int:pk>/delete/', views.user_delete_view, name='user_delete'),
 
     #EMPLOYEES
     path('employees/', views.employee_view, name='employee_list'),

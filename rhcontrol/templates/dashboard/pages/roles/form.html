@@ -122,16 +122,16 @@
                         <td>{{ module_name }}</td>
                         
                         <td>
-                            <input type="checkbox" name="permissions" value="{{ data.actions.read }}" class="modern-checkbox row-{{ forloop.counter }}">
+                            <input type="checkbox" name="permissions" value="{{ data.actions.read }}" class="modern-checkbox row-{{ forloop.counter }}" {% if data.actions.read in current_perms %}checked{% endif %}>
                         </td>
                         <td>
-                            <input type="checkbox" name="permissions" value="{{ data.actions.create }}" class="modern-checkbox row-{{ forloop.counter }}">
+                            <input type="checkbox" name="permissions" value="{{ data.actions.create }}" class="modern-checkbox row-{{ forloop.counter }}" {% if data.actions.create in current_perms %}checked{% endif %}>
                         </td>
                         <td>
-                            <input type="checkbox" name="permissions" value="{{ data.actions.update }}" class="modern-checkbox row-{{ forloop.counter }}">
+                            <input type="checkbox" name="permissions" value="{{ data.actions.update }}" class="modern-checkbox row-{{ forloop.counter }}" {% if data.actions.update in current_perms %}checked{% endif %}>
                         </td>
                         <td>
-                            <input type="checkbox" name="permissions" value="{{ data.actions.delete }}" class="modern-checkbox row-{{ forloop.counter }}">
+                            <input type="checkbox" name="permissions" value="{{ data.actions.delete }}" class="modern-checkbox row-{{ forloop.counter }}" {% if data.actions.delete in current_perms %}checked{% endif %}>
                         </td>
                         
                         <td class="col-all">

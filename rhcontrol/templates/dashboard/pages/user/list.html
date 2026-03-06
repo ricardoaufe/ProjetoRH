@@ -47,11 +47,11 @@
                 
                 <td style="text-align: center; display: flex; justify-content: center; gap: 10px;">
     
-                    <a href="#" class="action-btn edit-btn" title="Editar">
+                    <a href="{% url 'rhcontrol:user_update' user.id %}" class="action-btn edit-btn" title="Editar">
                         <i class="fas fa-edit"></i>
                     </a>
                     
-                    <a href="#" class="action-btn delete-btn" title="Excluir">
+                    <a href="{% url 'rhcontrol:user_delete' user.id %}" class="action-btn delete-btn" title="Excluir">
                         <i class="fas fa-trash"></i>
                     </a>
 

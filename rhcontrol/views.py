@@ -6,7 +6,7 @@ from django.urls import reverse
 from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department, CareerPlan, Occurrence
 from django.db.models import Q, Prefetch, Count
 from django.core.paginator import Paginator
-from rhcontrol.forms import DependentFormSet, LoginForm, RoleGroupFrom, SystemUserForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet, CareerPlanForm
+from rhcontrol.forms import DependentFormSet, LoginForm, RoleGroupForm, SystemUserForm, SystemUserUpdateForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet, CareerPlanForm
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import Group, Permission, User
@@ -1356,7 +1356,7 @@ def career_plan_delete(request, pk):
 @login_required
 def role_create_view(request):
     if request.method == 'POST':
-        form = RoleGroupFrom(request.POST)
+        form = RoleGroupForm(request.POST)
         if form.is_valid():
             new_group = form.save()
             permissions_selected = request.POST.getlist('permissions')
@@ -1368,7 +1368,7 @@ def role_create_view(request):
             return redirect('rhcontrol:role_list')
         
     else:
-            form = RoleGroupFrom()
+            form = RoleGroupForm()
         
 
     context = {
@@ -1387,6 +1387,56 @@ def role_list_view(request):
         'roles': roles
     }
     return render(request, 'dashboard/pages/roles/list.html', context)
+
+@login_required
+@permission_required('auth.change_group', raise_exception=True)
+def role_update_view(request, pk):
+    """ View para editar um Perfil existente """
+    group = get_object_or_404(Group, pk=pk)
+
+    if request.method == 'POST':
+        form = RoleGroupForm(request.POST, instance=group)
+        if form.is_valid():
+            grupo_salvo = form.save()
+            permissoes_selecionadas = request.POST.getlist('permissions')
+            
+            if permissoes_selecionadas:
+                permissoes_reais = Permission.objects.filter(codename__in=permissoes_selecionadas)
+                grupo_salvo.permissions.set(permissoes_reais)
+            else:
+                grupo_salvo.permissions.clear() # Remove tudo se desmarcar tudo
+                
+            messages.success(request, f"Perfil '{grupo_salvo.name}' atualizado com sucesso!")
+            return redirect('rhcontrol:role_list')
+        else:
+            messages.error(request, "Erro ao atualizar. Verifique os campos.")
+    else:
+        form = RoleGroupForm(instance=group)
+
+    current_perms = list(group.permissions.values_list('codename', flat=True))
+
+    context = {
+        'form': form,
+        'permission_matrix': RH_PERMISSION_MATRIX,
+        'current_perms': current_perms,
+        'is_update': True,
+        'role': group
+    }
+
+    return render(request, 'dashboard/pages/roles/form.html', context) 
+
+
+@login_required
+@permission_required('auth.delete_group', raise_exception=True)
+def role_delete_view(request, pk):
+    group = get_object_or_404(Group, pk=pk)
+
+    if request.method == 'POST':
+        group.delete()
+        messages.success(request, 'Perfil excluído com sucesso!')
+        return redirect('rhcontrol:role_list')
+
+    return render(request, 'dashboard/pages/roles/delete.html', {'role': group})
 
 @login_required
 @permission_required('auth.add_user', raise_exception=True)
@@ -1413,3 +1463,48 @@ def user_list_view(request):
         'users': users
     }
     return render(request, 'dashboard/pages/user/list.html', context)
+
+@login_required
+@permission_required('auth.change_user', raise_exception=True)
+def user_update_view(request, pk):
+    """ View para editar um Usuário existente """
+    user = get_object_or_404(User, pk=pk)
+
+    if user.is_superuser:
+        messages.warning(request, "Acesso negado: Você não pode editar um superusuário.")
+        return redirect('rhcontrol:user_list')
+
+    if request.method == 'POST':
+        form = SystemUserUpdateForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Usuário '{user.username}' atualizado com sucesso.")
+            return redirect('rhcontrol:user_list')
+        else:
+            messages.error(request, "Erro ao atualizar. Verifique os campos.")
+    else:
+        form = SystemUserUpdateForm(instance=user)
+
+    context = {
+        'form': form,
+        'system_user': user,
+        'is_update': True
+    }
+    return render(request, 'dashboard/pages/user/form.html', context)
+
+
+@login_required
+@permission_required('auth.delete_user', raise_exception=True)
+def user_delete_view(request, pk):
+    user = get_object_or_404(User, pk=pk)
+
+    if user == request.user or user.is_superuser:
+        messages.warning(request, "Acesso negado: Você não pode excluir a si mesmo ou um administrador.")
+        return redirect('rhcontrol:user_list')
+
+    if request.method == 'POST':
+        user.delete()
+        messages.success(request, 'Usuário excluído com sucesso!')
+        return redirect('rhcontrol:user_list')
+
+    return render(request, 'dashboard/pages/user/delete.html', {'system_user': user})

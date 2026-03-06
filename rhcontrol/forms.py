@@ -432,7 +432,7 @@ class CareerPlanForm(forms.ModelForm):
                 department=self.instance.proposed_job.department
             ).order_by('name')
 
-class RoleGroupFrom(forms.ModelForm):
+class RoleGroupForm(forms.ModelForm):
     class Meta:
         model = Group
         fields = ['name']
@@ -490,4 +490,45 @@ class SystemUserForm(forms.ModelForm):
             role = self.cleaned_data['role']
             user.groups.set([role]) #
             
+        return user
+
+class SystemUserUpdateForm(forms.ModelForm):
+    role = forms.ModelChoiceField(
+        queryset=Group.objects.all(),
+        label="Perfil de Acesso (Cargo)",
+        empty_label="Selecione um perfil",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'username']
+        labels = {
+            'first_name': 'Nome',
+            'last_name': 'Sobrenome',
+            'username': 'Nome de Usuário (Login)'
+        }
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: joao.silva', 'readonly': 'readonly'}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if self.instance and self.instance.pk:
+            user_group = self.instance.groups.first()
+            if user_group:
+                self.fields['role'].initial = user_group
+    
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        if commit:
+            user.save()
+            role = self.cleaned_data.get('role')
+            if role:
+                user.groups.set([role])
+            else:
+                user.groups.clear()
         return user
