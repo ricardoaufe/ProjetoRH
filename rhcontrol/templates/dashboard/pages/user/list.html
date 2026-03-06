@@ -1,0 +1,72 @@
+{% extends 'global/base.html' %}
+
+{% block title %} Usuários do Sistema | {% endblock title %}
+
+{% block content %}
+<div class="list-container">
+
+    <div class="page-header">
+        <h1>Usuários do Sistema</h1>
+        <a href="{% url 'rhcontrol:user_create' %}" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i> Novo Usuário
+        </a>
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Nome Completo</th>
+                <th>Login</th>
+                <th>E-mail</th>
+                <th style="text-align: center;">Perfil de Acesso</th>
+                <th style="text-align: center;">Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td style="font-weight: 500;">
+                    {{ user.first_name }} {{ user.last_name }}
+                </td>
+                
+                <td>{{ user.username }}</td>
+                
+                <td>{{ user.email }}</td>
+                
+                <td style="text-align: center;">
+                    {% if user.groups.all %}
+                        {% for group in user.groups.all %}
+                            <span style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 20px; font-weight: 600; font-size: 1.2rem;">
+                                {{ group.name }}
+                            </span>
+                        {% endfor %}
+                    {% else %}
+                        <span style="color: #94a3b8; font-style: italic;">Sem perfil definido</span>
+                    {% endif %}
+                </td>
+                
+                <td style="text-align: center; display: flex; justify-content: center; gap: 10px;">
+    
+                    <a href="#" class="action-btn edit-btn" title="Editar">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    
+                    <a href="#" class="action-btn delete-btn" title="Excluir">
+                        <i class="fas fa-trash"></i>
+                    </a>
+
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 30px; color: #64748b; font-size: 1.4rem;">
+                    <i class="fas fa-users" style="font-size: 2rem; display: block; margin-bottom: 10px; color: #cbd5e1;"></i>
+                    Nenhum usuário cadastrado.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+{% endblock content %}

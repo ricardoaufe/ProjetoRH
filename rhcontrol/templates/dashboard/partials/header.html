@@ -44,8 +44,21 @@
             </div>
         </div>
         
-        <div class="menu-item">
-            <a href="#" class="menu-link">Administração</a>
+        <div class="menu-item dropdown-container">
+            <span class="menu-link"><i class="fa-solid fa-gear"></i> Administração <i class="fa-solid fa-caret-down"></i></span>
+            <div class="dropdown">
+                {% if perms.auth.view_group %}
+                <a href="{% url 'rhcontrol:role_list' %}">Perfis de Acesso</a>
+                {% else %}
+                <a href="#" class="disabled-link" title="Sem permissão">Perfis de Acesso</a>
+                {% endif %}
+
+                {% if perms.auth.view_user %}
+                <a href="{% url 'rhcontrol:user_list' %}">Usuários do Sistema</a>
+                {% else %}
+                <a href="#" class="disabled-link" title="Sem permissão">Usuários do Sistema</a>
+                {% endif %}
+            </div>
         </div>
 
         <div class="menu-item">

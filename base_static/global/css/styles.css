@@ -906,3 +906,22 @@ small{
     cursor: not-allowed;
     background-color: transparent !important;
 }
+
+/* Botões de Ação das Tabelas */
+.action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 36px;
+    width: 36px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #ffffff !important; /* Força o ícone a ficar branco sempre */
+    transition: all 0.2s ease;
+}
+
+.edit-btn { background-color: #3b82f6; } /* Azul Tailwind */
+.edit-btn:hover { background-color: #2563eb; transform: translateY(-2px); box-shadow: 0 4px 6px rgba(59, 130, 246, 0.3); }
+
+.delete-btn { background-color: #ef4444; } /* Vermelho Tailwind */
+.delete-btn:hover { background-color: #dc2626; transform: translateY(-2px); box-shadow: 0 4px 6px rgba(239, 68, 68, 0.3); }

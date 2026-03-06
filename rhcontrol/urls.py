@@ -11,6 +11,13 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('profile/password/', views.change_password, name='change_password'),
 
+    #PERFIS E PERMISSÕES
+    path('roles/', views.role_list_view, name='role_list'),
+    path('roles/create/', views.role_create_view, name='role_create'),
+    path('user/', views.user_list_view, name='user_list'),
+    path('user/create/', views.user_create_view, name='user_create'),
+
+
     #EMPLOYEES
     path('employees/', views.employee_view, name='employee_list'),
     path('employees/create/', views.employee_create, name='employee_create'),

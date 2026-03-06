@@ -6,7 +6,7 @@ from django.urls import reverse
 from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department, CareerPlan, Occurrence
 from django.db.models import Q, Prefetch, Count
 from django.core.paginator import Paginator
-from rhcontrol.forms import DependentFormSet, LoginForm, RoleGroupFrom, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet, CareerPlanForm
+from rhcontrol.forms import DependentFormSet, LoginForm, RoleGroupFrom, SystemUserForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet, CareerPlanForm
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import Group, Permission, User
@@ -1367,15 +1367,15 @@ def role_create_view(request):
 
             return redirect('rhcontrol:role_list')
         
-        else:
+    else:
             form = RoleGroupFrom()
         
 
-        context = {
-            'form': form,
-            'permission_matrix': RH_PERMISSION_MATRIX
-        }
-        return render(request, 'dashboard/pages/role/form.html', context)
+    context = {
+        'form': form,
+        'permission_matrix': RH_PERMISSION_MATRIX
+    }
+    return render(request, 'dashboard/pages/roles/form.html', context)
 
 @login_required
 @permission_required('auth.view_group', raise_exception=True)
@@ -1386,4 +1386,30 @@ def role_list_view(request):
     context = {
         'roles': roles
     }
-    return render(request, 'rhcontrol/role_list.html', context)
+    return render(request, 'dashboard/pages/roles/list.html', context)
+
+@login_required
+@permission_required('auth.add_user', raise_exception=True)
+def user_create_view(request):
+    if request.method == 'POST':
+        form = SystemUserForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('rhcontrol:user_list')
+    else:
+        form = SystemUserForm()
+
+    context = {
+        'form': form
+    }
+    return render(request, 'dashboard/pages/user/form.html', context)
+
+@login_required
+@permission_required('auth.view_user', raise_exception=True)
+def user_list_view(request):
+    users = User.objects.annotate(num_groups=Count('groups')).order_by('username')
+    
+    context = {
+        'users': users
+    }
+    return render(request, 'dashboard/pages/user/list.html', context)

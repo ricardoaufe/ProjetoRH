@@ -449,3 +449,45 @@ class RoleGroupFrom(forms.ModelForm):
             group.save()
         
         return group
+    
+
+class SystemUserForm(forms.ModelForm):
+    role = forms.ModelChoiceField(
+        queryset=Group.objects.all(),
+        label="Perfil de Acesso (Cargo)",
+        empty_label="Selecione um perfil",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    password = forms.CharField(
+        label="Senha Temporária",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Digite uma senha inicial'})
+    )
+
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'username']
+        labels = {
+            'first_name': 'Nome',
+            'last_name': 'Sobrenome',
+            'username': 'Nome de Usuário (Login)'
+        }
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'email': forms.EmailInput(attrs={'class': 'form-control'}),
+            'username': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: joao.silva'}),
+        }
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        user.set_password(self.cleaned_data['password'])
+        user.is_superuser = False
+        user.is_staff = False 
+        
+        if commit:
+            user.save()
+            role = self.cleaned_data['role']
+            user.groups.set([role]) #
+            
+        return user
