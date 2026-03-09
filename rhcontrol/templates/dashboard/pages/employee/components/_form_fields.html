@@ -248,4 +248,21 @@
     {% include 'partials/form_field.html' with field=form.has_insalubrity_bonus grid_class="col-span-2"%}
     {% include 'partials/form_field.html' with field=form.has_danger_bonus grid_class="col-span-2"%}
 
+    <div class="col-span-8" style="margin-top: 15px; margin-bottom: 20px;">
+        <div style="background-color: #f8f9fa; border: 1px solid #e9ecef; border-left: 5px solid #20c997; padding: 15px 20px; border-radius: 0.375rem;">
+            <label style="font-weight: 600; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; cursor: pointer; color: #495057; margin: 0;">
+                {{ form.completed_integration_trainings }}
+                {{ form.completed_integration_trainings.label }}
+            </label>
+            
+            {% if form.completed_integration_trainings.help_text %}
+                <small style="color: #6c757d; display: block; margin-top: 5px; margin-left: 28px; font-size: 1.2rem;">
+                    {{ form.completed_integration_trainings.help_text }}
+                </small>
+            {% endif %}
+        </div>
+    </div>
+
+</div>
+
 </div>

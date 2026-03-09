@@ -81,6 +81,12 @@ class EmployeeForm(forms.ModelForm):
         widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Descreva o trabalho especial'})
     )
 
+    completed_integration_trainings = forms.BooleanField(
+        label="Concluiu os Treinamentos de Integração?",
+        required=False,
+        help_text="Se marcado, os treinamentos padrão serão automaticamente registrados no histórico deste funcionário."
+    )
+
     
     class Meta:
         model = Employee
@@ -185,6 +191,9 @@ class EmployeeForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
 
         if self.instance and self.instance.pk:
+            fez_integracao = self.instance.attended_trainings.filter(is_integration=True).exists()
+            self.fields['completed_integration_trainings'].initial = fez_integracao
+
             if self.instance.current_salary:
                 self.initial['current_salary'] = f'{self.instance.current_salary:.2f}'.replace('.', ',')
         
@@ -205,6 +214,33 @@ class EmployeeForm(forms.ModelForm):
                     'class': 'form-control',
                     'type': 'date'
                 })
+                
+    def save(self, commit=True):
+        employee = super().save(commit=False)
+
+        old_save_m2m = self.save_m2m if hasattr(self, 'save_m2m') else lambda: None
+        
+        def custom_save_m2m():
+            old_save_m2m()
+            
+            integration_trainings = Training.objects.filter(is_integration=True)
+            
+            if self.cleaned_data.get('completed_integration_trainings'):
+                for training in integration_trainings:
+                    training.scheduled_employees.add(employee)
+                    training.attended_employees.add(employee)
+            else:
+                for training in integration_trainings:
+                    training.scheduled_employees.remove(employee)
+                    training.attended_employees.remove(employee)
+
+        self.save_m2m = custom_save_m2m
+        
+        if commit:
+            employee.save()
+            self.save_m2m() 
+
+        return employee
 
 class DependentForm(forms.ModelForm):
     class Meta:

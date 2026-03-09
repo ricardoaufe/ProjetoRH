@@ -372,6 +372,7 @@ def employee_update(request, pk):
             new_employee.cipa_mandate_end_date = new_employee.cipa_mandate_start_date + timedelta(days=365)
 
         new_employee.save()
+        form.save_m2m()
         formset.save()
 
         has_job_change = str(old_job) != str(new_employee.job_title)
@@ -637,12 +638,16 @@ def training_view(request):
 
     today = timezone.now().date()
 
+    
+
     if status == 'proximos':
         training_list = training_list.filter(start_date__gte=today)
     elif status == 'pendentes':
         training_list = training_list.filter(start_date__lt=today, num_attended=0)
     elif status == 'realizados':
         training_list = training_list.filter(start_date__lt=today, num_attended__gt=0)
+    elif status == 'integracao':
+        training_list = training_list.filter(is_integration=True)
 
 
 

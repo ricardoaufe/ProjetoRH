@@ -18,6 +18,15 @@
             {% include 'partials/form_field.html' with field=form.end_date label="Data de Término" %}
             {% include 'partials/form_field.html' with field=form.training_provider label="Fornecedor" %}
             {% include 'partials/form_field.html' with field=form.training_total_hours label="Duração (horas)" %}
+            <div style="grid-column: 1 / -1; background: #e0f2fe; border: 1px solid #bae6fd; border-left: 5px solid #0284c7; padding: 15px 20px; border-radius: 6px; margin-bottom: 10px;">
+                <label style="font-weight: 600; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; cursor: pointer; color: #0369a1; margin: 0;">
+                    {{ form.is_integration }}
+                    Treinamento de Integração (Onboarding)?
+                </label>
+                <small style="color: #0369a1; display: block; margin-top: 5px; margin-left: 28px; font-size: 1.2rem;">
+                    Marque esta opção para que este treinamento seja adicionado automaticamente no histórico de novos funcionários sem necessidade de informar datas.
+                </small>
+            </div>
             
             <div style="grid-column: 1 / -1;">
                 {% include 'partials/form_field.html' with field=form.training_description label="Descrição" %}
@@ -84,14 +93,11 @@
     document.addEventListener('DOMContentLoaded', function() {
         if(document.getElementById('id_scheduled_employees')) {
             new TomSelect("#id_scheduled_employees", {
-                plugins: ['remove_button'], // 'X' to remove
-                create: false,              // Just selection from existing options
-                sortField: {
-                    field: "text",
-                    direction: "asc"
-                },
+                plugins: ['remove_button'],
+                create: false,
+                sortField: { field: "text", direction: "asc" },
                 placeholder: "Digite o nome do funcionário...",
-                maxOptions: null            // All options shown
+                maxOptions: null
             });
         }
 
@@ -105,34 +111,62 @@
             });
         }
 
+        const checkIntegration = document.getElementById('id_is_integration');
         const checkFundamental = document.getElementById('id_is_fundamental');
         const checkAllDepts = document.getElementById('id_all_departments');
+        
+        const inputStartDate = document.getElementById('id_start_date');
+        const inputEndDate = document.getElementById('id_end_date');
+
         const containerSetor = document.getElementById('div_target_department');
         const containerManual = document.getElementById('div_scheduled_employees');
         const selectTargetDept = document.getElementById('id_target_department');
         
         function toggleFields() {
-            if (checkFundamental && checkFundamental.checked) {
-                if(containerSetor) containerSetor.classList.remove('hidden');
+            const isIntegration = checkIntegration && checkIntegration.checked;
+            const isFundamental = checkFundamental && checkFundamental.checked;
+
+            if (isIntegration) {
+
+                if(inputStartDate) { inputStartDate.disabled = true; inputStartDate.value = ''; }
+                if(inputEndDate) { inputEndDate.disabled = true; inputEndDate.value = ''; }
+
+                if(checkFundamental) { checkFundamental.checked = false; checkFundamental.disabled = true; }
+
                 if(containerManual) containerManual.classList.add('hidden');
-                
-                if (checkAllDepts && checkAllDepts.checked) {
-                    if(selectTargetDept) {
-                        selectTargetDept.disabled = true;
-                        selectTargetDept.value = "";
+                if(containerSetor) containerSetor.classList.add('hidden');
+            } 
+
+            else {
+
+                if(inputStartDate) inputStartDate.disabled = false;
+                if(inputEndDate) inputEndDate.disabled = false;
+
+                if(checkFundamental) checkFundamental.disabled = false;
+
+                if (isFundamental) {
+                    if(containerSetor) containerSetor.classList.remove('hidden');
+                    if(containerManual) containerManual.classList.add('hidden');
+                    
+                    if (checkAllDepts && checkAllDepts.checked) {
+                        if(selectTargetDept) {
+                            selectTargetDept.disabled = true;
+                            selectTargetDept.value = "";
+                        }
+                    } else {
+                        if(selectTargetDept) selectTargetDept.disabled = false;
                     }
                 } else {
-                    if(selectTargetDept) selectTargetDept.disabled = false;
+                    if(containerSetor) containerSetor.classList.add('hidden');
+                    if(containerManual) containerManual.classList.remove('hidden');
                 }
-            } else {
-                if(containerSetor) containerSetor.classList.add('hidden');
-                if(containerManual) containerManual.classList.remove('hidden');
             }
         }
 
+        if (checkIntegration) checkIntegration.addEventListener('change', toggleFields);
         if (checkFundamental) checkFundamental.addEventListener('change', toggleFields);
         if (checkAllDepts) checkAllDepts.addEventListener('change', toggleFields);
-        
+
         toggleFields();
     });
 </script>

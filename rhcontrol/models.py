@@ -44,6 +44,11 @@ class Training(models.Model):
     training_description = models.TextField(blank=True, null=True, verbose_name="Descrição do Treinamento")
 
     is_fundamental = models.BooleanField(default=False, verbose_name="É Treinamento Fundamental?")
+    is_integration = models.BooleanField(
+        default=False, 
+        verbose_name="Treinamento de Integração (Onboarding)?",
+        help_text="Marque se este treinamento é padrão para novos funcionários."
+    )
     target_department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Setor Alvo (Se Fundamental)")
     
     scheduled_employees = models.ManyToManyField('Employee', related_name='scheduled_trainings', blank=True, verbose_name="Funcionários Previstos")

@@ -117,6 +117,9 @@
     <div class="status-filters">
         <a href="?status=&search={{ search_query }}&date_from={{ date_from }}&date_to={{ date_to }}" 
            class="{% if not status %}active{% endif %}">Todos</a>
+
+        <a href="?status=integracao&search={{ search_query }}&date_from={{ date_from }}&date_to={{ date_to }}" 
+           class="{% if status == 'integracao' %}active{% endif %}">Integração</a>
            
         <a href="?status=proximos&search={{ search_query }}&date_from={{ date_from }}&date_to={{ date_to }}" 
            class="{% if status == 'proximos' %}active{% endif %}">Próximos</a>
