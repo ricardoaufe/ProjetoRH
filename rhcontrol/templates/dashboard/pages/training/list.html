@@ -109,9 +109,16 @@
 </style>
 
 <div class="list-container">
-    <div class="page-header">
+    <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
         <h1>Lista de Treinamentos</h1>
-        <a href="{% url 'rhcontrol:training_create' %}" class="btn btn-primary">Adicionar treinamentos</a>
+        <div class="header-actions" style="display: flex; gap: 0.625rem;">
+            <a href="{% url 'rhcontrol:training_list_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-danger" target="_blank">
+                <i class="fa fa-file-pdf"></i> Gerar PDF
+            </a>
+            <a href="{% url 'rhcontrol:training_create' %}" class="btn btn-primary">
+                Adicionar treinamentos
+            </a>
+        </div>
     </div>
 
     <div class="status-filters">

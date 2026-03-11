@@ -1,0 +1,95 @@
+{% extends 'reports/base_pdf.html' %}
+
+{% block header_title %}Relatório de Treinamentos{% endblock %}
+
+{% block content %}
+    <style>
+         .header-table { width: 100%; border-bottom: 1px solid #000; margin-bottom: 15px; padding-bottom: 10px; }
+        .header-logo-cell { width: 80px; vertical-align: middle; }
+        .meta-info { font-size: 8px; color: #555; margin-top: 2px; }
+
+        table.data-table { width: 100%; border-collapse: collapse; margin-top: 5px; }
+        table.data-table th {
+            background-color: transparent; border: none; border-bottom: 1px solid #000;
+            padding: 4px 5px; text-transform: uppercase; font-size: 8px; font-weight: bold;
+            text-align: left; color: #000;
+        }
+        table.data-table td {
+            border: none; padding: 3px 5px; vertical-align: middle;
+            font-size: 10px; text-align: left !important;
+        }
+        table.data-table tr:nth-child(even) { background-color: #f2f2f2; }
+        table.data-table tr:nth-child(odd) { background-color: #fff; }
+
+        .text-bold { font-weight: bold; }
+        
+        /* Cores alteradas para preto puro para economizar tinta colorida */
+        .integration-mark { font-size: 8px; font-weight: bold; margin-left: 3px; color: #000; }
+        .fundamental-mark { font-size: 8px; font-weight: bold; margin-left: 3px; color: #000; }
+    </style>
+
+    <div style="margin-bottom: 0.75rem; font-size: 0.625rem; border-bottom: 1px dotted #ccc; padding-bottom: 0.375rem;">
+        Filtros: <strong>{{ status_filter|title }}</strong> 
+        {% if search_query %} | Busca: "<strong>{{ search_query }}</strong>"{% endif %}
+        {% if date_from or date_to %} | Período: <strong>{{ date_from|default:"-" }} a {{ date_to|default:"-" }}</strong>{% endif %}
+        | Total de Treinamentos: {{ trainings|length }}
+    </div>
+
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th width="35%">Treinamento</th>
+                <th width="15%">Data / Período</th>
+                <th width="25%">Local / Fornecedor</th>
+                <th width="10%">Duração</th>
+                <th width="15%">Presença</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for training in trainings %}
+            <tr>
+                <td class="text-bold">
+                    {{ training.training_name }}
+                    {% if training.is_integration %}
+                        <span class="integration-mark">(INTEGRAÇÃO)</span>
+                    {% elif training.is_fundamental %}
+                        <span class="fundamental-mark">(FUNDAMENTAL)</span>
+                    {% endif %}
+                </td>
+                
+                <td>
+                    {% if training.is_integration %}
+                        <span style="color: #555; font-style: italic; font-size: 9px;">Automático</span>
+                    {% else %}
+                        {{ training.start_date|date:"d/m/Y" }}
+                    {% endif %}
+                </td>
+                
+                <td>
+                    {% if training.training_location_type == 'Interno' %}
+                        <strong style="font-size: 9px;">Interno</strong>
+                    {% else %}
+                        {{ training.training_provider|default:"-" }}
+                    {% endif %}
+                </td>
+                
+                <td>{{ training.training_total_hours }}h</td>
+                
+                <td>
+                    {% if training.is_integration or training.is_fundamental %}
+                        <span style="font-size: 9px; color: #555;">Automática</span>
+                    {% else %}
+                        {{ training.num_attended }} / {{ training.num_scheduled }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="5" style="text-align: center; padding: 0.75rem; font-style: italic; color: #555;">
+                    Nenhum treinamento encontrado para os filtros atuais.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

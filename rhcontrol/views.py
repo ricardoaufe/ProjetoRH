@@ -1132,6 +1132,68 @@ def create_vacation_list_pdf(request):
     return response
 
 @login_required
+def create_training_list_pdf(request):
+    training_list = Training.objects.annotate(
+        num_attended=Count('attended_employees', distinct=True),
+        num_scheduled=Count('scheduled_employees', distinct=True)
+    ).all()
+
+    query = request.GET.get('search', '')
+    if query:
+        training_list = training_list.filter(
+            Q(training_name__icontains=query) | 
+            Q(training_provider__icontains=query)
+        )
+
+    date_from = request.GET.get('date_from', '')
+    if date_from:
+        training_list = training_list.filter(start_date__gte=date_from)
+        
+    date_to = request.GET.get('date_to', '')
+    if date_to:
+        training_list = training_list.filter(start_date__lte=date_to)
+
+    status_filter = request.GET.get('status', 'todos')
+    today = timezone.now().date()
+    
+    if status_filter == 'proximos':
+        training_list = training_list.filter(start_date__gte=today)
+    elif status_filter == 'pendentes':
+        training_list = training_list.filter(start_date__lt=today, num_attended=0)
+    elif status_filter == 'realizados':
+        training_list = training_list.filter(start_date__lt=today, num_attended__gt=0)
+    elif status_filter == 'integracao':
+        training_list = training_list.filter(is_integration=True)
+        
+    sort_by = request.GET.get('sort', '-start_date')
+    valid_sort_fields = ['training_name', 'start_date', 'end_date', 'training_provider', 'training_total_hours']
+    
+    if sort_by.lstrip('-') in valid_sort_fields:
+        training_list = training_list.order_by(sort_by)
+    else:
+        training_list = training_list.order_by('-start_date')
+
+    context = {
+        'trainings': training_list,
+        'status_filter': status_filter,
+        'query': query,
+        'date_from': date_from,
+        'date_to': date_to,
+        'generated_at': timezone.now(),
+        'user': request.user,
+        'company_name_settings': settings.COMPANY_NAME,
+    }
+
+    html_string = render_to_string('dashboard/pages/training/pdf/training_list_pdf.html', context)
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    pdf = html.write_pdf()
+    
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = 'inline; filename="lista_de_treinamentos.pdf"'
+
+    return response
+
+@login_required
 def ajax_load_employee_data(request):
     employee_id = request.GET.get('employee_id')
     if employee_id:
