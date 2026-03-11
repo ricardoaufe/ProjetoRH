@@ -3,8 +3,34 @@
 {% block title %} Registrar Treinamento | {% endblock title %}
 
 {% block content %}
-
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
+<style>
+    /* Estilos extras para deixar os botões de 'Selecionar Todos' elegantes */
+    .btn-select-all {
+        background: #e9ecef;
+        border: 1px solid #ced4da;
+        color: #495057;
+        padding: 4px 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 1.2rem;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-select-all:hover {
+        background: #dee2e6;
+        color: #212529;
+    }
+    .header-with-button {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+</style>
 
 <div class="form-container">
     <h2>{{ title|default:"Registrar Treinamento" }}</h2>
@@ -18,6 +44,8 @@
             {% include 'partials/form_field.html' with field=form.end_date label="Data de Término" %}
             {% include 'partials/form_field.html' with field=form.training_provider label="Fornecedor" %}
             {% include 'partials/form_field.html' with field=form.training_total_hours label="Duração (horas)" %}
+            {% include 'partials/form_field.html' with field=form.training_location_type label="Local do Treinamento" %}
+            
             <div style="grid-column: 1 / -1; background: #e0f2fe; border: 1px solid #bae6fd; border-left: 5px solid #0284c7; padding: 15px 20px; border-radius: 6px; margin-bottom: 10px;">
                 <label style="font-weight: 600; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; cursor: pointer; color: #0369a1; margin: 0;">
                     {{ form.is_integration }}
@@ -32,57 +60,71 @@
                 {% include 'partials/form_field.html' with field=form.training_description label="Descrição" %}
             </div>
         </div>
-        <div style="margin-top: 30px; border-top: 1px solid #eee; padding-top: 20px;">
+
+        <div style="margin-top: 30px; border-top: 1px solid #dee2e6; padding-top: 25px;">
             
-            <div style="height:100px; width:350px; background-color: #f8f9fa; padding: 15px; border-radius: 5px; border: 1px solid #e9ecef; margin-bottom: 20px;">
+            <div style="background-color: #f8f9fa; padding: 12px 20px; border-radius: 6px; border: 1px solid #e9ecef; margin-bottom: 25px; width: fit-content; height: fit-content; min-width: 320px;">
                 {% include 'partials/form_field.html' with field=form.is_fundamental label="É Treinamento Fundamental?" %}
             </div>
 
-            <div id="div_target_department" class="hidden conditional-box">
+            <div id="div_target_department" class="hidden conditional-box" style="margin-bottom: 25px;">
                 <h4 style="margin-top: 0; color: #495057;">Configuração de Setor</h4>
-                <p style="font-size: 0.9em; color: #666; margin-bottom: 15px;">
+                <p style="font-size: 1.3rem; color: #6c757d; margin-bottom: 15px;">
                     Todos os funcionários ativos deste setor serão inscritos automaticamente.
                 </p>
-                
                 <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
                     <div style="flex: 1; min-width: 250px;">
                         {% include 'partials/form_field.html' with field=form.target_department label="Selecione o Setor" %}
                     </div>
-                    <div style="padding-top: 15px;">
+                    <div style="padding-top: 10px;">
                         {% include 'partials/form_field.html' with field=form.all_departments %}
                     </div>
                 </div>
             </div>
 
             <div id="div_scheduled_employees">
-                <h4 style="margin-top: 0; font-size: 1.6rem; color: #495057;">Seleção de Participantes</h4>
-                <p style="font-size: 1.4rem; color: #666; margin-bottom: 10px;">
-                    Pesquise pelo nome e pressione Enter para adicionar.
-                </p>
-                {% include 'partials/form_field.html' with field=form.scheduled_employees %}
+                <div class="header-with-button">
+                    <div>
+                        <h4 style="margin-top: 0; font-size: 1.6rem; color: #495057; margin-bottom: 5px;">Seleção de Participantes</h4>
+                        <p style="font-size: 1.3rem; color: #6c757d; margin: 0;">Pesquise pelo nome ou selecione todos.</p>
+                    </div>
+                    <button type="button" class="btn-select-all" data-target="id_scheduled_employees">
+                        <i class="fa fa-check-double"></i> Selecionar Todos
+                    </button>
+                </div>
+                
+                <div style="margin-bottom: 30px;">
+                    {% include 'partials/form_field.html' with field=form.scheduled_employees %}
+                </div>
 
                 {% if form.instance.pk %}
-                    <hr style="margin: 30px 0;">
+                    <hr style="margin: 30px 0; border-color: #dee2e6;">
                     
-                    <h4 style="margin-top: 0; font-size: 1.6rem; color: #28a745;">Confirmação de Presença</h4>
-                    <p style="font-size: 1.6rem; color: #666; margin-bottom: 10px;">
-                        Destes previstos, quem realmente veio?
-                    </p>
-                    {% include 'partials/form_field.html' with field=form.attended_employees %}
+                    <div class="header-with-button">
+                        <div>
+                            <h4 style="margin-top: 0; font-size: 1.6rem; color: #198754; margin-bottom: 5px;">Confirmação de Presença</h4>
+                            <p style="font-size: 1.3rem; color: #6c757d; margin: 0;">Destes previstos, quem realmente veio?</p>
+                        </div>
+                        <button type="button" class="btn-select-all" data-target="id_attended_employees">
+                            <i class="fa fa-check-double"></i> Marcar Todos
+                        </button>
+                    </div>
+
+                    <div>
+                        {% include 'partials/form_field.html' with field=form.attended_employees %}
+                    </div>
                 {% endif %}
             </div>
 
         </div>
 
-        <div class="form-actions">
+        <div class="form-actions" style="margin-top: 40px;">
             <button type="submit" class="btn-save">Salvar Treinamento</button>
-
             {% if form.instance.pk %}
                 <a href="{% url 'rhcontrol:training_delete' pk=form.instance.pk %}" class="btn-delete">
                     <i class="fa fa-trash"></i> Excluir Treinamento
                 </a>
             {% endif %}
-        
         </div>
     </form>
 </div>
@@ -91,32 +133,57 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        if(document.getElementById('id_scheduled_employees')) {
-            new TomSelect("#id_scheduled_employees", {
-                plugins: ['remove_button'],
-                create: false,
-                sortField: { field: "text", direction: "asc" },
-                placeholder: "Digite o nome do funcionário...",
-                maxOptions: null
-            });
+        
+        // 1. INICIALIZA O TOM-SELECT
+        function initTomSelect(elementId, placeholderText) {
+            const el = document.getElementById(elementId);
+            if(el) {
+                return new TomSelect(el, {
+                    plugins: ['remove_button'],
+                    create: false,
+                    sortField: { field: "text", direction: "asc" },
+                    placeholder: placeholderText,
+                    maxOptions: null
+                });
+            }
+            return null;
         }
 
-        if(document.getElementById('id_attended_employees')) {
-            new TomSelect("#id_attended_employees", {
-                plugins: ['remove_button'],
-                create: false, 
-                sortField: { field: "text", direction: "asc" },
-                placeholder: "Selecione quem realmente compareceu...",
-                maxOptions: null
-            });
-        }
+        const tsScheduled = initTomSelect('id_scheduled_employees', 'Digite o nome do funcionário...');
+        const tsAttended = initTomSelect('id_attended_employees', 'Selecione quem realmente compareceu...');
 
+        // 2. LÓGICA DO BOTÃO "SELECIONAR TODOS"
+        document.querySelectorAll('.btn-select-all').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const targetId = this.getAttribute('data-target');
+                const tsInstance = document.getElementById(targetId).tomselect;
+                
+                if(tsInstance) {
+                    // Pega o ID de todos os funcionários disponíveis no Select
+                    const allValues = Object.keys(tsInstance.options);
+                    
+                    // Se já estiver todo mundo selecionado, nós limpamos
+                    if (tsInstance.items.length === allValues.length && allValues.length > 0) {
+                        tsInstance.clear();
+                        this.innerHTML = '<i class="fa fa-check-double"></i> Selecionar Todos';
+                    } 
+                    // Senão, nós selecionamos todos!
+                    else {
+                        tsInstance.setValue(allValues);
+                        this.innerHTML = '<i class="fa fa-times"></i> Desmarcar Todos';
+                    }
+                }
+            });
+        });
+
+        // 3. LÓGICA DE MOSTRAR/ESCONDER E TRAVAR CAMPOS
         const checkIntegration = document.getElementById('id_is_integration');
         const checkFundamental = document.getElementById('id_is_fundamental');
         const checkAllDepts = document.getElementById('id_all_departments');
         
         const inputStartDate = document.getElementById('id_start_date');
         const inputEndDate = document.getElementById('id_end_date');
+        const selectLocation = document.getElementById('id_training_location_type');
 
         const containerSetor = document.getElementById('div_target_department');
         const containerManual = document.getElementById('div_scheduled_employees');
@@ -127,21 +194,36 @@
             const isFundamental = checkFundamental && checkFundamental.checked;
 
             if (isIntegration) {
-
+                // Trava as Datas
                 if(inputStartDate) { inputStartDate.disabled = true; inputStartDate.value = ''; }
                 if(inputEndDate) { inputEndDate.disabled = true; inputEndDate.value = ''; }
 
+                // Trava o Local em "Interno"
+                if(selectLocation) {
+                    selectLocation.value = 'Interno';
+                    selectLocation.style.pointerEvents = 'none'; // Impede clicar
+                    selectLocation.style.backgroundColor = '#e9ecef'; // Cor cinza de bloqueado
+                }
+
+                // Desmarca e desabilita "Fundamental"
                 if(checkFundamental) { checkFundamental.checked = false; checkFundamental.disabled = true; }
 
+                // Esconde participantes e setores
                 if(containerManual) containerManual.classList.add('hidden');
                 if(containerSetor) containerSetor.classList.add('hidden');
             } 
-
             else {
-
+                // Libera as Datas
                 if(inputStartDate) inputStartDate.disabled = false;
                 if(inputEndDate) inputEndDate.disabled = false;
 
+                // Libera o Local
+                if(selectLocation) {
+                    selectLocation.style.pointerEvents = 'auto';
+                    selectLocation.style.backgroundColor = '';
+                }
+
+                // Libera o Fundamental e aplica a lógica dele
                 if(checkFundamental) checkFundamental.disabled = false;
 
                 if (isFundamental) {
@@ -170,5 +252,4 @@
         toggleFields();
     });
 </script>
-
 {% endblock content %}

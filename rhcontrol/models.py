@@ -40,6 +40,16 @@ class Training(models.Model):
     end_date = models.DateField(blank=True, null=True, verbose_name="Data de Fim")
 
     training_provider = models.CharField(max_length=200, blank=True, null=True, verbose_name="Fornecedor do Treinamento")
+    LOCAL_CHOICES = [
+        ('Interno', 'Interno'),
+        ('Externo', 'Externo'),
+    ]
+    training_location_type = models.CharField(
+        max_length=10, 
+        choices=LOCAL_CHOICES, 
+        default='Interno', 
+        verbose_name="Local do Treinamento"
+    )
     training_total_hours = models.IntegerField(help_text='Duração em horas', verbose_name="Duração (horas)")
     training_description = models.TextField(blank=True, null=True, verbose_name="Descrição do Treinamento")
 
