@@ -9,21 +9,33 @@
       Funcionário: <strong>{{ employee.name }}</strong>
     </p>
 
-    <form method="POST" action="{{ form_action }}" id="occurrenceForm">
+    <form method="POST" action="{{ form_action }}" id="occurrenceForm" enctype="multipart/form-data">
       {% csrf_token %}
 
       <div class="form-content">
         {% include 'partials/form_field.html' with field=form.title label="Título" %}
         {% include 'partials/form_field.html' with field=form.description label="Descrição" %}
-        {% include 'partials/form_field.html' with field=form.occurrence_date label="Data da Ocorrência" %}
+        {% include 'partials/form_field.html' with field=form.occurrence_date label="Data da Ocorrência / Início" %}
+        
+
+        <div style="grid-column: 1 / -1; background: #fff3cd; border: 1px solid #ffeeba; border-left: 5px solid #ffc107; padding: 15px 20px; border-radius: 6px; margin: 15px 0;">
+            <label style="font-weight: 600; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; cursor: pointer; color: #856404; margin: 0;">
+                {{ form.is_absence }}
+                Registrar como Afastamento?
+            </label>
+        </div>
+
+        <div id="div_end_date" style="display: none; grid-column: 1 / -1; margin-bottom: 15px;">
+            {% include 'partials/form_field.html' with field=form.end_date label="Data de Fim (Deixe em branco se o funcionário ainda não tiver previsão de retorno)" %}
+        </div>
       </div>
 
-      <div class="form-actions">
+      <div class="form-actions" style="margin-top: 20px;">
         <a href="{% url 'rhcontrol:occurrence_list' employee_id=employee.pk %}" class="btn btn-secondary">
           Cancelar
         </a>
 
-        <button type="submit" class="btn-save">Salvar Ocorrência</button>
+        <button type="submit" class="btn-save">Salvar Registro</button>
 
         {% if object.pk %}
           <a href="{% url 'rhcontrol:occurrence_delete' employee_id=employee.pk pk=object.pk %}" class="btn-delete">
@@ -33,4 +45,28 @@
       </div>
     </form>
   </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const checkAbsence = document.getElementById('id_is_absence');
+        const divEndDate = document.getElementById('div_end_date');
+        const inputEndDate = document.getElementById('id_end_date');
+
+        function toggleAbsenceFields() {
+            if (checkAbsence && checkAbsence.checked) {
+                divEndDate.style.display = 'block';
+            } else {
+                divEndDate.style.display = 'none';
+                if (inputEndDate) {
+                    inputEndDate.value = '';
+                }
+            }
+        }
+
+        if (checkAbsence) {
+            checkAbsence.addEventListener('change', toggleAbsenceFields);
+            toggleAbsenceFields();
+        }
+    });
+  </script>
 {% endblock content %}

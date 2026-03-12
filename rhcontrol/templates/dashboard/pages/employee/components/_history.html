@@ -110,17 +110,39 @@
         </div>
 
         <div class="history-col">
-            <h4>🏖️ Histórico de Férias</h4>
+            <h4>🏖️ Férias / Afastamentos</h4>
             <div class="history-scroll">
                 <ul class="history-list">
-                    {% for v in vacations %}
-                        <li class="history-item">
-                            <strong>{{ v.start_date|date:"d/m/Y" }}</strong> até <strong>{{ v.end_date|date:"d/m/Y" }}</strong>
-                            <br>
-                            <span style="color: #6c757d; font-size: 0.95em;">Duração: {{ v.vacation_duration }} dias</span>
+                    {% for item in leaves_history %}
+                        <li class="history-item" style="border-left: 4px solid {{ item.border_color }}; padding-left: 10px; margin-bottom: 12px;">
+                            
+                            <div style="font-size: 1.2rem; font-weight: 700; color: #495057; margin-bottom: 4px;">
+                                {{ item.icon }} {{ item.type }}
+                                {% if item.title %}
+                                    <span style="font-weight: 400; color: #6c757d; font-size: 1.1rem;"> - {{ item.title }}</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div style="font-size: 1.1rem; margin-bottom: 4px;">
+                                <strong style="color: #444;">{{ item.start_date|date:"d/m/Y" }}</strong> até 
+                                {% if item.end_date %}
+                                    <strong style="color: #444;">{{ item.end_date|date:"d/m/Y" }}</strong>
+                                {% else %}
+                                    <span style="color: #d97706; font-weight: bold; font-style: italic; background: #fef3c7; padding: 2px 6px; border-radius: 4px; font-size: 0.9em;">
+                                        Em andamento
+                                    </span>
+                                {% endif %}
+                            </div>
+                            
+                            <div style="color: #6c757d; font-size: 0.95em;">
+                                Duração: {{ item.duration }} dia{{ item.duration|pluralize }}
+                            </div>
+
                         </li>
                     {% empty %}
-                        <li class="history-empty">Nenhuma férias registrada.</li>
+                        <li class="history-empty" style="padding: 1.25rem; text-align: center; color: #999;">
+                            Nenhum registro de férias ou afastamento.
+                        </li>
                     {% endfor %}
                 </ul>
             </div>

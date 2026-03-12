@@ -357,7 +357,6 @@ def employee_create(request):
 def employee_update(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
 
-    # 1. Snapshots (Guardar estado anterior)
     old_job = employee.job_title
     old_salary = employee.current_salary
     old_cipa_role = employee.cipa_role 
@@ -388,7 +387,6 @@ def employee_update(request, pk):
             if custom_date:
                 final_date = custom_date
             elif has_cipa_change and new_employee.cipa_mandate_start_date:
-
                 final_date = new_employee.cipa_mandate_start_date
 
             auto_reason = ""
@@ -416,8 +414,7 @@ def employee_update(request, pk):
             EmployeeHistory.objects.create(
                 employee=employee,
                 date_changed=final_date,
-                
-                # Campos limpos (só salva se mudou)
+
                 old_job_title=h_old_job,
                 new_job_title=h_new_job,
                 old_salary=h_old_salary,
@@ -431,13 +428,38 @@ def employee_update(request, pk):
 
         messages.success(request, 'Funcionário atualizado com sucesso!')
         return redirect('rhcontrol:employee_list')
-    
-    # Contexto para renderização (Mantido igual)
+
     scheduled = employee.scheduled_trainings.all()
     attended = employee.attended_trainings.all().order_by('-start_date')
     history_log = employee.history.all().order_by('-date_changed')
-    vacations = employee.vacations.all().order_by('-start_date')
     total_hours = sum(t.training_total_hours or 0 for t in attended)
+
+    vacations = employee.vacations.all()
+    absences = employee.occurrences.filter(is_absence=True)
+
+    leaves_history = []
+
+    for v in vacations:
+        leaves_history.append({
+            'type': 'Férias',
+            'start_date': v.start_date,
+            'end_date': v.end_date,
+            'duration': getattr(v, 'vacation_duration', 0),
+            'icon': '🏖️',
+            'border_color': '#20c997' 
+        })
+
+    for a in absences:
+        leaves_history.append({
+            'type': 'Afastamento',
+            'title': a.title,
+            'start_date': a.occurrence_date,
+            'end_date': a.end_date,
+            'duration': getattr(a, 'absence_duration', 0),
+            'border_color': '#dc3545' 
+        })
+
+    leaves_history.sort(key=lambda x: x['start_date'], reverse=True)
 
     occurrences_top5 = (
         employee.occurrences
@@ -452,12 +474,11 @@ def employee_update(request, pk):
         'history_enabled': True,
         'trainings': attended.distinct().order_by('-start_date'),
         'history_log': history_log,
-        'vacations': vacations,
+        'leaves_history': leaves_history,
         'total_hours': total_hours,
         'occurrences_top5': occurrences_top5,
         'is_rh_admin': is_rh_admin,
     })
-
 @login_required
 def delete_history_log(request, pk):
     log = get_object_or_404(EmployeeHistory, pk=pk)

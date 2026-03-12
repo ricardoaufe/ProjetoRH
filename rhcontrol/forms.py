@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, timezone
 from decimal import Decimal
 from django import forms 
 from django.contrib.auth.models import Group, User
@@ -326,7 +326,9 @@ class TrainingForm(forms.ModelForm):
 class OccurrenceForm(forms.ModelForm):
     class Meta:
         model = Occurrence
-        fields = ['title', 'description', 'occurrence_date']
+
+        fields = ['title', 'description', 'occurrence_date', 'is_absence', 'end_date']
+        
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -341,22 +343,45 @@ class OccurrenceForm(forms.ModelForm):
                 format='%Y-%m-%d',
                 attrs={'class': 'form-control', 'type': 'date'},
             ),
-            'attachment': forms.ClearableFileInput(attrs={'class': 'form-control'}),
+
+            'end_date': forms.DateInput(
+                format='%Y-%m-%d',
+                attrs={'class': 'form-control', 'type': 'date'},
+            ),
+
+            'is_absence': forms.CheckboxInput(
+                attrs={'class': 'form-check-input'}
+            ),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        # Default occurrence_date to today when creating a new record
         if not self.instance.pk and not self.initial.get('occurrence_date'):
-            from django.utils import timezone
-            self.initial['occurrence_date'] = timezone.localdate()
+            from django.utils import timezone as django_tz
+            self.initial['occurrence_date'] = django_tz.localdate()
 
     def clean_occurrence_date(self):
-        from django.utils import timezone
+        from django.utils import timezone as django_tz
         date = self.cleaned_data.get('occurrence_date')
-        if date and date > timezone.localdate():
+        if date and date > django_tz.localdate():
             raise forms.ValidationError("A data não pode ser no futuro.")
         return date
+
+    def clean(self):
+        cleaned_data = super().clean()
+        
+        is_absence = cleaned_data.get('is_absence')
+        occurrence_date = cleaned_data.get('occurrence_date')
+        end_date = cleaned_data.get('end_date')
+
+        if not is_absence:
+            cleaned_data['end_date'] = None
+
+        else:
+            if end_date and occurrence_date and end_date < occurrence_date:
+                self.add_error('end_date', 'A data de fim não pode ser anterior à data de início.')
+
+        return cleaned_data
 
 
 class DepartmentForm(forms.ModelForm):

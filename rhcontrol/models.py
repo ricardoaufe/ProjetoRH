@@ -1,5 +1,5 @@
 from django.db import models
-from datetime import timedelta
+from datetime import date, timedelta
 from django.forms import ValidationError
 from django.utils import timezone
 from django.contrib.contenttypes.models import ContentType
@@ -553,8 +553,18 @@ class Occurrence(models.Model):
     )
     title = models.CharField(max_length=100, verbose_name='Título')
     description = models.TextField(verbose_name='Descrição')
-    occurrence_date = models.DateField(verbose_name='Data da Ocorrência')
 
+    occurrence_date = models.DateField(verbose_name='Data da Ocorrência / Início')
+
+    is_absence = models.BooleanField(
+        default=False, 
+        verbose_name='É um afastamento?'
+    )
+    end_date = models.DateField(
+        blank=True, 
+        null=True, 
+        verbose_name='Data de Fim'
+    )
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
@@ -579,19 +589,39 @@ class Occurrence(models.Model):
         verbose_name_plural = 'Ocorrências'
         ordering = ['-occurrence_date', '-created_at']
 
+    @property
+    def absence_duration(self):
+        """Calcula os dias de afastamento automaticamente."""
+        if not self.is_absence:
+            return 0
+
+        final_date = self.end_date if self.end_date else date.today()
+
+        delta = (final_date - self.occurrence_date).days + 1
+        
+        return delta if delta > 0 else 0
+
     def clean(self):
         super().clean()
+
         if self.occurrence_date and self.occurrence_date > timezone.localdate():
             raise ValidationError({
-                'occurrence_date': 'A data da ocorrência não pode ser no futuro.'
+                'occurrence_date': 'A data da ocorrência/início não pode ser no futuro.'
             })
+
+        if self.is_absence and self.end_date and self.occurrence_date:
+            if self.end_date < self.occurrence_date:
+                raise ValidationError({
+                    'end_date': 'A data de fim não pode ser anterior à data de início.'
+                })
 
     def save(self, *args, **kwargs):
         self.full_clean()
         super().save(*args, **kwargs)
 
     def __str__(self):
-        return f'{self.title} — {self.employee.name} ({self.occurrence_date})'
+        tipo = "Afastamento" if self.is_absence else "Ocorrência"
+        return f'{tipo}: {self.title} — {self.employee.name} ({self.occurrence_date})'
 
 class UserAlertPreference(models.Model):
 
