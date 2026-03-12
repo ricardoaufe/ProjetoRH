@@ -5,7 +5,8 @@
 {% block content %}
 <style>
   .search-form input[type="text"],
-  .search-form input[type="date"] {
+  .search-form input[type="date"],
+  .search-form select {
     width: 100%;
     padding: 6px 12px;
     border: 1px solid #ced4da;
@@ -14,121 +15,126 @@
     height: 38px;
   }
 
-  .name-group {
+  .name-group { 
     flex: 1.5; 
-    min-width: 200px;
+    min-width: 200px; 
   }
-
-  .date-group {
-    display: flex;
+  
+  .date-group { 
+    display: flex; 
     align-items: center; 
     gap: 8px; 
-    flex: 1;
-    min-width: 160px;
+    flex: 1; 
+    min-width: 160px; 
   }
-
-  .date-group label {
+  
+  .date-group label { 
     margin: 0; 
-    font-weight: bold;
-    color: #555;
-    font-size: 1.2rem;
+    font-weight: bold; 
+    color: #555; 
+    font-size: 1.2rem; 
     white-space: nowrap; 
   }
-
-  .occ-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  
+  .sort-group { 
+    flex: 1; 
+    min-width: 160px; 
   }
 
-  .occ-row {
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    overflow: hidden;
-    margin-bottom: 8px;
-    background: #fff;
+  .occ-list { 
+    list-style: none; 
+    margin: 0; 
+    padding: 0; 
   }
-
-  .occ-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 16px;
-    background: #f8f9fa;
-    cursor: pointer;
-    border: none;
-    width: 100%;
-    text-align: left;
-    border-bottom: 1px solid transparent;
-    transition: background 0.15s;
+  
+  .occ-row { 
+    border: 1px solid #e0e0e0; 
+    border-radius: 6px; 
+    overflow: hidden; 
+    margin-bottom: 8px; 
+    background: #fff; 
   }
-
-  .occ-header:hover {
-    background: #eef0f2;
+  
+  .occ-header { 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
+    padding: 12px 16px; 
+    background: #f8f9fa; 
+    cursor: pointer; 
+    border: none; 
+    width: 100%; 
+    text-align: left; 
+    border-bottom: 1px solid transparent; 
+    transition: background 0.15s; 
   }
-
-  .occ-header[aria-expanded="true"] {
-    border-bottom-color: #e0e0e0;
+  
+  .occ-header:hover { 
+    background: #eef0f2; 
   }
-
-  .occ-arrow {
-    transition: transform 0.2s;
-    color: #6c757d;
-    flex-shrink: 0;
+  
+  .occ-header[aria-expanded="true"] { 
+    border-bottom-color: #e0e0e0; 
   }
-
-  .occ-header[aria-expanded="true"] .occ-arrow {
-    transform: rotate(90deg);
+  
+  .occ-arrow { 
+    transition: transform 0.2s; 
+    color: #6c757d; 
+    flex-shrink: 0; 
   }
-
-  .occ-date {
-    white-space: nowrap;
-    font-weight: 700;
-    color: #6c757d;
-    font-size: 1.3rem;
-    flex-shrink: 0;
+  
+  .occ-header[aria-expanded="true"] .occ-arrow { 
+    transform: rotate(90deg); 
   }
-
-  .occ-title {
-    flex: 1;
-    font-size: 1.4rem;
-    font-weight: 600;
-    color: #333;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  
+  .occ-date { 
+    white-space: nowrap; 
+    font-weight: 700; 
+    color: #6c757d; 
+    font-size: 1.3rem; 
+    flex-shrink: 0; 
   }
-
-  .occ-body {
-    display: none;
-    padding: 16px 20px;
+  
+  .occ-title { 
+    flex: 1; 
+    font-size: 1.4rem; 
+    font-weight: 600; 
+    color: #333; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+    white-space: nowrap; 
   }
-
-  .occ-body.open {
-    display: block;
+  
+  .occ-body { 
+    display: none; 
+    padding: 16px 20px; 
   }
-
-  .occ-description {
-    font-size: 1.4rem;
-    color: #444;
-    white-space: pre-wrap;
-    margin-bottom: 12px;
-    line-height: 1.6;
+  
+  .occ-body.open { 
+    display: block; 
   }
-
-  .occ-meta {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding-top: 10px;
-    border-top: 1px solid #f0f0f0;
+  
+  .occ-description { 
+    font-size: 1.4rem; 
+    color: #444; 
+    white-space: pre-wrap; 
+    margin-bottom: 12px; 
+    line-height: 1.6; 
   }
-
-  .occ-actions {
-    display: flex;
-    gap: 8px;
+  
+  .occ-meta { 
+    display: flex; 
+    align-items: center; 
+    justify-content: space-between; 
+    flex-wrap: wrap; 
+    gap: 8px; 
+    padding-top: 10px; 
+    border-top: 1px solid #f0f0f0; 
+  }
+  
+  .occ-actions { 
+    display: flex; 
+    gap: 8px; 
   }
 </style>
 
@@ -141,6 +147,9 @@
       </p>
     </div>
     <div class="header-actions" style="display: flex; gap: 0.625rem">
+      <a href="{% url 'rhcontrol:occurrence_list_pdf' employee_id=employee.pk %}?{{ request.GET.urlencode }}" class="btn" target="_blank" >
+        <i class="fa fa-file-pdf"></i> Gerar PDF
+      </a>
       <a href="{% url 'rhcontrol:employee_update' pk=employee.pk %}" class="btn btn-secondary">
         <i class="fa fa-arrow-left"></i> Voltar
       </a>
@@ -155,7 +164,8 @@
   </div>
 
   <div class="filter-bar">
-    <form method="GET" action="{% url 'rhcontrol:occurrence_list' employee_id=employee.pk %}" class="search-form">
+    <form method="GET" action="{% url 'rhcontrol:occurrence_list' employee_id=employee.pk %}" class="search-form" style="display: flex; flex-wrap: wrap; gap: 15px;">
+      
       <div class="filter-group name-group">
         <input type="text" name="search" placeholder="Pesquisar por título..." value="{{ search_query }}">
       </div>
@@ -170,13 +180,20 @@
         <input type="date" name="date_to" id="date_to" value="{{ date_to }}">
       </div>
 
-      <div class="filter-actions">
-        <button type="submit" class="btn-filter" title="Filtrar">
+      <div class="filter-group sort-group">
+        <select name="sort">
+          <option value="-occurrence_date" {% if sort_by == '-occurrence_date' %}selected{% endif %}>Mais Recente</option>
+          <option value="occurrence_date" {% if sort_by == 'occurrence_date' %}selected{% endif %}>Mais Antigo</option>
+        </select>
+      </div>
+
+      <div class="filter-actions" style="display: flex; gap: 5px; height: 38px;">
+        <button type="submit" class="btn-filter" title="Filtrar" style="background-color: #3498db; color: white; border: none; padding: 0.6rem 1rem; border-radius: 5px; cursor: pointer;">
           <i class="fa fa-search"></i> Buscar
         </button>
         
-        {% if search_query or date_from or date_to %}
-          <a href="{% url 'rhcontrol:occurrence_list' employee_id=employee.pk %}" class="btn-clear" title="Limpar Filtros" style="display: flex; align-items: center; justify-content: center; background-color: #dc3545; color: white; border-radius: 5px; width: 38px; height: 38px;">
+        {% if search_query or date_from or date_to or sort_by == 'occurrence_date' %}
+          <a href="{% url 'rhcontrol:occurrence_list' employee_id=employee.pk %}" class="btn-clear" title="Limpar Filtros" style="display: flex; align-items: center; justify-content: center; background-color: #dc3545; color: white; border-radius: 5px; width: 38px; height: 38px; text-decoration: none;">
             <i class="fa fa-times"></i>
           </a>
         {% endif %}
@@ -192,6 +209,9 @@
         <i class="fa fa-chevron-right occ-arrow"></i>
         <span class="occ-date">{{ occ.occurrence_date|date:"d/m/Y" }}</span>
         <span class="occ-title">{{ occ.title }}</span>
+        {% if occ.is_absence %}
+            <span style="font-size: 0.8em; background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffeeba;">Afastamento</span>
+        {% endif %}
       </button>
 
       <div class="occ-body" id="occ-body-{{ occ.pk }}">
@@ -237,13 +257,13 @@
   {% if is_paginated %}
   <div style="display: flex; justify-content: center; margin-top: 1.5rem; gap: 0.5rem;">
     {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}" class="btn btn-sm btn-outline-secondary">&laquo; Anterior</a>
+    <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&date_from={{ date_from }}&date_to={{ date_to }}&sort={{ sort_by }}" class="btn btn-sm btn-outline-secondary">&laquo; Anterior</a>
     {% endif %}
     <span style="padding: 0.4rem 0.8rem; font-size: 1.3rem; color: #6c757d">
       Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
     </span>
     {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}" class="btn btn-sm btn-outline-secondary">Próxima &raquo;</a>
+    <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&date_from={{ date_from }}&date_to={{ date_to }}&sort={{ sort_by }}" class="btn btn-sm btn-outline-secondary">Próxima &raquo;</a>
     {% endif %}
   </div>
   {% endif %}

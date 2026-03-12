@@ -80,6 +80,7 @@ urlpatterns = [
     path('departments/pdf/employees-department/', views.create_employees_department_pdf, name='employees_department_pdf'),
     path('vacation/pdf/', views.create_vacation_list_pdf, name='vacation_list_pdf'),
     path('training/pdf/', views.create_training_list_pdf, name='training_list_pdf'),
+    path('employees/<int:employee_id>/occurrences/pdf/', views.create_occurrence_list_pdf, name='occurrence_list_pdf'),
 
     #OCCURRENCES
     path('employees/<int:employee_id>/occurrences/', occurrence_views.OccurrenceListView.as_view(), name='occurrence_list'),

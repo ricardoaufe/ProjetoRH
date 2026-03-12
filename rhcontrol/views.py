@@ -1215,6 +1215,54 @@ def create_training_list_pdf(request):
     return response
 
 @login_required
+def create_occurrence_list_pdf(request, employee_id):
+    """
+    GET employees/<employee_id>/occurrences/pdf/
+    Gera um relatório em PDF de todas as ocorrências do funcionário,
+    respeitando os filtros ativos na URL.
+    """
+    employee = get_object_or_404(Employee, pk=employee_id)
+
+    queryset = Occurrence.objects.filter(employee=employee).select_related('created_by')
+
+    search_query = request.GET.get('search', '').strip()
+    date_from = request.GET.get('date_from')
+    date_to = request.GET.get('date_to')
+    sort_by = request.GET.get('sort', '-occurrence_date')
+
+    if search_query:
+        queryset = queryset.filter(title__icontains=search_query)
+    if date_from:
+        queryset = queryset.filter(occurrence_date__gte=date_from)
+    if date_to:
+        queryset = queryset.filter(occurrence_date__lte=date_to)
+
+    if sort_by == 'occurrence_date':
+        queryset = queryset.order_by('occurrence_date', 'created_at')
+    else:
+        queryset = queryset.order_by('-occurrence_date', '-created_at')
+
+    context = {
+        'occurrences': queryset,
+        'employee': employee,
+        'search_query': search_query,
+        'date_from': date_from,
+        'date_to': date_to,
+        'generated_at': timezone.now(),
+        'user': request.user,
+        'company_name_settings': settings.COMPANY_NAME,
+    }
+
+    html_string = render_to_string('dashboard/pages/occurrence/pdf/occurrence_list_pdf.html', context)
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    pdf = html.write_pdf()
+    
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Ocorrencias_{employee.name.replace(" ", "_")}.pdf"'
+    
+    return response
+
+@login_required
 def ajax_load_employee_data(request):
     employee_id = request.GET.get('employee_id')
     if employee_id:

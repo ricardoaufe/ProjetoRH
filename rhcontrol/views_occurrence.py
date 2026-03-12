@@ -50,12 +50,12 @@ class OccurrenceListView(RhAdminRequiredMixin, ListView):
         self.employee = get_object_or_404(Employee, pk=self.kwargs['employee_id'])
         
     def get_queryset(self):
-
         queryset = Occurrence.objects.filter(employee=self.employee).select_related('created_by', 'updated_by')
 
         search_query = self.request.GET.get('search', '').strip()
         date_from = self.request.GET.get('date_from')
         date_to = self.request.GET.get('date_to')
+        sort_by = self.request.GET.get('sort', '-occurrence_date')
 
         if search_query:
             queryset = queryset.filter(title__icontains=search_query)
@@ -64,7 +64,10 @@ class OccurrenceListView(RhAdminRequiredMixin, ListView):
         if date_to:
             queryset = queryset.filter(occurrence_date__lte=date_to)
 
-        return queryset.order_by('-occurrence_date', '-created_at')
+        if sort_by == 'occurrence_date':
+            return queryset.order_by('occurrence_date', 'created_at')
+        else:
+            return queryset.order_by('-occurrence_date', '-created_at')
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -72,6 +75,7 @@ class OccurrenceListView(RhAdminRequiredMixin, ListView):
         ctx['search_query'] = self.request.GET.get('search', '')
         ctx['date_from'] = self.request.GET.get('date_from', '')
         ctx['date_to'] = self.request.GET.get('date_to', '')
+        ctx['sort_by'] = self.request.GET.get('sort', '-occurrence_date')
         
         return ctx
 
