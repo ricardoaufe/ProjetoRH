@@ -434,7 +434,8 @@ def employee_update(request, pk):
     history_log = employee.history.all().order_by('-date_changed')
     total_hours = sum(t.training_total_hours or 0 for t in attended)
 
-    vacations = employee.vacations.all()
+    today = timezone.localdate()
+    vacations = employee.vacations.filter(start_date__lte=today)
     absences = employee.occurrences.filter(is_absence=True)
 
     leaves_history = []
