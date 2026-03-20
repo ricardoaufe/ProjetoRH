@@ -5,6 +5,11 @@
 {% block content %}
 
 <div class="form-container">
+    <div style="flex: 1; display: flex; justify-content: flex-start;">
+      <a href="{% url 'rhcontrol:department_list' %}" class="btn-back" title="Voltar">
+          <i class="fa fa-chevron-left"></i>
+      </a>
+    </div>
     <div class="form-header" style="margin-bottom: 20px;">
         <h2 style="margin: 0;">{{ title|default:"Cadastrar Setores" }}</h2>
     </div>

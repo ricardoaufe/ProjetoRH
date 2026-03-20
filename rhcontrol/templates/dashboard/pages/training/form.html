@@ -33,6 +33,11 @@
 </style>
 
 <div class="form-container">
+    <div style="flex: 1; display: flex; justify-content: flex-start;">
+      <a href="{% url 'rhcontrol:training_list' %}" class="btn-back" title="Voltar">
+          <i class="fa fa-chevron-left"></i>
+      </a>
+    </div>
     <h2>{{ title|default:"Registrar Treinamento" }}</h2>
 
     <form method="POST" id="trainingForm">

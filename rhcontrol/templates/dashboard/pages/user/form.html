@@ -51,9 +51,23 @@
 </style>
 
 <div class="list-container">
-    <div class="page-header">
-        <h1>Cadastrar Usuário do Sistema</h1>
-        <a href="{% url 'rhcontrol:user_list' %}" class="btn btn-secondary">Cancelar</a>
+    
+    <div class="page-header" style="display: flex; align-items: center; justify-content: space-between; width: 100%;">
+        
+        <div style="flex: 1; display: flex; justify-content: flex-start;">
+            <a href="{% url 'rhcontrol:user_list' %}" class="btn-back" title="Voltar">
+                <i class="fa fa-chevron-left"></i>
+            </a>
+        </div>
+        
+        <div style="flex: 1; display: flex; justify-content: center; text-align: center;">
+            <h1 style="margin: 0;">Cadastrar Usuário do Sistema</h1>
+        </div>
+        
+        <div style="flex: 1; display: flex; justify-content: flex-end;">
+            <a href="{% url 'rhcontrol:user_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+        
     </div>
 
     <div class="form-wrapper">

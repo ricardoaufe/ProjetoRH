@@ -925,3 +925,33 @@ small{
 
 .delete-btn { background-color: #ef4444; } /* Vermelho Tailwind */
 .delete-btn:hover { background-color: #dc2626; transform: translateY(-2px); box-shadow: 0 4px 6px rgba(239, 68, 68, 0.3); }
+
+
+.btn-back {
+
+    display: inline-flex;
+    align-items: center;
+    gap: 8px; 
+    background-color: #F8F9FA; 
+    color: #198754;          
+    border: 1px solid #198754; 
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 1.4rem; 
+    text-transform: uppercase; 
+    text-decoration: none;
+    transition: all 0.2s ease-in-out;
+    cursor: pointer;
+}
+
+
+.btn-back.btn-delete {
+
+    background-color: #198754; 
+    color: #FFFFFF;           
+}
+
+.btn-back i {
+    font-size: 0.9em;
+}

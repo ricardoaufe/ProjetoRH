@@ -8,9 +8,15 @@
 
 {% block content %}
 <div class="container-fluid">
+    
   <div class="career-table-container" style="background-color: #ffffff; padding: 25px; margin: 80px 30px 30px 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
     
     <div class="career-page-header" style="border-bottom: 1px solid #e0e0e0; margin-bottom: 20px; padding-bottom: 15px;">
+        <div style="flex: 1; display: flex; justify-content: flex-start;">
+            <a href="{% url 'rhcontrol:career_plan_list' %}" class="btn-back" title="Voltar">
+                <i class="fa fa-chevron-left"></i>
+            </a>
+        </div>
         <h2 style="margin: 0; font-size: 24px; color: #333;">
             <i class="fas {% if is_update %}fa-edit{% else %}fa-plus-circle{% endif %} text-primary"></i> 
             {% if is_update %}Editar Plano de Carreira{% else %}Criar Novo Plano de Carreira{% endif %}
