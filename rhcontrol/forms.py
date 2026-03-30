@@ -125,8 +125,8 @@ class EmployeeForm(forms.ModelForm):
         if birth_date:
             today = date.today()
             age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
-            if age < 18:
-                raise forms.ValidationError("O funcionário deve ter pelo menos 18 anos.")
+            if age < 14:
+                raise forms.ValidationError("O funcionário deve ter pelo menos 14 anos.")
             
             if age > 100:
                 raise forms.ValidationError("Idade inválida. Verifique o ano de nascimento (Máx: 100 anos).")
