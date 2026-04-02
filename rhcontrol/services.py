@@ -251,6 +251,8 @@ def process_career_plans(dry_run: bool = False) -> None:
     Motor diário de transições de status do Plano de Carreira.
     Roda via Hub (run_automations).
     """
+    from rhcontrol.models import EmployeeHistory  # Importação local para garantir acesso ao histórico
+
     today = timezone.localdate()
     if dry_run:
         logger.info(f"=== [DRY-RUN] Iniciando simulação de Planos de Carreira para {today} ===")
@@ -328,18 +330,36 @@ def process_career_plans(dry_run: bool = False) -> None:
             logger.info(f"[DRY-RUN] Efetivaria promoção de [{employee.name}] para o cargo [{plan.proposed_job.name}]. Salvaria histórico.")
         else:
             try:
+                # 1. Guarda os valores antigos antes de atualizar o funcionário
+                old_job_title = str(employee.job_title) if employee.job_title else None
+                old_salary = employee.current_salary
+
                 with transaction.atomic():
+                    # 2. Atualiza os dados do funcionário
                     employee.job_title = plan.proposed_job
                     employee.department = plan.proposed_job.department
                     employee.current_salary = plan.proposed_salary
-                    employee.save(update_fields=['job_title', 'current_salary'])
+                    # Correção bônus: Adicionado 'department' no update_fields para não dar erro
+                    employee.save(update_fields=['job_title', 'department', 'current_salary']) 
                     
+                    # 3. Atualiza os dados do plano
                     plan.status = CareerPlan.PlanStatus.EFFECTIVE
                     plan.effective_applied_at = timezone.now()
                     plan.save(update_fields=['status', 'effective_applied_at', 'updated_at'])
 
+                    # 4. REGISTRA O HISTÓRICO PARA APARECER NO PAINEL DO FUNCIONÁRIO
+                    EmployeeHistory.objects.create(
+                        employee=employee,
+                        date_changed=today,
+                        old_job_title=old_job_title,
+                        new_job_title=str(plan.proposed_job),
+                        old_salary=old_salary,
+                        new_salary=plan.proposed_salary,
+                        reason="Plano de Carreira"
+                    )
+
                 notify_career_plan_event(plan, EventTypes.CAREER_PLAN_EFFECTIVE)
-                logger.info(f"Promoção de [{employee.name}] efetivada com sucesso.")
+                logger.info(f"Promoção de [{employee.name}] efetivada com sucesso e histórico registrado.")
             except Exception as e:
                 logger.error(f"Falha crítica ao efetivar promoção do plano {plan.id}: {str(e)}")
 

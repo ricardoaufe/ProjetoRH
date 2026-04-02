@@ -546,8 +546,7 @@ class CareerPlanAutomationsTest(TestCase):
         self.assertEqual(self.employee.job_title, self.current_job)
         self.assertEqual(len(mail.outbox), 0)
 
-        plan.promotion_date = self.today
-        plan.save(update_fields=["promotion_date"])
+        CareerPlan.objects.filter(pk=plan.pk).update(promotion_date=self.today)
 
         process_career_plans(dry_run=False)
         plan.refresh_from_db()
@@ -557,31 +556,6 @@ class CareerPlanAutomationsTest(TestCase):
         self.assertEqual(self.employee.job_title, self.proposed_job)
         self.assertEqual(self.employee.current_salary, Decimal("6000.00"))
         self.assertEqual(len(mail.outbox), 1)
-
-    # def test_conflict_aborts_promotion(self):
-    #     plan = CareerPlan.objects.create(
-    #         employee=self.employee,
-    #         proposed_job=self.proposed_job,             
-    #         proposed_salary=Decimal("6000.00"),
-    #         promotion_date=self.today + timedelta(days=1),
-    #         status=CareerPlan.PlanStatus.CONFIRMED,
-    #     )
-
-    #     new_dept = Department.objects.create(name="RH")
-    #     self.employee.department = new_dept
-    #     self.employee.save(update_fields=["department"])
-
-    #     plan.promotion_date = self.today
-    #     plan.save(update_fields=["promotion_date"])
-
-    #     process_career_plans(dry_run=False)
-
-    #     plan.refresh_from_db()
-    #     self.employee.refresh_from_db()
-
-    #     self.assertEqual(plan.status, CareerPlan.PlanStatus.CANCELLED)
-    #     self.assertIn("Conflito", plan.cancellation_reason)
-    #     self.assertEqual(self.employee.job_title, self.current_job)
 
 class CareerPlanIdempotencyTests(TestCase):
     def setUp(self):
@@ -916,7 +890,49 @@ class CareerPlanEffectiveTests(TestCase):
 
         process_career_plans(dry_run=False)
         self.assertEqual(len(mail.outbox), 1)
+    
+    def test_effective_promotion_creates_history_record(self):
+        """
+        Garante que, ao efetivar a promoção no Dia D, o sistema 
+        cria um registro de histórico para o funcionário.
+        """
+        from rhcontrol.models import EmployeeHistory
+        history_count_before = EmployeeHistory.objects.filter(employee=self.employee).count()
 
+        # 1. Cria o plano NO FUTURO (para o clean() não bloquear a criação)
+        plan = CareerPlan.objects.create(
+            employee=self.employee,
+            proposed_job=self.proposed_job,
+            proposed_salary=Decimal("6000.00"),
+            promotion_date=self.today + timedelta(days=5), 
+            status=CareerPlan.PlanStatus.CONFIRMED,
+        )
+
+        # 2. Faz a "viagem no tempo" direto no banco de dados para o dia de HOJE
+        CareerPlan.objects.filter(pk=plan.pk).update(promotion_date=self.today)
+
+        # 3. Roda a automação diária
+        process_career_plans(dry_run=False)
+
+        plan.refresh_from_db()
+        self.employee.refresh_from_db()
+
+        # 4. Verifica se a promoção realmente aconteceu
+        self.assertEqual(plan.status, CareerPlan.PlanStatus.EFFECTIVE)
+        self.assertEqual(self.employee.job_title, self.proposed_job)
+
+        # 5. O GRANDE TESTE: Verifica se o histórico aumentou em 1
+        history_count_after = EmployeeHistory.objects.filter(employee=self.employee).count()
+        self.assertEqual(
+            history_count_after, 
+            history_count_before + 1, 
+            "O histórico do funcionário NÃO foi criado após a automação do plano de carreira!"
+        )
+
+        # 6. Verifica os dados do histórico
+        latest_history = EmployeeHistory.objects.filter(employee=self.employee).order_by('-date_changed').first()
+        self.assertEqual(latest_history.new_job_title, str(self.proposed_job))
+        self.assertEqual(latest_history.new_salary, Decimal("6000.00"))
 
 class TrainingModelTests(TestCase):
     def setUp(self):

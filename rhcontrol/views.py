@@ -293,7 +293,9 @@ def employee_view(request):
         )
     
     status_filter = request.GET.get('status')
-    if status_filter == 'ativo':
+    
+    # CORREÇÃO: Alterado de 'ativo' para 'active' para bater com o HTML
+    if status_filter == 'active':
         employee_list = employee_list.filter(termination_date__isnull=True) 
     elif status_filter == 'demitido':
         employee_list = employee_list.filter(termination_date__isnull=False)
