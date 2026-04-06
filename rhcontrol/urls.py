@@ -87,4 +87,5 @@ urlpatterns = [
     path('employees/<int:employee_id>/occurrences/create/', occurrence_views.OccurrenceCreateView.as_view(), name='occurrence_create'),
     path('employees/<int:employee_id>/occurrences/<int:pk>/edit/', occurrence_views.OccurrenceUpdateView.as_view(), name='occurrence_update'),
     path('employees/<int:employee_id>/occurrences/<int:pk>/delete/', occurrence_views.OccurrenceDeleteView.as_view(), name='occurrence_delete'),
+    path('ajax/search-cids/', occurrence_views.AjaxSearchCidsView.as_view(), name='ajax_search_cids'),
 ]

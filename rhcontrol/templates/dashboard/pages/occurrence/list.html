@@ -209,9 +209,17 @@
         <i class="fa fa-chevron-right occ-arrow"></i>
         <span class="occ-date">{{ occ.occurrence_date|date:"d/m/Y" }}</span>
         <span class="occ-title">{{ occ.title }}</span>
+
+        {% if occ.cid %}
+            <span style="font-size: 1.2rem; color: #495057; border: 1px solid #ced4da; padding: 2px 8px; border-radius: 4px; background-color: #f8f9fa; margin-right: 5px;">
+                <strong>CID: {{ occ.cid.code }}</strong>
+            </span>
+        {% endif %}
+
         {% if occ.is_absence %}
             <span style="font-size: 0.8em; background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffeeba;">Afastamento</span>
         {% endif %}
+        
       </button>
 
       <div class="occ-body" id="occ-body-{{ occ.pk }}">

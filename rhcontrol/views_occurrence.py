@@ -9,11 +9,15 @@ Non-RhAdmin authenticated users receive HTTP 403 (PermissionDenied).
 """
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.core.paginator import Paginator
+from django.db.models import Q
+from django.http import JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View
+from urllib3 import request
 
-from rhcontrol.models import Employee, Occurrence
+from rhcontrol.models import CID, Employee, Occurrence
 from rhcontrol.forms import OccurrenceForm
 
 
@@ -187,3 +191,22 @@ class OccurrenceDeleteView(RhAdminRequiredMixin, DeleteView):
         ctx = super().get_context_data(**kwargs)
         ctx['employee'] = self.employee
         return ctx
+    
+class AjaxSearchCidsView(RhAdminRequiredMixin, View):
+
+    def get(self, request, *args, **kwargs):
+        query = request.GET.get('q', '').strip()
+
+        if len(query) < 2:
+            return JsonResponse({'results': []})
+
+        cids = CID.objects.filter(
+            Q(code__icontains=query) | Q(description__icontains=query)
+        )[:20]
+        
+        results = [
+            {'id': cid.id, 'text': f"{cid.code} - {cid.description}"}
+            for cid in cids
+        ]
+        
+        return JsonResponse({'results': results})

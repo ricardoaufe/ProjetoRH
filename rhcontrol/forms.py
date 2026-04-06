@@ -327,13 +327,19 @@ class OccurrenceForm(forms.ModelForm):
     class Meta:
         model = Occurrence
 
-        fields = ['title', 'description', 'occurrence_date', 'is_absence', 'end_date']
+        fields = ['title', 'cid', 'description', 'occurrence_date', 'is_absence', 'end_date']
         
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
                 'placeholder': 'Título da ocorrência',
             }),
+
+           'cid': forms.Select(attrs={
+                'class': 'form-control cid-select2',
+                'style': 'width: 100%;'
+            }),
+
             'description': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 4,
@@ -376,13 +382,11 @@ class OccurrenceForm(forms.ModelForm):
 
         if not is_absence:
             cleaned_data['end_date'] = None
-
         else:
             if end_date and occurrence_date and end_date < occurrence_date:
                 self.add_error('end_date', 'A data de fim não pode ser anterior à data de início.')
 
         return cleaned_data
-
 
 class DepartmentForm(forms.ModelForm):
     class Meta:

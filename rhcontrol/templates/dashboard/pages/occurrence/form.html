@@ -14,7 +14,8 @@
 
       <div class="form-content">
         {% include 'partials/form_field.html' with field=form.title label="Título" %}
-        {% include 'partials/form_field.html' with field=form.description label="Descrição" %}
+        {% include 'partials/form_field.html' with field=form.cid label="CID-10 (Opcional - Busque por Código ou Doença)" %}
+        {% include 'partials/form_field.html' with field=form.description label="Descrição (Anotações do RH)" %}
         {% include 'partials/form_field.html' with field=form.occurrence_date label="Data da Ocorrência / Início" %}
         
 
@@ -26,7 +27,7 @@
         </div>
 
         <div id="div_end_date" style="display: none; grid-column: 1 / -1; margin-bottom: 15px;">
-            {% include 'partials/form_field.html' with field=form.end_date label="Data de Fim (Deixe em branco se o funcionário ainda não tiver previsão de retorno)" %}
+            {% include 'partials/form_field.html' with field=form.end_date label="Data de Fim (Deixe em branco se não houver previsão de retorno)" %}
         </div>
       </div>
 
@@ -46,7 +47,36 @@
     </form>
   </div>
 
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
   <script>
+    $(document).ready(function() {
+        $('.cid-select2').select2({
+            placeholder: 'Digite para buscar um CID...',
+            allowClear: true,
+            minimumInputLength: 2,
+            language: {
+                inputTooShort: function() { return "Digite 2 ou mais caracteres para buscar..."; },
+                noResults: function() { return "Nenhum CID encontrado."; },
+                searching: function() { return "Buscando..."; }
+            },
+            ajax: {
+                url: "{% url 'rhcontrol:ajax_search_cids' %}",
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                    return { q: params.term };
+                },
+                processResults: function (data) {
+                    return { results: data.results };
+                },
+                cache: true
+            }
+        });
+    });
+
     document.addEventListener('DOMContentLoaded', function() {
         const checkAbsence = document.getElementById('id_is_absence');
         const divEndDate = document.getElementById('div_end_date');

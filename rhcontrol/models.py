@@ -543,7 +543,19 @@ class NotificationLog(models.Model):
 
     def __str__(self):
         return f"Log: {self.rule.event_type} - {self.employee.name} ({self.reference_year})"
+    
+class CID(models.Model):
+    code = models.CharField(max_length=10, unique=True, verbose_name='Código CID')
+    description = models.CharField(max_length=500, verbose_name='Descrição Oficial')
 
+    class Meta:
+        verbose_name = 'CID-10'
+        verbose_name_plural = 'CIDs-10'
+        ordering = ['code']
+
+    def __str__(self):
+        return f"{self.code} - {self.description}"
+    
 class Occurrence(models.Model):
     employee = models.ForeignKey(
         'Employee',
@@ -552,6 +564,14 @@ class Occurrence(models.Model):
         verbose_name='Funcionário',
     )
     title = models.CharField(max_length=100, verbose_name='Título')
+    cid = models.ForeignKey(
+        CID,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='occurrences',
+        verbose_name='CID-10 (Opcional)'
+    )
     description = models.TextField(verbose_name='Descrição')
 
     occurrence_date = models.DateField(verbose_name='Data da Ocorrência / Início')
