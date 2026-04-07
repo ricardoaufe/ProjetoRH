@@ -140,23 +140,31 @@
 
 <div class="list-container">
   <div class="page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-    <div>
-      <h1>Ocorrências</h1>
+    
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      
+      <div style="display: flex; align-items: center; gap: 10px;">
+        <a href="{% url 'rhcontrol:employee_update' pk=employee.pk %}" class="btn-back" title="Voltar">
+            <i class="fa fa-chevron-left"></i>
+        </a>
+        <h1 style="margin: 0;">Ocorrências</h1>
+      </div>
+
       <p style="margin: 0; color: #6c757d; font-size: 1.4rem">
         Funcionário: <strong>{{ employee.name }}</strong>
       </p>
     </div>
-    <div class="header-actions" style="display: flex; gap: 0.625rem">
+
+    <div class="header-actions" style="display: flex; gap: 0.625rem; align-items: center;">
       <a href="{% url 'rhcontrol:occurrence_list_pdf' employee_id=employee.pk %}?{{ request.GET.urlencode }}" class="btn" target="_blank" >
         <i class="fa fa-file-pdf"></i> Gerar PDF
       </a>
-      <a href="{% url 'rhcontrol:employee_update' pk=employee.pk %}" class="btn btn-secondary">
-        <i class="fa fa-arrow-left"></i> Voltar
-      </a>
+      
       <a href="{% url 'rhcontrol:occurrence_create' employee_id=employee.pk %}" class="btn btn-primary">
         <i class="fa fa-plus"></i> Nova Ocorrência
       </a>
     </div>
+
   </div>
 
   <div class="status-filters">

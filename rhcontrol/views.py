@@ -81,10 +81,11 @@ def dashboard_view(request):
     from datetime import timedelta
     from .services import get_upcoming_events
 
-    employees_count = Employee.objects.count()
-    vacations_count = Vacation.objects.count()
-    hire_date = Employee.hire_date
     today = timezone.localdate()
+    employees_count = Employee.objects.count()
+    vacations_count = Vacation.objects.filter(end_date__gte=today).count()
+    hire_date = Employee.hire_date
+    
    
     date_1_year = today - timedelta(days=365)
     date_3_years = today - timedelta(days=365*3)
@@ -530,11 +531,14 @@ def get_job_salary(request):
 @permission_required('rhcontrol.view_vacation', raise_exception=True)
 @login_required
 def vacation_view(request):
+    from django.utils import timezone
     vacation_list = Vacation.objects.select_related('employee').all()
 
     search_query = request.GET.get('search', '')
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
+    
+    status = request.GET.get('status', 'ativas')
 
     sort_by = request.GET.get('sort', 'employee__name') 
 
@@ -544,6 +548,12 @@ def vacation_view(request):
         vacation_list = vacation_list.order_by(sort_by)
     else:
         vacation_list = vacation_list.order_by('employee__name') 
+
+    hoje = timezone.localdate()
+    if status == 'historico':
+        vacation_list = vacation_list.filter(end_date__lt=hoje)
+    else:
+        vacation_list = vacation_list.filter(end_date__gte=hoje)
 
     if search_query:
         vacation_list = vacation_list.filter(employee__name__icontains=search_query)
@@ -564,6 +574,7 @@ def vacation_view(request):
         'date_from': date_from,
         'date_to': date_to,
         'current_sort': sort_by,
+        'status': status,
     }
     return render(request, 'dashboard/pages/vacation/list.html', context)
 
