@@ -33,7 +33,7 @@
         </form>
     </div>
 
-    <div style="display: flex; gap: 1.25rem; margin-bottom: 0.9375rem; font-size: 1.5rem; color: #6c757d; align-items: center;">
+    <div style="display: flex; gap: 1.25rem; margin-bottom: 0.9375rem; font-size: 1.5rem; color: #6c757d; align-items: center; flex-wrap: wrap;">
         <span style="font-weight: 600;">Legenda:</span>
         
         <div style="display: flex; align-items: center; gap: 0.375rem;">
@@ -44,6 +44,11 @@
         <div style="display: flex; align-items: center; gap: 0.375rem;">
             <i class="fa fa-shield-alt" style="color: #6c757d;"></i> 
             <span>Estabilidade Pós-Mandato</span>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 0.375rem;">
+            <span style="font-size: 0.8em; background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffeeba;">Afastado(a)</span>
+            <span>Funcionário em licença/afastamento</span>
         </div>
     </div>
 
@@ -92,7 +97,7 @@
                     {% endif %}
                 </td>
                 <td>
-                    <a href="{% url 'rhcontrol:employee_update' employee.id %}" style="display: flex; align-items: center; gap: 0.5rem; text-decoration: none; color: inherit;">
+                    <a href="{% url 'rhcontrol:employee_update' employee.id %}" style="display: flex; align-items: center; flex-wrap: wrap; gap: 0.5rem; text-decoration: none; color: inherit;">
         
                         {{ employee.name }}
 
@@ -101,6 +106,10 @@
                         
                         {% elif employee.cipa_status == 'stability' %}
                             <i class="fa fa-shield-alt" style="color: #6c757d;" title="Estabilidade Pós-Mandato"></i>
+                        {% endif %}
+
+                        {% if employee.is_on_leave %}
+                            <span style="font-size: 0.8em; background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffeeba;" title="Funcionário possui um afastamento ativo">Afastado(a)</span>
                         {% endif %}
 
                     </a>
@@ -118,9 +127,7 @@
         </tbody>
     </table>
                 
-
+</div>
 
 </body>
-
-</html>
 {% endblock content %}

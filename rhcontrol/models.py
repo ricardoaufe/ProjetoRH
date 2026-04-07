@@ -387,6 +387,20 @@ class Employee(models.Model):
             result.append(f"{months} {'mês' if months == 1 else 'meses'}")
             
         return " e ".join(result) if result else "Menos de 1 mês"
+    
+    @property
+    def is_on_leave(self):
+        from django.utils import timezone
+        from django.db.models import Q
+        
+        hoje = timezone.localdate()
+
+        return self.occurrences.filter(
+            is_absence=True,
+            occurrence_date__lte=hoje
+        ).filter(
+            Q(end_date__isnull=True) | Q(end_date__gte=hoje)
+        ).exists()
 
     def __str__(self):
         return self.name

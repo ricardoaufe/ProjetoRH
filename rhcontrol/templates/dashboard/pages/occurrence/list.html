@@ -217,7 +217,9 @@
         {% endif %}
 
         {% if occ.is_absence %}
-            <span style="font-size: 0.8em; background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffeeba;">Afastamento</span>
+            <span style="font-size: 0.8em; background: #fff3cd; color: #856404; padding: 2px 6px; border-radius: 4px; border: 1px solid #ffeeba; display: inline-flex; align-items: center; gap: 4px;">
+                Afastamento ({{ occ.absence_duration }} dia{{ occ.absence_duration|pluralize }})
+            </span>
         {% endif %}
         
       </button>
