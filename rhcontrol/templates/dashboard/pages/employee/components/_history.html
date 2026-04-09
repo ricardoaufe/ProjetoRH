@@ -1,3 +1,9 @@
+<style>
+    #historyModal::backdrop {
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(2px); /* Dá um efeito leve de desfoque no fundo */
+    }
+</style>
 <div class="history-container">
         
     <div class="history-header">
@@ -24,7 +30,7 @@
                                     {% endif %}
                                 {% endif %}
                             </div>
-                                                        
+                                                                                
                             <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
                                 <span style="font-size: 0.95em; color: #555;">{{ t.training_name }}</span>
                                 <span style="display:inline-block; background:#eef2ff; color:#4f46e5; padding:0.2rem 0.5rem; border-radius:0.25rem; font-size:0.85em; font-weight:bold; white-space: nowrap;">
@@ -42,17 +48,40 @@
         </div>
 
         <div class="history-col">
-            <h4>💼 Evolução Profissional</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                <h4 style="margin: 0;">💼 Evolução Profissional</h4>
+                <button type="button" onclick="openHistoryModal()" style="border: none; background: #198754; color: white; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 1.2rem;" title="Adicionar Registro Antigo">
+                    <i class="fa fa-plus"></i>
+                </button>
+            </div>
+            
             <div class="history-scroll">
                 <ul class="history-list">
                     {% for h in history_log %}
                         <li class="history-item" style="position: relative;">
                             
-                            <button type="button" 
-                                    onclick="openDeleteModal('{% url 'rhcontrol:history_delete' pk=h.pk %}')"
-                                    style="position: absolute; top: 0.625rem; right: 0.625rem; border: none; background: none; color: #dc3545; cursor: pointer; font-size: 1.2rem;">
-                                <i class="fa fa-times"></i>
-                            </button>
+                            <div style="position: absolute; top: 0.625rem; right: 0.625rem; display: flex; gap: 8px;">
+                                <button type="button" 
+                                        onclick="openHistoryModal('{% url 'rhcontrol:history_edit' pk=h.pk %}', {
+                                            date: '{{ h.date_changed|date:'Y-m-d' }}',
+                                            reason: '{{ h.reason|escapejs }}',
+                                            old_job: '{{ h.old_job_title|default_if_none:''|escapejs }}',
+                                            new_job: '{{ h.new_job_title|default_if_none:''|escapejs }}',
+                                            old_sal: '{{ h.old_salary|default_if_none:'' }}'.replace(',', '.'),
+                                            new_sal: '{{ h.new_salary|default_if_none:'' }}'.replace(',', '.'),
+                                            old_cipa: '{{ h.old_cipa_role|default_if_none:''|escapejs }}',
+                                            new_cipa: '{{ h.new_cipa_role|default_if_none:''|escapejs }}'
+                                        })"
+                                        style="border: none; background: none; color: #6c757d; cursor: pointer; font-size: 1.2rem;" title="Editar">
+                                    <i class="fa fa-cog"></i>
+                                </button>
+
+                                <button type="button" 
+                                        onclick="openDeleteModal('{% url 'rhcontrol:history_delete' pk=h.pk %}')"
+                                        style="border: none; background: none; color: #dc3545; cursor: pointer; font-size: 1.2rem;" title="Excluir">
+                                    <i class="fa fa-times"></i>
+                                </button>
+                            </div>
 
                             <div style="font-size: 1.4rem; font-weight: 800; color: #6c757d; margin-bottom: 0.5rem; letter-spacing: 0.5px;">
                                 {{ h.date_changed|date:"d F Y"|upper }}
@@ -150,3 +179,141 @@
 
     </div>
 </div>
+
+<dialog id="historyModal" style="margin: auto; padding: 20px; border-radius: 8px; border: none; width: 90%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); font-family: sans-serif;">
+    
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+        <h3 id="historyModalTitle" style="margin: 0; color: #333;">Adicionar Registro Histórico</h3>
+        <button type="button" onclick="closeHistoryModal()" style="border: none; background: none; font-size: 1.5rem; cursor: pointer; color: #999;">&times;</button>
+    </div>
+    
+    <form id="historyForm" method="POST" action="{% url 'rhcontrol:history_create' employee_id=form.instance.pk %}">
+        {% csrf_token %}
+        
+        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div style="flex: 1;">
+                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Data <span style="color: red;">*</span></label>
+                <input type="date" name="date_changed" id="hist_date" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" required>
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Motivo/Tipo <span style="color: red;">*</span></label>
+                <input type="text" name="reason" id="hist_reason" placeholder="Ex: Promoção, Mérito..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" required>
+            </div>
+        </div>
+        
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+
+        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div style="flex: 1;">
+                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Cargo Anterior</label>
+                <select name="old_job_title" id="hist_old_job" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="">---------</option>
+                    {% for job in job_titles %}
+                        <option value="{{ job.name }}" data-salary="{{ job.base_salary|stringformat:'f' }}">{{ job.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Novo Cargo</label>
+                <select name="new_job_title" id="hist_new_job" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="">---------</option>
+                    {% for job in job_titles %}
+                        <option value="{{ job.name }}" data-salary="{{ job.base_salary|stringformat:'f' }}">{{ job.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div style="flex: 1;">
+                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Salário Anterior (R$)</label>
+                <input type="number" step="0.01" name="old_salary" id="hist_old_sal" placeholder="0.00" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Novo Salário (R$)</label>
+                <input type="number" step="0.01" name="new_salary" id="hist_new_sal" placeholder="0.00" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
+            <div style="flex: 1;">
+                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">CIPA Anterior</label>
+                <select name="old_cipa_role" id="hist_old_cipa" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="">---------</option>
+                    <option value="Titular">Titular</option>
+                    <option value="Suplente">Suplente</option>
+                </select>
+            </div>
+            <div style="flex: 1;">
+                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">CIPA Nova</label>
+                <select name="new_cipa_role" id="hist_new_cipa" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    <option value="">---------</option>
+                    <option value="Titular">Titular</option>
+                    <option value="Suplente">Suplente</option>
+                </select>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: flex-end; gap: 10px;">
+            <button type="button" onclick="closeHistoryModal()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
+            <button type="submit" style="padding: 8px 16px; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Salvar Histórico</button>
+        </div>
+    </form>
+</dialog>
+
+<script>
+    const histModal = document.getElementById('historyModal');
+    const histForm = document.getElementById('historyForm');
+    const baseCreateUrl = "{% url 'rhcontrol:history_create' employee_id=form.instance.pk %}";
+
+    function openHistoryModal(editUrl = null, data = {}) {
+        if (editUrl) {
+            document.getElementById('historyModalTitle').innerText = "Editar Registro";
+            histForm.action = editUrl;
+            document.getElementById('hist_date').value = data.date || '';
+            document.getElementById('hist_reason').value = data.reason || '';
+            
+            // Tenta selecionar o cargo se o nome for compatível (se for um ID como 22, ficará em branco para o RH corrigir)
+            document.getElementById('hist_old_job').value = data.old_job || '';
+            document.getElementById('hist_new_job').value = data.new_job || '';
+            
+            document.getElementById('hist_old_sal').value = data.old_sal && data.old_sal !== 'None' ? data.old_sal : '';
+            document.getElementById('hist_new_sal').value = data.new_sal && data.new_sal !== 'None' ? data.new_sal : '';
+            document.getElementById('hist_old_cipa').value = data.old_cipa || '';
+            document.getElementById('hist_new_cipa').value = data.new_cipa || '';
+        } else {
+            document.getElementById('historyModalTitle').innerText = "Adicionar Registro Antigo";
+            histForm.action = baseCreateUrl;
+            histForm.reset();
+        }
+        histModal.showModal();
+    }
+
+    function closeHistoryModal() {
+        histModal.close();
+    }
+
+    // --- MAGIA DO SALÁRIO AUTOMÁTICO ---
+    document.addEventListener('DOMContentLoaded', function() {
+        function setupSalaryAutoFill(selectId, inputId) {
+            const selectElem = document.getElementById(selectId);
+            const inputElem = document.getElementById(inputId);
+
+            if (selectElem && inputElem) {
+                selectElem.addEventListener('change', function() {
+                    const selectedOption = this.options[this.selectedIndex];
+                    let salary = selectedOption.getAttribute('data-salary');
+
+                    if (salary && salary !== 'None' && salary !== '') {
+                        // Troca vírgula por ponto por segurança e força 2 casas decimais
+                        salary = salary.replace(',', '.');
+                        inputElem.value = parseFloat(salary).toFixed(2);
+                    }
+                });
+            }
+        }
+
+        setupSalaryAutoFill('hist_old_job', 'hist_old_sal');
+        setupSalaryAutoFill('hist_new_job', 'hist_new_sal');
+    });
+</script>

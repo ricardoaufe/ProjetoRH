@@ -7,7 +7,7 @@ from django.core.exceptions import PermissionDenied
 from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department, CareerPlan, Occurrence
 from django.db.models import Q, Prefetch, Count
 from django.core.paginator import Paginator
-from rhcontrol.forms import DependentFormSet, LoginForm, RoleGroupForm, SystemUserForm, SystemUserUpdateForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet, CareerPlanForm
+from rhcontrol.forms import DependentFormSet, EmployeeHistoryForm, LoginForm, RoleGroupForm, SystemUserForm, SystemUserUpdateForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet, CareerPlanForm
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import Group, Permission, User
@@ -369,6 +369,7 @@ def employee_update(request, pk):
     old_job = employee.job_title
     old_salary = employee.current_salary
     old_cipa_role = employee.cipa_role 
+    job_titles = JobTitle.objects.all()
 
     form = EmployeeForm(request.POST or None, instance=employee)
     formset = DependentFormSet(request.POST or None, instance=employee)
@@ -414,8 +415,8 @@ def employee_update(request, pk):
                 else:
                     auto_reason = "Reajuste"
 
-            h_old_job = str(old_job) if (old_job and has_job_change) else None
-            h_new_job = str(new_employee.job_title) if has_job_change else None
+            h_old_job = old_job.name if (old_job and has_job_change) else None
+            h_new_job = new_employee.job_title.name if (new_employee.job_title and has_job_change) else None
             
             h_old_salary = old_salary if has_salary_change else None
             h_new_salary = new_employee.current_salary if has_salary_change else None
@@ -488,7 +489,57 @@ def employee_update(request, pk):
         'total_hours': total_hours,
         'occurrences_top5': occurrences_top5,
         'is_rh_admin': is_rh_admin,
+        'job_titles': job_titles,
     })
+
+@login_required
+@permission_required('rhcontrol.change_employee', raise_exception=True)
+def history_create_view(request, employee_id):
+    employee = get_object_or_404(Employee, pk=employee_id)
+    if request.method == 'POST':
+        form = EmployeeHistoryForm(request.POST)
+        
+        # Trava: Não permite datas no futuro
+        data_input = request.POST.get('date_changed')
+        if data_input and data_input > str(timezone.localdate()):
+            messages.error(request, 'Não é possível registrar históricos no futuro.')
+            return redirect('rhcontrol:employee_update', pk=employee_id)
+
+        if form.is_valid():
+            history = form.save(commit=False)
+            history.employee = employee
+            history.save()
+            messages.success(request, 'Registro de histórico adicionado com sucesso.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"Erro em {field}: {error}")
+                    
+    return redirect('rhcontrol:employee_update', pk=employee_id)
+
+@login_required
+@permission_required('rhcontrol.change_employee', raise_exception=True)
+def history_edit_view(request, pk):
+    history = get_object_or_404(EmployeeHistory, pk=pk)
+    employee_id = history.employee.id
+    if request.method == 'POST':
+        
+        data_input = request.POST.get('date_changed')
+        if data_input and data_input > str(timezone.localdate()):
+            messages.error(request, 'A data do histórico não pode ser no futuro.')
+            return redirect('rhcontrol:employee_update', pk=employee_id)
+
+        form = EmployeeHistoryForm(request.POST, instance=history)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Registro de histórico atualizado.')
+        else:
+            for field, errors in form.errors.items():
+                for error in errors:
+                    messages.error(request, f"Erro em {field}: {error}")
+                    
+    return redirect('rhcontrol:employee_update', pk=employee_id)
+
 @login_required
 def delete_history_log(request, pk):
     log = get_object_or_404(EmployeeHistory, pk=pk)

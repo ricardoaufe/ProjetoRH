@@ -2,7 +2,7 @@ from datetime import date, timezone
 from decimal import Decimal
 from django import forms 
 from django.contrib.auth.models import Group, User
-from rhcontrol.models import Dependent, Employee, JobTitle, NotificationRecipient, NotificationRule, Training, UserAlertPreference, Vacation, Department, CareerPlan, Occurrence
+from rhcontrol.models import Dependent, Employee, EmployeeHistory, JobTitle, NotificationRecipient, NotificationRule, Training, UserAlertPreference, Vacation, Department, CareerPlan, Occurrence
 
 class LoginForm(forms.Form):
     email = forms.CharField(label='Usuário ou Email', max_length=100, widget=forms.TextInput(attrs={
@@ -241,6 +241,26 @@ class EmployeeForm(forms.ModelForm):
             self.save_m2m() 
 
         return employee
+
+class EmployeeHistoryForm(forms.ModelForm):
+    class Meta:
+        model = EmployeeHistory
+        fields = [
+            'date_changed', 'reason', 
+            'old_job_title', 'new_job_title', 
+            'old_salary', 'new_salary', 
+            'old_cipa_role', 'new_cipa_role'
+        ]
+        widgets = {
+            'date_changed': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
+            'reason': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Admissão, Promoção, Acordo...'}),
+            'old_job_title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Cargo Antigo'}),
+            'new_job_title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Novo Cargo'}),
+            'old_salary': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'new_salary': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
+            'old_cipa_role': forms.TextInput(attrs={'class': 'form-control'}),
+            'new_cipa_role': forms.TextInput(attrs={'class': 'form-control'}),
+        }
 
 class DependentForm(forms.ModelForm):
     class Meta:
