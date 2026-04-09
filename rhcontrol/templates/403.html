@@ -1,0 +1,25 @@
+{% extends 'global/base.html' %}
+
+{% block title %} Acesso Negado | {% endblock title %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: 2rem;">
+    
+    <div style="font-size: 5rem; color: #dc3545; margin-bottom: 1rem;">
+        <i class="fa fa-lock"></i>
+    </div>
+    
+    <h1 style="font-size: 2.5rem; color: #343a40; margin-bottom: 1rem;">Acesso Restrito</h1>
+    
+    <p style="font-size: 1.5rem; color: #6c757d; max-width: 600px; margin-bottom: 2rem; line-height: 1.6;">
+        Desculpe, mas parece que o seu perfil de usuário atual não tem as permissões necessárias para visualizar esta página. 
+        <br><br>
+        Se você acredita que isso é um erro e que você deveria ter acesso, por favor, entre em contato com o administrador do sistema.
+    </p>
+    
+    <a href="{% url 'rhcontrol:dashboard' %}" class="btn btn-primary" style="font-size: 1.4rem; padding: 0.8rem 1.5rem;">
+        <i class="fa fa-home"></i> Voltar para o Início
+    </a>
+
+</div>
+{% endblock content %}
