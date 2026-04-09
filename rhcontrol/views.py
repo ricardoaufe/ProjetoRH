@@ -3,6 +3,7 @@ from django.conf import settings
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse
+from django.core.exceptions import PermissionDenied
 from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department, CareerPlan, Occurrence
 from django.db.models import Q, Prefetch, Count
 from django.core.paginator import Paginator
@@ -10,7 +11,7 @@ from rhcontrol.forms import DependentFormSet, LoginForm, RoleGroupForm, SystemUs
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
 from django.contrib.auth.models import Group, Permission, User
-from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.http import require_POST
 from django.contrib import messages 
@@ -126,8 +127,13 @@ def dashboard_view(request):
 
     return render(request, 'dashboard/pages/dashboard.html', context)
 
-@permission_required('rhcontrol.view_event', raise_exception=True)
+def is_rh_admin(user):
+    if user.groups.filter(name='RhAdmin').exists() or user.is_superuser:
+        return True
+    raise PermissionDenied 
+
 @login_required
+@user_passes_test(is_rh_admin)
 def upcoming_events_view(request):
     """
     Filtered list of upcoming HR events.
