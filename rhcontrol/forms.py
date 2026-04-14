@@ -251,16 +251,19 @@ class EmployeeHistoryForm(forms.ModelForm):
             'old_salary', 'new_salary', 
             'old_cipa_role', 'new_cipa_role'
         ]
-        widgets = {
-            'date_changed': forms.DateInput(format='%Y-%m-%d', attrs={'class': 'form-control', 'type': 'date'}),
-            'reason': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Admissão, Promoção, Acordo...'}),
-            'old_job_title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Cargo Antigo'}),
-            'new_job_title': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Novo Cargo'}),
-            'old_salary': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'new_salary': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01'}),
-            'old_cipa_role': forms.TextInput(attrs={'class': 'form-control'}),
-            'new_cipa_role': forms.TextInput(attrs={'class': 'form-control'}),
-        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+        campos_dinamicos = [
+            'old_job_title', 'new_job_title', 
+            'old_salary', 'new_salary', 
+            'old_cipa_role', 'new_cipa_role'
+        ]
+        
+        for campo in campos_dinamicos:
+            if campo in self.fields:
+                self.fields[campo].required = False
 
 class DependentForm(forms.ModelForm):
     class Meta:
@@ -284,6 +287,7 @@ class DependentForm(forms.ModelForm):
             raise forms.ValidationError("CPF Inválido ou Inexistente.")
         return cpf
 
+        
 DependentFormSet = forms.inlineformset_factory(
     Employee,
     Dependent,
@@ -291,7 +295,7 @@ DependentFormSet = forms.inlineformset_factory(
     extra=0,
     can_delete=True
 )
-        
+  
 
 
 class VacationForm(forms.ModelForm):

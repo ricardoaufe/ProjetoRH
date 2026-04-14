@@ -98,7 +98,7 @@
                             {% if h.new_job_title %}
                                 <div style="margin-bottom: 0.375rem; font-size: 1rem;">
                                     Cargo: 
-                                    {% if h.old_job_title and h.old_job_title != "None" %}
+                                    {% if h.old_job_title and h.old_job_title != "None" and h.old_job_title != "" %}
                                         <span style="color:#666;">{{ h.old_job_title }}</span> 
                                         <i class="fa fa-arrow-right" style="font-size: 0.8em; margin: 0 0.3125rem; color: #adb5bd;"></i>
                                     {% endif %}
@@ -109,7 +109,7 @@
                             {% if h.new_salary %}
                                 <div style="font-size: 1rem;">
                                     Salário: 
-                                    {% if h.old_salary %}
+                                    {% if h.old_salary and h.old_salary != "None" %}
                                         <span style="color:#666;">R$ {{ h.old_salary|floatformat:2 }}</span> 
                                         <i class="fa fa-arrow-right" style="font-size: 0.8em; margin: 0 0.3125rem; color: #adb5bd;"></i>
                                     {% endif %}
@@ -180,9 +180,9 @@
     </div>
 </div>
 
-<dialog id="historyModal" style="margin: auto; padding: 20px; border-radius: 8px; border: none; width: 90%; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); font-family: sans-serif;">
+<dialog id="historyModal" style="margin: auto; padding: 25px; border-radius: 8px; border: none; width: 90%; max-width: 550px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); font-family: sans-serif;">
     
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
         <h3 id="historyModalTitle" style="margin: 0; color: #333;">Adicionar Registro Histórico</h3>
         <button type="button" onclick="closeHistoryModal()" style="border: none; background: none; font-size: 1.5rem; cursor: pointer; color: #999;">&times;</button>
     </div>
@@ -192,20 +192,27 @@
         
         <div style="display: flex; gap: 15px; margin-bottom: 15px;">
             <div style="flex: 1;">
-                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Data <span style="color: red;">*</span></label>
+                <label style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Data <span style="color: red;">*</span></label>
                 <input type="date" name="date_changed" id="hist_date" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" required>
             </div>
             <div style="flex: 1;">
-                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Motivo/Tipo <span style="color: red;">*</span></label>
-                <input type="text" name="reason" id="hist_reason" placeholder="Ex: Promoção, Mérito..." style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" required>
+                <label style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Motivo da Alteração <span style="color: red;">*</span></label>
+                <select name="reason" id="hist_reason" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" required onchange="toggleFormFields()">
+                    <option value="">Selecione...</option>
+                    <option value="Admissão">Admissão</option>
+                    <option value="Promoção">Promoção</option>
+                    <option value="Mérito">Mérito / Reajuste</option>
+                    <option value="CIPA">Alteração de CIPA</option>
+                    <option value="Outros">Outros (Personalizado)</option>
+                </select>
             </div>
         </div>
         
         <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
 
-        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-            <div style="flex: 1;">
-                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Cargo Anterior</label>
+        <div id="row_cargos" style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div id="col_old_job" style="flex: 1;">
+                <label style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Cargo Anterior</label>
                 <select name="old_job_title" id="hist_old_job" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                     <option value="">---------</option>
                     {% for job in job_titles %}
@@ -213,8 +220,8 @@
                     {% endfor %}
                 </select>
             </div>
-            <div style="flex: 1;">
-                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Novo Cargo</label>
+            <div id="col_new_job" style="flex: 1;">
+                <label id="lbl_new_job" style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Novo Cargo</label>
                 <select name="new_job_title" id="hist_new_job" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                     <option value="">---------</option>
                     {% for job in job_titles %}
@@ -224,28 +231,28 @@
             </div>
         </div>
 
-        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-            <div style="flex: 1;">
-                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Salário Anterior (R$)</label>
+        <div id="row_salarios" style="display: flex; gap: 15px; margin-bottom: 15px;">
+            <div id="col_old_sal" style="flex: 1;">
+                <label style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Salário Anterior (R$)</label>
                 <input type="number" step="0.01" name="old_salary" id="hist_old_sal" placeholder="0.00" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
             </div>
-            <div style="flex: 1;">
-                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Novo Salário (R$)</label>
+            <div id="col_new_sal" style="flex: 1;">
+                <label id="lbl_new_sal" style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Novo Salário (R$)</label>
                 <input type="number" step="0.01" name="new_salary" id="hist_new_sal" placeholder="0.00" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
             </div>
         </div>
 
-        <div style="display: flex; gap: 15px; margin-bottom: 20px;">
-            <div style="flex: 1;">
-                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">CIPA Anterior</label>
+        <div id="row_cipa" style="display: flex; gap: 15px; margin-bottom: 20px;">
+            <div id="col_old_cipa" style="flex: 1;">
+                <label style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">CIPA Anterior</label>
                 <select name="old_cipa_role" id="hist_old_cipa" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                     <option value="">---------</option>
                     <option value="Titular">Titular</option>
                     <option value="Suplente">Suplente</option>
                 </select>
             </div>
-            <div style="flex: 1;">
-                <label style="font-size: 1.2rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">CIPA Nova</label>
+            <div id="col_new_cipa" style="flex: 1;">
+                <label style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">CIPA Nova</label>
                 <select name="new_cipa_role" id="hist_new_cipa" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
                     <option value="">---------</option>
                     <option value="Titular">Titular</option>
@@ -261,31 +268,112 @@
     </form>
 </dialog>
 
+<style>
+    #historyModal::backdrop {
+        background-color: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(2px);
+    }
+</style>
+
 <script>
     const histModal = document.getElementById('historyModal');
     const histForm = document.getElementById('historyForm');
     const baseCreateUrl = "{% url 'rhcontrol:history_create' employee_id=form.instance.pk %}";
 
+    // --- LÓGICA DE EXIBIÇÃO DINÂMICA ---
+    function toggleFormFields() {
+        const reason = document.getElementById('hist_reason').value;
+        
+        // Elementos do DOM
+        const rowCargos = document.getElementById('row_cargos');
+        const colOldJob = document.getElementById('col_old_job');
+        
+        const rowSalarios = document.getElementById('row_salarios');
+        const colOldSal = document.getElementById('col_old_sal');
+        
+        const rowCipa = document.getElementById('row_cipa');
+        
+        // Labels
+        const lblNewJob = document.getElementById('lbl_new_job');
+        const lblNewSal = document.getElementById('lbl_new_sal');
+
+        // Reset: Mostra tudo por padrão para depois esconder e reseta textos
+        rowCargos.style.display = 'flex';
+        colOldJob.style.display = 'block';
+        rowSalarios.style.display = 'flex';
+        colOldSal.style.display = 'block';
+        rowCipa.style.display = 'flex';
+        lblNewJob.innerText = "Novo Cargo";
+        lblNewSal.innerText = "Novo Salário (R$)";
+
+        if (reason === 'Admissão') {
+            colOldJob.style.display = 'none'; // Admissão não tem cargo anterior
+            colOldSal.style.display = 'none'; // Admissão não tem salário anterior
+            rowCipa.style.display = 'none';   // Admissão não entra na CIPA no dia 1
+            
+            // Muda os rótulos para fazer sentido
+            lblNewJob.innerText = "Cargo Registrado";
+            lblNewSal.innerText = "Salário Inicial (R$)";
+            
+            // Limpa os campos ocultos por segurança
+            document.getElementById('hist_old_job').value = '';
+            document.getElementById('hist_old_sal').value = '';
+            
+        } else if (reason === 'Promoção') {
+            rowCipa.style.display = 'none'; 
+            
+        } else if (reason === 'Mérito' || reason === 'Reajuste') {
+            rowCargos.style.display = 'none'; 
+            rowCipa.style.display = 'none';
+            document.getElementById('hist_old_job').value = '';
+            document.getElementById('hist_new_job').value = '';
+            
+        } else if (reason === 'CIPA') {
+            rowCargos.style.display = 'none';
+            rowSalarios.style.display = 'none';
+            document.getElementById('hist_old_job').value = '';
+            document.getElementById('hist_new_job').value = '';
+            document.getElementById('hist_old_sal').value = '';
+            document.getElementById('hist_new_sal').value = '';
+        }
+    }
+
+    // --- ABERTURA DO MODAL ---
     function openHistoryModal(editUrl = null, data = {}) {
         if (editUrl) {
             document.getElementById('historyModalTitle').innerText = "Editar Registro";
             histForm.action = editUrl;
             document.getElementById('hist_date').value = data.date || '';
-            document.getElementById('hist_reason').value = data.reason || '';
             
-            // Tenta selecionar o cargo se o nome for compatível (se for um ID como 22, ficará em branco para o RH corrigir)
+            // Tenta selecionar o motivo no dropdown, se não achar (ex: motivo customizado antigo), seta como 'Outros'
+            let reasonSelect = document.getElementById('hist_reason');
+            let foundReason = Array.from(reasonSelect.options).some(opt => opt.value === data.reason);
+            
+            if (foundReason) {
+                reasonSelect.value = data.reason;
+            } else if (data.reason) {
+                // Se for um texto livre antigo que está no banco, adiciona uma option temporária para não perder a informação
+                let newOption = new Option(data.reason + " (Customizado)", data.reason, true, true);
+                reasonSelect.add(newOption);
+            } else {
+                reasonSelect.value = '';
+            }
+
             document.getElementById('hist_old_job').value = data.old_job || '';
             document.getElementById('hist_new_job').value = data.new_job || '';
-            
             document.getElementById('hist_old_sal').value = data.old_sal && data.old_sal !== 'None' ? data.old_sal : '';
             document.getElementById('hist_new_sal').value = data.new_sal && data.new_sal !== 'None' ? data.new_sal : '';
             document.getElementById('hist_old_cipa').value = data.old_cipa || '';
             document.getElementById('hist_new_cipa').value = data.new_cipa || '';
+            
         } else {
             document.getElementById('historyModalTitle').innerText = "Adicionar Registro Antigo";
             histForm.action = baseCreateUrl;
             histForm.reset();
         }
+        
+        // Dispara a lógica de exibição para ajustar o form de acordo com o motivo carregado
+        toggleFormFields();
         histModal.showModal();
     }
 
@@ -305,7 +393,6 @@
                     let salary = selectedOption.getAttribute('data-salary');
 
                     if (salary && salary !== 'None' && salary !== '') {
-                        // Troca vírgula por ponto por segurança e força 2 casas decimais
                         salary = salary.replace(',', '.');
                         inputElem.value = parseFloat(salary).toFixed(2);
                     }
