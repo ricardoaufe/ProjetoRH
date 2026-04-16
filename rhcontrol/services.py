@@ -710,22 +710,18 @@ def _ue_generate_contract_end(start: date, end: date, filters: dict) -> list[dic
 def _ue_generate_trial(start: date, end: date, filters: dict) -> list[dict]:
     """
     TRIAL_60_WARNING / TRIAL_90_WARNING — 5 dias ANTES do fim do contrato.
-    
-    Cálculo legal:
-    Fim do Contrato = hire_date + milestone - 1 (O dia da contratação conta como dia 1)
-    Data do Aviso = (Fim do Contrato) - 5 dias
     """
     from datetime import timedelta
     events: list[dict] = []
     WARNING_OFFSET = 5
 
+    # Atualizamos o texto para mostrar a data exata do término!
     milestones = [
-        (60, "TRIAL_60_WARNING",  "Fim do 1º período de experiência (60 dias) — {name}"),
-        (90, "TRIAL_90_WARNING",  "Fim do contrato de experiência (90 dias) — {name}"),
+        (60, "TRIAL_60_WARNING",  "Aviso (60 dias): Experiência de {name} encerra dia {data_fim}"),
+        (90, "TRIAL_90_WARNING",  "Aviso (90 dias): Experiência de {name} encerra dia {data_fim}"),
     ]
 
     for days, category, title_tpl in milestones:
-        # Pega todos os funcionários em experiência que não foram demitidos
         qs = Employee.objects.select_related("department").filter(
             is_trial_contract=True,
             termination_date__isnull=True,
@@ -748,11 +744,13 @@ def _ue_generate_trial(start: date, end: date, filters: dict) -> list[dict]:
             
             if not _ue_in_range(warning_date, start, end):
                 continue
+
+            data_fim_formatada = fim_do_contrato.strftime('%d/%m/%Y')
                 
             _ue_append(
                 events,
                 date=warning_date, category=category,
-                title=title_tpl.format(name=emp.name),
+                title=title_tpl.format(name=emp.name, data_fim=data_fim_formatada),
                 object_type="employee", object_id=emp.pk,
                 employee_id=emp.pk, employee_name=emp.name,
                 department_name=emp.department.name if emp.department_id else None,
