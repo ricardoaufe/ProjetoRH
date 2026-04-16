@@ -673,12 +673,9 @@ def _ue_generate_career_plans(start: date, end: date, filters: dict) -> list[dic
     return events
 
 def _ue_generate_contract_end(start: date, end: date, filters: dict) -> list[dict]:
-    """
-    Avisa 15 dias antes do vencimento de um contrato com Prazo Determinado (ex: Jovem Aprendiz).
-    """
     from datetime import timedelta
     events: list[dict] = []
-    WARNING_OFFSET = 15 # Avisar com 15 dias de antecedência para o RH se preparar
+    WARNING_OFFSET = 15 
     
     qs = Employee.objects.select_related("department").filter(
         contract_end_date__isnull=False,
@@ -698,7 +695,8 @@ def _ue_generate_contract_end(start: date, end: date, filters: dict) -> list[dic
             
         _ue_append(
             events,
-            date=warning_date, category="CONTRACT_END_WARNING",
+            date=emp.contract_end_date, # CORREÇÃO: Data real do fim do contrato em negrito!
+            category="CONTRACT_END_WARNING",
             title=f"Fim de Contrato (Prazo Determinado) — {emp.name}",
             object_type="employee", object_id=emp.pk,
             employee_id=emp.pk, employee_name=emp.name,
@@ -708,14 +706,10 @@ def _ue_generate_contract_end(start: date, end: date, filters: dict) -> list[dic
     return events
 
 def _ue_generate_trial(start: date, end: date, filters: dict) -> list[dict]:
-    """
-    TRIAL_60_WARNING / TRIAL_90_WARNING — 5 dias ANTES do fim do contrato.
-    """
     from datetime import timedelta
     events: list[dict] = []
     WARNING_OFFSET = 5
 
-    # Atualizamos o texto para mostrar a data exata do término!
     milestones = [
         (60, "TRIAL_60_WARNING",  "Aviso (60 dias): Experiência de {name} encerra dia {data_fim}"),
         (90, "TRIAL_90_WARNING",  "Aviso (90 dias): Experiência de {name} encerra dia {data_fim}"),
@@ -736,20 +730,19 @@ def _ue_generate_trial(start: date, end: date, filters: dict) -> list[dict]:
             if not emp.hire_date:
                 continue
                 
-            # Fim real do contrato de experiência (-1 dia para contar a data de início)
             fim_do_contrato = emp.hire_date + timedelta(days=(days - 1))
-            
-            # Dia que o evento aparece no painel
             warning_date = fim_do_contrato - timedelta(days=WARNING_OFFSET)
             
+            # O filtro CONTINUA usando a data de aviso (para o Cron e Dashboard acharem no dia certo)
             if not _ue_in_range(warning_date, start, end):
                 continue
-
+            
             data_fim_formatada = fim_do_contrato.strftime('%d/%m/%Y')
                 
             _ue_append(
                 events,
-                date=warning_date, category=category,
+                date=fim_do_contrato, # CORREÇÃO: Passamos a data real para o HTML imprimir em negrito!
+                category=category,
                 title=title_tpl.format(name=emp.name, data_fim=data_fim_formatada),
                 object_type="employee", object_id=emp.pk,
                 employee_id=emp.pk, employee_name=emp.name,
