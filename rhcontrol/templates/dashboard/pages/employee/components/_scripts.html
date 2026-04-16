@@ -290,6 +290,34 @@
         });
     }
 
+document.addEventListener('DOMContentLoaded', function() {
+    // Ajuste o ID 'id_job_title' se o seu form usar outro nome gerado pelo Django
+    const jobSelect = document.getElementById('id_job_title'); 
+    const divContractEnd = document.getElementById('div_contract_end');
+    const inputContractEnd = document.getElementById('id_contract_end_date'); // Pega o input diretamente
+    
+    if (jobSelect && divContractEnd && inputContractEnd) {
+        function checkJobTitle() {
+            // Pega o texto da opção selecionada
+            const jobName = jobSelect.options[jobSelect.selectedIndex].text.toLowerCase();
+            
+            // Se for Aprendiz (ou Estagiário), mostra o campo e TORNA OBRIGATÓRIO
+            if (jobName.includes('aprendiz') || jobName.includes('estagiário')) {
+                divContractEnd.style.display = 'block';
+                inputContractEnd.required = true; // Impede salvar sem preencher
+            } else {
+                // Se for cargo comum, esconde, tira a obrigatoriedade e limpa o valor
+                divContractEnd.style.display = 'none';
+                inputContractEnd.required = false; 
+                inputContractEnd.value = ''; 
+            }
+        }
+
+        checkJobTitle();
+        jobSelect.addEventListener('change', checkJobTitle);
+    }
+});
+
 </script>
 
 <script>

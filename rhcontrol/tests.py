@@ -10,7 +10,7 @@ from rhcontrol.forms import EmployeeForm
 from datetime import datetime, timedelta
 from django.utils import timezone
 from django.core import mail
-from rhcontrol.services import process_career_plans
+from rhcontrol.services import get_upcoming_events, process_career_plans
 
 
 class RhcontrolTests(TestCase):
@@ -1006,3 +1006,77 @@ class TrainingModelTests(TestCase):
         attended = self.employee.attended_trainings.all()
         total = sum(t.training_total_hours or 0 for t in attended)
         self.assertEqual(total, 12)
+
+class ContractEndEventTests(TestCase):
+    def setUp(self):
+        """
+        Prepara o terreno criando um departamento e um cargo antes de cada teste rodar.
+        """
+        self.dept = Department.objects.create(name="Administração")
+        self.job = JobTitle.objects.create(
+            name="Aprendiz de Administração", 
+            department=self.dept, 
+            base_salary=1000.00
+        )
+
+    def test_contract_end_warning_event_generated_15_days_before(self):
+        """
+        Testa o 'Caminho Feliz': Se o contrato acaba daqui a 15 dias, 
+        o evento de aviso DEVE aparecer hoje e estar marcado para enviar e-mail.
+        """
+        hoje = timezone.localdate()
+        data_fim_contrato = hoje + timedelta(days=15)
+        
+        # Cria o funcionário (Preencha outros campos obrigatórios do seu model se o banco reclamar)
+        emp = Employee.objects.create(
+            name="João Aprendiz Teste",
+            cpf="111.111.111-11",
+            birth_date=hoje - timedelta(days=365*18),
+            department=self.dept,
+            job_title=self.job,
+            hire_date=hoje - timedelta(days=300),
+            contract_end_date=data_fim_contrato,
+            termination_date=None # Funcionário ativo
+        )
+
+        # Chama o serviço escaneando o mês atual
+        eventos = get_upcoming_events(start_date=hoje, end_date=hoje + timedelta(days=30))
+        
+        # Filtra os eventos para encontrar o nosso aviso de fim de contrato
+        eventos_fim_contrato = [e for e in eventos if e['category'] == 'CONTRACT_END_WARNING' and e['employee_id'] == emp.pk]
+
+        # 1. Verifica se o evento foi gerado (A lista não pode estar vazia)
+        self.assertEqual(len(eventos_fim_contrato), 1, "O evento de fim de contrato deveria ter sido gerado.")
+        
+        evento = eventos_fim_contrato[0]
+        
+        # 2. Verifica se a data do aviso caiu exatamente para HOJE (15 dias antes)
+        self.assertEqual(evento['date'], hoje, "A data do aviso deve ser exatamente 15 dias antes do fim do contrato.")
+        
+        # 3. Verifica se a flag de enviar e-mail está ativada para o worker/celery pegar depois
+        self.assertTrue(evento['email_event'], "A flag 'email_event' deve ser True para o disparo de email ocorrer.")
+
+    def test_contract_end_warning_not_generated_if_employee_terminated(self):
+        """
+        Testa a 'Segurança': Se o Aprendiz já foi demitido antes do prazo, 
+        o sistema NÃO DEVE mandar e-mail avisando do fim do contrato.
+        """
+        hoje = timezone.localdate()
+        data_fim_contrato = hoje + timedelta(days=15)
+        
+        # Cria o funcionário já demitido
+        emp = Employee.objects.create(
+            name="Maria Aprendiz Demitida",
+            cpf="222.222.222-22",
+            birth_date=hoje - timedelta(days=365*18),
+            department=self.dept,
+            job_title=self.job,
+            contract_end_date=data_fim_contrato,
+            termination_date=hoje - timedelta(days=5) # Foi demitida há 5 dias!
+        )
+
+        eventos = get_upcoming_events(start_date=hoje, end_date=hoje + timedelta(days=30))
+        eventos_fim_contrato = [e for e in eventos if e['category'] == 'CONTRACT_END_WARNING' and e['employee_id'] == emp.pk]
+
+        # A lista de eventos para essa funcionária deve estar vazia
+        self.assertEqual(len(eventos_fim_contrato), 0, "Nenhum evento deve ser gerado se o funcionário já foi desligado.")

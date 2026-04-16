@@ -672,16 +672,50 @@ def _ue_generate_career_plans(start: date, end: date, filters: dict) -> list[dic
                 )
     return events
 
+def _ue_generate_contract_end(start: date, end: date, filters: dict) -> list[dict]:
+    """
+    Avisa 15 dias antes do vencimento de um contrato com Prazo Determinado (ex: Jovem Aprendiz).
+    """
+    from datetime import timedelta
+    events: list[dict] = []
+    WARNING_OFFSET = 15 # Avisar com 15 dias de antecedência para o RH se preparar
+    
+    qs = Employee.objects.select_related("department").filter(
+        contract_end_date__isnull=False,
+        termination_date__isnull=True,
+    )
+    
+    if filters.get("employee_id"):
+        qs = qs.filter(pk=filters["employee_id"])
+    if filters.get("department_id"):
+        qs = qs.filter(department_id=filters["department_id"])
+
+    for emp in qs:
+        warning_date = emp.contract_end_date - timedelta(days=WARNING_OFFSET)
+        
+        if not _ue_in_range(warning_date, start, end):
+            continue
+            
+        _ue_append(
+            events,
+            date=warning_date, category="CONTRACT_END_WARNING",
+            title=f"Fim de Contrato (Prazo Determinado) — {emp.name}",
+            object_type="employee", object_id=emp.pk,
+            employee_id=emp.pk, employee_name=emp.name,
+            department_name=emp.department.name if emp.department_id else None,
+            email_event=True, requires_action=True,
+        )
+    return events
 
 def _ue_generate_trial(start: date, end: date, filters: dict) -> list[dict]:
     """
-    TRIAL_60_WARNING / TRIAL_90_WARNING — 5 days before each trial milestone.
-
-    Reverse-engineer the hire_date window instead of scanning all employees:
-        warning_date = hire_date + milestone - 5
-        hire_date    = warning_date - milestone + 5
-        If warning_date ∈ [start, end] → hire_date ∈ [start - milestone + 5, end - milestone + 5]
+    TRIAL_60_WARNING / TRIAL_90_WARNING — 5 dias ANTES do fim do contrato.
+    
+    Cálculo legal:
+    Fim do Contrato = hire_date + milestone - 1 (O dia da contratação conta como dia 1)
+    Data do Aviso = (Fim do Contrato) - 5 dias
     """
+    from datetime import timedelta
     events: list[dict] = []
     WARNING_OFFSET = 5
 
@@ -691,23 +725,30 @@ def _ue_generate_trial(start: date, end: date, filters: dict) -> list[dict]:
     ]
 
     for days, category, title_tpl in milestones:
-        hire_start = start - timedelta(days=days - WARNING_OFFSET)
-        hire_end   = end   - timedelta(days=days - WARNING_OFFSET)
-
+        # Pega todos os funcionários em experiência que não foram demitidos
         qs = Employee.objects.select_related("department").filter(
             is_trial_contract=True,
-            hire_date__range=(hire_start, hire_end),
             termination_date__isnull=True,
         )
+        
         if filters.get("employee_id"):
             qs = qs.filter(pk=filters["employee_id"])
         if filters.get("department_id"):
             qs = qs.filter(department_id=filters["department_id"])
 
         for emp in qs:
-            warning_date = emp.hire_date + timedelta(days=days - WARNING_OFFSET)
+            if not emp.hire_date:
+                continue
+                
+            # Fim real do contrato de experiência (-1 dia para contar a data de início)
+            fim_do_contrato = emp.hire_date + timedelta(days=(days - 1))
+            
+            # Dia que o evento aparece no painel
+            warning_date = fim_do_contrato - timedelta(days=WARNING_OFFSET)
+            
             if not _ue_in_range(warning_date, start, end):
                 continue
+                
             _ue_append(
                 events,
                 date=warning_date, category=category,
@@ -734,6 +775,7 @@ _UE_GENERATORS = {
         "CAREER_PLAN_REMINDER_WINDOW",
     }):                                                   _ue_generate_career_plans,
     frozenset({"TRIAL_60_WARNING", "TRIAL_90_WARNING"}):  _ue_generate_trial,
+    frozenset({"CONTRACT_END_WARNING"}):                  _ue_generate_contract_end,
 }
 
 

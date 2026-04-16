@@ -111,6 +111,7 @@ class EmployeeForm(forms.ModelForm):
             'mobile_phone': forms.TextInput(attrs={'class': 'form-control phone-input', 'placeholder': '(00) 00000-0000'}),
             'emergency_phone': forms.TextInput(attrs={'class': 'form-control phone-input', 'placeholder': '(00) 00000-0000'}),
             'zip_code': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '00000-000'}),        
+            'contract_end_date': forms.DateInput(format='%Y-%m-%d', attrs={'type': 'date', 'class': 'form-control'}),
             }
         
     def clean_cpf(self):

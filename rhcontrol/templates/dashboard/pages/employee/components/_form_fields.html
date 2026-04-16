@@ -210,9 +210,17 @@
     {% include 'partials/form_field.html' with field=form.hire_date grid_class="col-span-2" %}
     {% include 'partials/form_field.html' with field=form.department grid_class="col-span-2"%}
     {% include 'partials/form_field.html' with field=form.job_title grid_class="col-span-2"%}
-    {% include 'partials/form_field.html' with field=form.current_salary is_money=True grid_class="col-span-2"%} {% include 'partials/form_field.html' with field=form.admission_exam_date grid_class="col-span-2" %}
+    
+    <div id="div_contract_end" class="col-span-2" style="display: none;">
+        {% include 'partials/form_field.html' with field=form.contract_end_date %}
+    </div>
+
+    <div class="col-span-8"></div>
+
+    {% include 'partials/form_field.html' with field=form.current_salary is_money=True grid_class="col-span-2"%} 
+    {% include 'partials/form_field.html' with field=form.admission_exam_date grid_class="col-span-2" %}
     {% include 'partials/form_field.html' with field=form.termination_date grid_class="col-span-2" %}
-    {% include 'partials/form_field.html' with field=form.termination_reason grid_class="col-span-4" %}
+    {% include 'partials/form_field.html' with field=form.termination_reason grid_class="col-span-2" %}
 
     {% if form.instance.pk %}
         <div class="conditional-section col-span-8" style="border: 1px solid #ffeeba; background-color: #fff3cd; border-radius: 0.375rem; padding: 0.3125rem 0.9375rem; display: flex; align-items: flex-start; gap: 0.9375rem;">
