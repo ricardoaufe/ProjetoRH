@@ -1,0 +1,185 @@
+{% extends 'reports/base_pdf.html' %}
+{% load static %}
+
+{% block title %}Plano de Carreira e Benefícios - {{ employee.name }}{% endblock %}
+
+{% block header_title %}Plano de Carreira e Benefícios{% endblock %}
+
+{% block style %}
+    /* Estilos da Tabela de Carreira */
+    .employee-info-table {
+        width: 100%;
+        margin-bottom: 10px; /* Reduzido para aproximar a tabela de baixo */
+        font-size: 1rem; /* Fonte levemente menor */
+    }
+    .employee-info-table td {
+        padding: 2px; /* Reduzido o espaçamento interno */
+        border: none;
+    }
+    .employee-info-table .label {
+        width: 150px;
+    }
+    
+    .career-table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: center;
+        border: 2px solid #000;
+        font-size: 0.95rem; /* Fonte da tabela reduzida */
+    }
+    .career-table th, .career-table td {
+        border: 1px solid #000;
+        padding: 4px 4px; /* Altura da linha espremida pela metade */
+    }
+    .career-table th {
+        background-color: #e9ecef;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+    .career-table .table-title {
+        background-color: #d6d8db;
+        font-size: 1.1rem;
+        text-decoration: underline;
+    }
+
+    /* Estilos dos Benefícios */
+    .benefits-title {
+        text-align: center;
+        font-size: 1.2rem;
+        font-weight: bold;
+        text-decoration: underline;
+        margin-top: 15px; /* Reduzido o espaço entre a tabela e os benefícios */
+        margin-bottom: 8px;
+        background-color: #e9ecef;
+        padding: 3px;
+    }
+    .benefits-section {
+        margin-bottom: 8px;
+    }
+    .benefits-section h4 {
+        margin-bottom: 2px;
+        font-size: 1rem;
+    }
+    .benefits-list {
+        list-style-type: none;
+        padding-left: 0;
+        margin: 0;
+    }
+    .benefits-list li {
+        margin-bottom: 1px;
+        font-size: 0.85rem;
+        line-height: 1.2;
+    }
+{% endblock style %}
+
+{% block content %} 
+
+    <table class="employee-info-table">
+        <tr>
+            <td class="label">Nome</td>
+            <td><strong>{{ employee.name|upper }}</strong></td>
+            <td style="text-align: right;">Data:</td>
+            <td style="text-align: right; width: 100px;">{% now "d/m/Y" %}</td>
+        </tr>
+        <tr>
+            <td class="label">Função</td>
+            <td><strong>{{ employee.job_title.name|upper }}</strong></td>
+            <td colspan="2"></td>
+        </tr>
+        <tr>
+            <td class="label">Admissão</td>
+            <td><strong>{{ employee.hire_date|date:"d/m/Y" }}</strong></td>
+            <td colspan="2"></td>
+        </tr>
+        <tr>
+            <td class="label">Tempo de Empresa</td>
+            <td><strong>{{ employee.company_tenure }}</strong></td>
+            <td colspan="2"></td>
+        </tr>
+    </table>
+
+    <table class="career-table">
+        <tr>
+            <th colspan="6" class="table-title">PLANO DE CARREIRA</th>
+        </tr>
+        <tr>
+            <th>ANO</th>
+            <th>DATA</th>
+            <th>SALÁRIO</th>
+            <th>INSALUB.</th>
+            <th>V. TOTAL</th>
+            <th>FUNÇÃO</th>
+        </tr>
+        
+        {% for row in table_data %}
+        <tr>
+            <td><strong>{{ row.data|date:"Y" }}</strong></td>
+            
+            <td>{{ row.data|date:"d/b/Y" }}</td>
+            
+            <td>
+                {% if row.salario %}
+                    R$ {{ row.salario|floatformat:2 }}
+                {% else %}
+                    <div style="text-align: left; padding-left: 8px;">R$</div>
+                {% endif %}
+            </td>
+            
+            <td style="text-align: left; padding-left: 8px;">
+                R$
+                {% if row.insalub and row.insalub != "--" %}
+                    <span style="float: right; padding-right: 8px;">{{ row.insalub }}</span>
+                {% endif %}
+            </td>
+            
+            <td style="text-align: left; padding-left: 8px;">
+                R$
+                {% if row.v_total and row.v_total != "--" %}
+                    <span style="float: right; padding-right: 8px;">{{ row.v_total }}</span>
+                {% endif %}
+            </td>
+            
+            <td>{{ row.funcao|title }}</td>
+        </tr>
+        {% empty %}
+        <tr>
+            <td colspan="6" style="padding: 20px;">Nenhum registro de carreira encontrado para este funcionário.</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <div class="benefits-title">BENEFÍCIOS</div>
+    
+    <div class="benefits-section">
+        <h4>Por lei:</h4>
+        <ul class="benefits-list">
+            <li>- VT;</li>
+            <li>- Uniforme lavado por lavanderia;</li>
+        </ul>
+    </div>
+
+    <div class="benefits-section">
+        <h4>Opcional:</h4>
+        <ul class="benefits-list">
+            <li>- Convênio Médico; (ajuda de 40% do custo);</li>
+            <li>- Convênio Odontológico; (funcionário arca)</li>
+        </ul>
+    </div>
+
+    <div class="benefits-section">
+        <h4>Outros:</h4>
+        <ul class="benefits-list">
+            <li>- Plano de Carreira; (3 primeiros anos - em uma mesma área)</li>
+            <li>- Café da manhã;</li>
+            <li>- PLR; (salário mínimo vigente pago em duas vezes)</li>
+            <li>- Seguro de vida coletivo;</li>
+            <li>- Comemoração e presente de aniversário;</li>
+            <li>- Máquina de suco e bolachas na fábrica;</li>
+            <li>- Comemoração e presente para funcionário que completa 10 anos de empresa;</li>
+            <li>- Cesta de natal Bauducco;</li>
+            <li>- Vale ticket alimentação Natal (em função do tempo de casa);</li>
+            <li>- Ações em datas comemorativas: páscoa, dia da mulher, dia das mães, dia do trabalhador, festa junina, dia dos pais, dia das crianças [...]</li>
+        </ul>
+    </div>
+
+{% endblock content %}

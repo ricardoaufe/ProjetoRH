@@ -6,8 +6,12 @@
 </style>
 <div class="history-container">
         
-    <div class="history-header">
-        <h3>Histórico do Colaborador</h3>
+    <div class="history-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h3 class="section-title" style="margin: 0;">Histórico do Colaborador</h3>
+        
+        <a href="{% url 'rhcontrol:employee_career_plan_pdf' pk=form.instance.pk %}" target="_blank" style="background-color: #0d6efd; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 1.2rem; display: inline-flex; align-items: center; gap: 8px;">
+            <i class="fa fa-print"></i> Gerar Plano de Carreira
+        </a>
     </div>
     
     <div class="history-columns">

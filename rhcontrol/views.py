@@ -1334,6 +1334,65 @@ def create_occurrence_list_pdf(request, employee_id):
     return response
 
 @login_required
+def employee_career_plan_pdf(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    
+    table_data = []
+
+    history_records = EmployeeHistory.objects.filter(
+        employee=employee,
+        reason__in=['Admissão', 'Promoção', 'Mérito', 'Reajuste']
+    ).order_by('date_changed')
+
+    for h in history_records:
+        salario_linha = h.new_salary if h.new_salary else (h.old_salary if h.old_salary else employee.current_salary)
+        cargo_linha = h.new_job_title if h.new_job_title else (h.old_job_title if h.old_job_title else employee.job_title.name)
+        
+        insalubridade_calc = "" 
+        v_total_calc = ""
+
+        table_data.append({
+            'ano': h.date_changed.year,
+            'data': h.date_changed,
+            'salario': salario_linha,
+            'insalub': insalubridade_calc,
+            'v_total': v_total_calc,
+            'funcao': cargo_linha,
+            'is_future': False
+        })
+
+    if hasattr(employee, 'career_plans'):
+        active_plans = employee.career_plans.filter(
+            status__in=['SCHEDULED', 'AWAITING_CONFIRMATION', 'CONFIRMED']
+        ).order_by('promotion_date')
+        
+        for plan in active_plans:
+            table_data.append({
+                'ano': plan.promotion_date.year,
+                'data': plan.promotion_date,
+                'salario': plan.proposed_salary,
+                'insalub': '',
+                'v_total': '', 
+                'funcao': plan.proposed_job.name if hasattr(plan.proposed_job, 'name') else plan.proposed_job,
+                'is_future': True
+            })
+
+    context = {
+        'employee': employee,
+        'table_data': table_data,
+        'company_name_settings': settings.COMPANY_NAME,
+        'user': request.user,
+    }
+    html_string = render_to_string('dashboard/pages/career/pdf/career_plan_pdf.html', context)
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    pdf = html.write_pdf()
+    
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="Plano_Carreira_{employee.name.replace(" ", "_")}.pdf"'
+    
+    return response
+
+@login_required
 def ajax_load_employee_data(request):
     employee_id = request.GET.get('employee_id')
     if employee_id:
