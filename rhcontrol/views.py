@@ -133,7 +133,7 @@ def is_rh_admin(user):
     raise PermissionDenied 
 
 @login_required
-@user_passes_test(is_rh_admin)
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def upcoming_events_view(request):
     """
     Filtered list of upcoming HR events.
