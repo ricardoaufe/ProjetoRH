@@ -135,6 +135,9 @@ def send_notification_for_event(event: dict, dry_run: bool = False) -> None:
     """
     rule = event['rule']
     employee = event['employee']
+    if employee.termination_date:
+        logger.info(f"Ignorado: Notificação de [{event['rule'].get_event_type_display()}] abortada para {employee.name} (colaborador desligado em {employee.termination_date}).")
+        return
     related_object = event['related_object']
     event_date = event['event_date']
     reference_year = event['reference_year']
