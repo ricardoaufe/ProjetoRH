@@ -1,5 +1,6 @@
 import logging
 from datetime import date, timedelta
+from tokenize import String
 from django.core import mail
 from django.utils import timezone
 from .models import Employee, EventTypes, NotificationRule, Vacation, Training, NotificationRecipient, NotificationLog, CareerPlan
@@ -831,3 +832,23 @@ def get_upcoming_events(
 
     events.sort(key=lambda e: (e["date"], e["category"]))
     return events[:limit]
+
+def get_historical_minimum_wage(year: int) -> float:
+    """
+    Retorna o valor do salário mínimo brasileiro para o ano solicitado.
+    Baseado no histórico oficial.
+    """
+    MIN_WAGE_HISTORY = {
+        1998: 130.00, 1999: 136.00, 2000: 151.00,
+        2001: 180.00, 2002: 200.00, 2003: 240.00,
+        2004: 260.00, 2005: 300.00, 2006: 350.00,
+        2007: 380.00, 2008: 415.00, 2009: 465.00,
+        2010: 510.00, 2011: 540.00, 2012: 622.00,
+        2013: 678.00, 2014: 724.00, 2015: 788.00,
+        2016: 880.00, 2017: 937.00, 2018: 954.00,
+        2019: 998.00, 2020: 1045.00, 2021: 1100.00,
+        2022: 1212.00, 2023: 1320.00,2024: 1412.00,
+        2025: 1518.00, 2026: 1621.00,
+    }
+
+    return MIN_WAGE_HISTORY.get(year, 1621.00)

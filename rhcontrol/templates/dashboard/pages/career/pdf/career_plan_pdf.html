@@ -99,6 +99,7 @@
     </table>
 
     <table class="career-table">
+    <thead>
         <tr>
             <th colspan="6" class="table-title">PLANO DE CARREIRA</th>
         </tr>
@@ -110,33 +111,24 @@
             <th>V. TOTAL</th>
             <th>FUNÇÃO</th>
         </tr>
-        
+    </thead>
+    <tbody>
         {% for row in table_data %}
         <tr>
             <td><strong>{{ row.data|date:"Y" }}</strong></td>
-            
+
             <td>{{ row.data|date:"d/b/Y" }}</td>
             
-            <td>
-                {% if row.salario %}
-                    R$ {{ row.salario|floatformat:2 }}
-                {% else %}
-                    <div style="text-align: left; padding-left: 8px;">R$</div>
-                {% endif %}
+            <td style="text-align: left; padding-left: 8px;">
+                R$ <span style="float: right; padding-right: 8px;">{{ row.salario|floatformat:2 }}</span>
+            </td>
+
+            <td style="text-align: left; padding-left: 8px;">
+                R$ {% if row.insalub %}<span style="float: right; padding-right: 8px;">{{ row.insalub }}</span>{% endif %}
             </td>
             
             <td style="text-align: left; padding-left: 8px;">
-                R$
-                {% if row.insalub and row.insalub != "--" %}
-                    <span style="float: right; padding-right: 8px;">{{ row.insalub }}</span>
-                {% endif %}
-            </td>
-            
-            <td style="text-align: left; padding-left: 8px;">
-                R$
-                {% if row.v_total and row.v_total != "--" %}
-                    <span style="float: right; padding-right: 8px;">{{ row.v_total }}</span>
-                {% endif %}
+                R$ {% if row.v_total %}<span style="float: right; padding-right: 8px;">{{ row.v_total }}</span>{% endif %}
             </td>
             
             <td>{{ row.funcao|title }}</td>
@@ -146,7 +138,8 @@
             <td colspan="6" style="padding: 20px;">Nenhum registro de carreira encontrado para este funcionário.</td>
         </tr>
         {% endfor %}
-    </table>
+    </tbody>
+</table>
 
     <div class="benefits-title">BENEFÍCIOS</div>
     

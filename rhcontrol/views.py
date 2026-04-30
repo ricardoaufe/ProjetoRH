@@ -20,6 +20,7 @@ from django.utils import timezone
 from django.template.loader import render_to_string
 from weasyprint import HTML
 
+from rhcontrol.services import get_historical_minimum_wage
 from rhcontrol.utils import RH_PERMISSION_MATRIX
 
 
@@ -1336,7 +1337,6 @@ def create_occurrence_list_pdf(request, employee_id):
 @login_required
 def employee_career_plan_pdf(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
-    
     table_data = []
 
     history_records = EmployeeHistory.objects.filter(
@@ -1345,18 +1345,20 @@ def employee_career_plan_pdf(request, pk):
     ).order_by('date_changed')
 
     for h in history_records:
-        salario_linha = h.new_salary if h.new_salary else (h.old_salary if h.old_salary else employee.current_salary)
+        salario_base = float(h.new_salary or h.old_salary or employee.current_salary or 0)
         cargo_linha = h.new_job_title if h.new_job_title else (h.old_job_title if h.old_job_title else employee.job_title.name)
-        
-        insalubridade_calc = "" 
-        v_total_calc = ""
+
+        ano = h.date_changed.year
+        minimo_vigente = get_historical_minimum_wage(ano)
+        valor_insalubridade = minimo_vigente * 0.20
+        valor_total = salario_base + valor_insalubridade
 
         table_data.append({
-            'ano': h.date_changed.year,
+            'ano': ano,
             'data': h.date_changed,
-            'salario': salario_linha,
-            'insalub': insalubridade_calc,
-            'v_total': v_total_calc,
+            'salario': salario_base,
+            'insalub': f"{valor_insalubridade:,.2f}".replace('.', 'X').replace(',', '.').replace('X', ','),
+            'v_total': f"{valor_total:,.2f}".replace('.', 'X').replace(',', '.').replace('X', ','),
             'funcao': cargo_linha,
             'is_future': False
         })
@@ -1367,12 +1369,19 @@ def employee_career_plan_pdf(request, pk):
         ).order_by('promotion_date')
         
         for plan in active_plans:
+            salario_base = float(plan.proposed_salary or 0)
+
+            ano = plan.promotion_date.year
+            minimo_vigente = get_historical_minimum_wage(ano)
+            valor_insalubridade = minimo_vigente * 0.20
+            valor_total = salario_base + valor_insalubridade
+
             table_data.append({
-                'ano': plan.promotion_date.year,
+                'ano': ano,
                 'data': plan.promotion_date,
-                'salario': plan.proposed_salary,
-                'insalub': '',
-                'v_total': '', 
+                'salario': salario_base,
+                'insalub': f"{valor_insalubridade:,.2f}".replace('.', 'X').replace(',', '.').replace('X', ','),
+                'v_total': f"{valor_total:,.2f}".replace('.', 'X').replace(',', '.').replace('X', ','),
                 'funcao': plan.proposed_job.name if hasattr(plan.proposed_job, 'name') else plan.proposed_job,
                 'is_future': True
             })
@@ -1380,9 +1389,9 @@ def employee_career_plan_pdf(request, pk):
     context = {
         'employee': employee,
         'table_data': table_data,
-        'company_name_settings': settings.COMPANY_NAME,
         'user': request.user,
     }
+    
     html_string = render_to_string('dashboard/pages/career/pdf/career_plan_pdf.html', context, request=request)
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
     pdf = html.write_pdf()
