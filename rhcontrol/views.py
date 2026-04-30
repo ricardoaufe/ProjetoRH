@@ -1383,7 +1383,7 @@ def employee_career_plan_pdf(request, pk):
         'company_name_settings': settings.COMPANY_NAME,
         'user': request.user,
     }
-    html_string = render_to_string('dashboard/pages/career/pdf/career_plan_pdf.html', context)
+    html_string = render_to_string('dashboard/pages/career/pdf/career_plan_pdf.html', context, request=request)
     html = HTML(string=html_string, base_url=request.build_absolute_uri())
     pdf = html.write_pdf()
     
