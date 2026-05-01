@@ -205,7 +205,8 @@
                     <option value="">Selecione...</option>
                     <option value="Admissão">Admissão</option>
                     <option value="Promoção">Promoção</option>
-                    <option value="Mérito">Mérito / Reajuste</option>
+                    <option value="Mérito">Mérito</option>
+                    <option value="Dissídio">Dissídio</option>
                     <option value="CIPA">Alteração de CIPA</option>
                     <option value="Outros">Outros (Personalizado)</option>
                 </select>
@@ -326,7 +327,7 @@
         } else if (reason === 'Promoção') {
             rowCipa.style.display = 'none'; 
             
-        } else if (reason === 'Mérito' || reason === 'Reajuste') {
+        } else if (reason === 'Mérito' || reason === 'Dissídio') {
             rowCargos.style.display = 'none'; 
             rowCipa.style.display = 'none';
             document.getElementById('hist_old_job').value = '';

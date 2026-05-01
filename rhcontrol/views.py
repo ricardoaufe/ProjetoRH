@@ -1341,7 +1341,7 @@ def employee_career_plan_pdf(request, pk):
 
     history_records = EmployeeHistory.objects.filter(
         employee=employee,
-        reason__in=['Admissão', 'Promoção', 'Mérito', 'Reajuste']
+        reason__in=['Admissão', 'Promoção', 'Mérito', 'Dissídio']
     ).order_by('date_changed')
 
     for h in history_records:
