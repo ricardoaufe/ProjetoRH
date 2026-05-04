@@ -15,7 +15,7 @@ from django.contrib.auth.decorators import login_required, permission_required, 
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.decorators.http import require_POST
 from django.contrib import messages 
-from datetime import timedelta, timezone
+from datetime import date, timedelta, timezone
 from django.utils import timezone
 from django.template.loader import render_to_string
 from weasyprint import HTML
@@ -502,9 +502,15 @@ def history_create_view(request, employee_id):
         
         # Trava: Não permite datas no futuro
         data_input = request.POST.get('date_changed')
-        if data_input and data_input > str(timezone.localdate()):
-            messages.error(request, 'Não é possível registrar históricos no futuro.')
-            return redirect('rhcontrol:employee_update', pk=employee_id)
+        if data_input:
+            try:
+                parsed_date = date.fromisoformat(data_input)
+                if parsed_date > timezone.localdate():
+                    messages.error(request, 'Não é possível registrar históricos no futuro.')
+                    return redirect('rhcontrol:employee_update', pk=employee_id)
+            except ValueError:
+                messages.error(request, 'Formato de data inválido.')
+                return redirect('rhcontrol:employee_update', pk=employee_id)
 
         if form.is_valid():
             history = form.save(commit=False)
@@ -526,9 +532,15 @@ def history_edit_view(request, pk):
     if request.method == 'POST':
         
         data_input = request.POST.get('date_changed')
-        if data_input and data_input > str(timezone.localdate()):
-            messages.error(request, 'A data do histórico não pode ser no futuro.')
-            return redirect('rhcontrol:employee_update', pk=employee_id)
+        if data_input:
+            try:
+                parsed_date = date.fromisoformat(data_input)
+                if parsed_date > timezone.localdate():
+                    messages.error(request, 'A data do histórico não pode ser no futuro.')
+                    return redirect('rhcontrol:employee_update', pk=employee_id)
+            except ValueError:
+                messages.error(request, 'Formato de data inválido.')
+                return redirect('rhcontrol:employee_update', pk=employee_id)
 
         form = EmployeeHistoryForm(request.POST, instance=history)
         if form.is_valid():
@@ -542,6 +554,7 @@ def history_edit_view(request, pk):
     return redirect('rhcontrol:employee_update', pk=employee_id)
 
 @login_required
+@permission_required('rhcontrol.change_employee', raise_exception=True)
 def delete_history_log(request, pk):
     log = get_object_or_404(EmployeeHistory, pk=pk)
     employee_id = log.employee.pk # Guarda o ID pra voltar pra página certa
@@ -646,24 +659,27 @@ def vacation_create(request):
             employee = form.cleaned_data['employee']
             start_date = form.cleaned_data['start_date']
             duration = form.cleaned_data['vacation_duration']
-        
-            end_date = start_date + timedelta(days=duration - 1)
 
-            return_date = end_date + timedelta(days=1)
+            if duration is None or duration <= 0:
+                form.add_error('vacation_duration', 'A duração deve ser maior que zero.')
+            else:
+                end_date = start_date + timedelta(days=duration - 1)
 
-            while return_date.weekday() >= 5:
-                return_date += timedelta(days=1)
+                return_date = end_date + timedelta(days=1)
 
-            Vacation.objects.create(
-                employee=employee,
-                start_date=start_date,
-                end_date=end_date,               
-                vacation_duration=duration,      
-                return_date=return_date          
-            )
+                while return_date.weekday() >= 5:
+                    return_date += timedelta(days=1)
 
-            messages.success(request, 'Férias cadastradas com sucesso!')
-            return redirect('rhcontrol:vacation_list') 
+                Vacation.objects.create(
+                    employee=employee,
+                    start_date=start_date,
+                    end_date=end_date,               
+                    vacation_duration=duration,      
+                    return_date=return_date          
+                )
+
+                messages.success(request, 'Férias cadastradas com sucesso!')
+                return redirect('rhcontrol:vacation_list') 
         else:
             messages.error(request, 'Erro ao cadastrar. Verifique os campos abaixo.')
     
@@ -909,6 +925,7 @@ def department_delete(request, pk):
 
 # ========= PDFs =========
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def create_employee_list_pdf(request):
     employee_list = Employee.objects.select_related('department').all()
     
@@ -954,6 +971,7 @@ def create_employee_list_pdf(request):
     return response 
 
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def create_employee_registration_pdf(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     
@@ -978,6 +996,7 @@ def create_employee_registration_pdf(request, pk):
     return response
 
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def create_confidenciality_pdf(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     context = {'employee': employee,
@@ -999,6 +1018,7 @@ def create_confidenciality_pdf(request, pk):
     return response
 
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def create_bank_presentation_pdf(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     context = {'employee': employee,
@@ -1020,6 +1040,7 @@ def create_bank_presentation_pdf(request, pk):
     return response
 
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def create_personal_data_consent_pdf(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     context = {
@@ -1042,6 +1063,7 @@ def create_personal_data_consent_pdf(request, pk):
     return response
 
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def create_commitment_term_pdf(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     context = {
@@ -1064,6 +1086,7 @@ def create_commitment_term_pdf(request, pk):
     return response
 
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def create_image_consent_pdf(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     context = {
@@ -1086,6 +1109,7 @@ def create_image_consent_pdf(request, pk):
     return response
 
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def create_benefits_acquisition_pdf(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     context = {
@@ -1108,6 +1132,7 @@ def create_benefits_acquisition_pdf(request, pk):
     return response
 
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def create_internal_regulation_pdf(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     context = {
@@ -1130,6 +1155,7 @@ def create_internal_regulation_pdf(request, pk):
     return response
 
 @login_required
+@permission_required('rhcontrol.view_department', raise_exception=True)
 def create_department_and_jobtitle_pdf(request):
     ordened_jobtitles = JobTitle.objects.order_by('base_salary')
     departments = Department.objects.prefetch_related(
@@ -1157,6 +1183,7 @@ def create_department_and_jobtitle_pdf(request):
     return response
 
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def create_employees_department_pdf(request):
     ordened_employees = Employee.objects.select_related('job_title').order_by('job_title__base_salary', 'name')
 
@@ -1188,6 +1215,7 @@ def create_employees_department_pdf(request):
     return response
 
 @login_required
+@permission_required('rhcontrol.view_vacation', raise_exception=True)
 def create_vacation_list_pdf(request):
     vacation_list = Vacation.objects.select_related('employee').all().order_by('employee__name')
 
@@ -1225,6 +1253,7 @@ def create_vacation_list_pdf(request):
     return response
 
 @login_required
+@permission_required('rhcontrol.view_training', raise_exception=True)
 def create_training_list_pdf(request):
     training_list = Training.objects.annotate(
         num_attended=Count('attended_employees', distinct=True),
@@ -1287,6 +1316,7 @@ def create_training_list_pdf(request):
     return response
 
 @login_required
+@permission_required('rhcontrol.view_occurrence', raise_exception=True)
 def create_occurrence_list_pdf(request, employee_id):
     """
     GET employees/<employee_id>/occurrences/pdf/
@@ -1335,6 +1365,8 @@ def create_occurrence_list_pdf(request, employee_id):
     return response
 
 @login_required
+
+@permission_required('rhcontrol.view_careerplan', raise_exception=True)
 def employee_career_plan_pdf(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     table_data = []
@@ -1402,6 +1434,7 @@ def employee_career_plan_pdf(request, pk):
     return response
 
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def ajax_load_employee_data(request):
     employee_id = request.GET.get('employee_id')
     if employee_id:
@@ -1422,6 +1455,7 @@ def ajax_load_employee_data(request):
     return JsonResponse({'success': False, 'error': 'ID não fornecido'})
 
 @login_required
+@permission_required('rhcontrol.view_jobtitle', raise_exception=True)
 def ajax_load_jobs_by_department(request):
     department_id = request.GET.get('department_id')
     if department_id:
@@ -1488,6 +1522,7 @@ def career_plan_list(request):
 
 
 @login_required
+@permission_required('rhcontrol.add_careerplan', raise_exception=True)
 def career_plan_create(request):
     """ View para criar um novo Plano de Carreira """
     if request.method == 'POST':
@@ -1515,6 +1550,7 @@ def career_plan_create(request):
 
 
 @login_required
+@permission_required('rhcontrol.change_careerplan', raise_exception=True)
 def career_plan_update(request, pk):
     """ View para editar um Plano de Carreira existente """
     plan = get_object_or_404(CareerPlan, pk=pk)
@@ -1544,6 +1580,7 @@ def career_plan_update(request, pk):
     return render(request, 'dashboard/pages/career/form.html', context)
 
 @login_required
+@permission_required('rhcontrol.change_careerplan', raise_exception=True)
 @require_POST 
 def confirm_career_plan_action(request, pk):
     """ Ação de botão: O RH aperta para dizer 'Aprovado, pode efetivar no dia D' """
@@ -1564,6 +1601,7 @@ def confirm_career_plan_action(request, pk):
 
 
 @login_required
+@permission_required('rhcontrol.change_careerplan', raise_exception=True)
 @require_POST
 def cancel_career_plan(request, pk):
     """ Ação de botão: Cancela um plano de carreira. Permitido apenas para planos AGENDADOS ou AGUARDANDO CONFIRMAÇÃO. """
@@ -1604,6 +1642,7 @@ def cancel_career_plan(request, pk):
 
 
 @login_required
+@permission_required('rhcontrol.delete_careerplan', raise_exception=True)
 @require_POST
 def career_plan_delete(request, pk):
     """ Ação: Hard Delete — apaga fisicamente do banco. Permitido apenas para planos AGENDADOS, AGUARDANDO CONFIRMAÇÃO ou CANCELADOS. """
@@ -1629,6 +1668,7 @@ def career_plan_delete(request, pk):
     return redirect('rhcontrol:career_plan_list')
 
 @login_required
+@permission_required('auth.add_group', raise_exception=True)
 def role_create_view(request):
     if request.method == 'POST':
         form = RoleGroupForm(request.POST)
