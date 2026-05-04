@@ -28,7 +28,8 @@ class UserUpdateForm(forms.ModelForm):
         }
 
 def validate_cpf(cpf):
-    if not cpf: return True 
+    if not cpf:
+        return False
 
     clean_cpf = ''.join([c for c in cpf if c.isdigit()])
 
