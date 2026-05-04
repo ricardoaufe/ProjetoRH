@@ -1,0 +1,25 @@
+{% extends 'global/base.html' %}
+
+{% block title %}Página Não Encontrada | {% endblock title %}
+
+{% block content %}
+<div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 60vh; text-align: center; padding: 2rem;">
+    
+    <div style="font-size: 5rem; color: #ffc107; margin-bottom: 1rem;">
+        <i class="fa fa-exclamation-triangle"></i>
+    </div>
+    
+    <h1 style="font-size: 2.5rem; color: #343a40; margin-bottom: 1rem;">404 - Página Não Encontrada</h1>
+    
+    <p style="font-size: 1.5rem; color: #6c757d; max-width: 600px; margin-bottom: 2rem; line-height: 1.6;">
+        A página que você está procurando não existe ou foi movida.
+        <br><br>
+        Verifique o endereço ou volte para a página inicial.
+    </p>
+    
+    <a href="{% url 'rhcontrol:dashboard' %}" class="btn btn-primary" style="font-size: 1.4rem; padding: 0.8rem 1.5rem;">
+        <i class="fa fa-home"></i> Voltar para o Início
+    </a>
+
+</div>
+{% endblock content %}
