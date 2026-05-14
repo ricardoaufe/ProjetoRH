@@ -68,7 +68,7 @@
     </style>
 
     <div style="margin-bottom: 0.75rem; font-size: 0.625rem; border-bottom: 1px dotted #ccc; padding-bottom: 0.375rem;">
-        Filtros: <strong>Todos</strong> 
+        Filtros: <strong>{{ status_filter|title }}</strong> 
         {% if search_query %} | Busca: "<strong>{{ search_query }}</strong>"{% endif %}
         | Total: {{ vacation|length }}
     </div>

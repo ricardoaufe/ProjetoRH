@@ -1219,24 +1219,30 @@ def create_employees_department_pdf(request):
 def create_vacation_list_pdf(request):
     vacation_list = Vacation.objects.select_related('employee').all().order_by('employee__name')
 
+    status_filter = request.GET.get('status', 'ativas') 
     search_query = request.GET.get('search', '')
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
+    
+    today = timezone.now().date()
 
     if search_query:
         vacation_list = vacation_list.filter(employee__name__icontains=search_query)
-
     if date_from:
         vacation_list = vacation_list.filter(start_date__gte=date_from)
-
     if date_to:
         vacation_list = vacation_list.filter(start_date__lte=date_to)
+    if status_filter == 'ativas':
+        vacation_list = vacation_list.filter(end_date__gte=today)
+    elif status_filter == 'historico':
+        vacation_list = vacation_list.filter(end_date__lt=today)
 
     context = {
         'vacation': vacation_list,
         'search_query': search_query,
         'date_from': date_from,
         'date_to': date_to,
+        'status_filter': status_filter,
         'generated_at': timezone.now(),
         'user': request.user,
         'company_name_settings': settings.COMPANY_NAME,
@@ -1247,8 +1253,7 @@ def create_vacation_list_pdf(request):
     pdf = html.write_pdf()
 
     response = HttpResponse(pdf, content_type='application/pdf')
-    filename = "vacation_list.pdf"
-    response['Content-Disposition'] = f'inline; filename="{filename}"'
+    response['Content-Disposition'] = 'inline; filename="lista_de_ferias.pdf"'
 
     return response
 

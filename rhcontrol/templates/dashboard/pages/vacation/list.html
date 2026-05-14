@@ -43,7 +43,9 @@
     <div class= "page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
         <h1>Lista de Férias</h1>
         <div class="header-actions" style="display: flex; gap: 0.625rem;">
-            <a style='align-text: right;' href="{% url 'rhcontrol:vacation_list_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-danger" target="_blank">
+           <a href="{% url 'rhcontrol:create_vacation_list_pdf' %}?status={{ status|default:'ativas' }}&search={{ search_query }}&date_from={{ date_from }}&date_to={{ date_to }}" 
+            target="_blank" 
+            class="btn btn-primary">
                 <i class="fa fa-file-pdf"></i> Gerar PDF
             </a>
 
