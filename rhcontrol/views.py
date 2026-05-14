@@ -1369,6 +1369,15 @@ def create_occurrence_list_pdf(request, employee_id):
 @permission_required('rhcontrol.view_careerplan', raise_exception=True)
 def employee_career_plan_pdf(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
+
+    is_adm = False
+    if employee.department:
+        dept_name = employee.department.name.upper().strip()
+        palavras_chave_adm = ["ADMINISTRATIVO", "ADMINISTRAÇÃO", "ADM", "ADMINISTRACAO"]
+        
+        if any(palavra in dept_name for palavra in palavras_chave_adm):
+            is_adm = True
+
     table_data = []
 
     history_records = EmployeeHistory.objects.filter(
@@ -1380,17 +1389,23 @@ def employee_career_plan_pdf(request, pk):
         salario_base = float(h.new_salary or h.old_salary or employee.current_salary or 0)
         cargo_linha = h.new_job_title if h.new_job_title else (h.old_job_title if h.old_job_title else employee.job_title.name)
 
-        ano = h.date_changed.year
-        minimo_vigente = get_historical_minimum_wage(ano)
-        valor_insalubridade = minimo_vigente * 0.20
-        valor_total = salario_base + valor_insalubridade
+        insalub_str = None
+        total_str = None
+
+        if not is_adm:
+            ano = h.date_changed.year
+            minimo_vigente = get_historical_minimum_wage(ano)
+            valor_insalubridade = minimo_vigente * 0.20
+            valor_total = salario_base + valor_insalubridade
+            insalub_str = f"{valor_insalubridade:,.2f}".replace('.', 'X').replace(',', '.').replace('X', ',')
+            total_str = f"{valor_total:,.2f}".replace('.', 'X').replace(',', '.').replace('X', ',')
 
         table_data.append({
-            'ano': ano,
+            'ano': h.date_changed.year,
             'data': h.date_changed,
             'salario': salario_base,
-            'insalub': f"{valor_insalubridade:,.2f}".replace('.', 'X').replace(',', '.').replace('X', ','),
-            'v_total': f"{valor_total:,.2f}".replace('.', 'X').replace(',', '.').replace('X', ','),
+            'insalub': insalub_str,
+            'v_total': total_str,
             'funcao': cargo_linha,
             'is_future': False
         })
@@ -1402,18 +1417,23 @@ def employee_career_plan_pdf(request, pk):
         
         for plan in active_plans:
             salario_base = float(plan.proposed_salary or 0)
+            insalub_str = None
+            total_str = None
 
-            ano = plan.promotion_date.year
-            minimo_vigente = get_historical_minimum_wage(ano)
-            valor_insalubridade = minimo_vigente * 0.20
-            valor_total = salario_base + valor_insalubridade
+            if not is_adm:
+                ano = plan.promotion_date.year
+                minimo_vigente = get_historical_minimum_wage(ano)
+                valor_insalubridade = minimo_vigente * 0.20
+                valor_total = salario_base + valor_insalubridade
+                insalub_str = f"{valor_insalubridade:,.2f}".replace('.', 'X').replace(',', '.').replace('X', ',')
+                total_str = f"{valor_total:,.2f}".replace('.', 'X').replace(',', '.').replace('X', ',')
 
             table_data.append({
-                'ano': ano,
+                'ano': plan.promotion_date.year,
                 'data': plan.promotion_date,
                 'salario': salario_base,
-                'insalub': f"{valor_insalubridade:,.2f}".replace('.', 'X').replace(',', '.').replace('X', ','),
-                'v_total': f"{valor_total:,.2f}".replace('.', 'X').replace(',', '.').replace('X', ','),
+                'insalub': insalub_str,
+                'v_total': total_str,
                 'funcao': plan.proposed_job.name if hasattr(plan.proposed_job, 'name') else plan.proposed_job,
                 'is_future': True
             })
@@ -1421,6 +1441,7 @@ def employee_career_plan_pdf(request, pk):
     context = {
         'employee': employee,
         'table_data': table_data,
+        'is_administrative': is_adm,
         'user': request.user,
     }
     

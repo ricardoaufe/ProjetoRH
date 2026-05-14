@@ -101,14 +101,16 @@
     <table class="career-table">
     <thead>
         <tr>
-            <th colspan="6" class="table-title">PLANO DE CARREIRA</th>
+            <th colspan="{% if is_administrative %}4{% else %}6{% endif %}" class="table-title">PLANO DE CARREIRA</th>
         </tr>
         <tr>
             <th>ANO</th>
             <th>DATA</th>
             <th>SALÁRIO</th>
-            <th>INSALUB.</th>
-            <th>V. TOTAL</th>
+            {% if not is_administrative %}
+                <th>INSALUB.</th>
+                <th>V. TOTAL</th>
+            {% endif %}
             <th>FUNÇÃO</th>
         </tr>
     </thead>
@@ -116,26 +118,27 @@
         {% for row in table_data %}
         <tr>
             <td><strong>{{ row.data|date:"Y" }}</strong></td>
-
             <td>{{ row.data|date:"d/b/Y" }}</td>
             
-            <td style="text-align: left; padding-left: 8px;">
-                R$ <span style="float: right; padding-right: 8px;">{{ row.salario|floatformat:2 }}</span>
+            <td>
+                R$ {{ row.salario|floatformat:2 }}
             </td>
 
-            <td style="text-align: left; padding-left: 8px;">
-                R$ {% if row.insalub %}<span style="float: right; padding-right: 8px;">{{ row.insalub }}</span>{% endif %}
-            </td>
-            
-            <td style="text-align: left; padding-left: 8px;">
-                R$ {% if row.v_total %}<span style="float: right; padding-right: 8px;">{{ row.v_total }}</span>{% endif %}
-            </td>
+            {% if not is_administrative %}
+                <td>
+                    {% if row.insalub %}R$ {{ row.insalub }}{% endif %}
+                </td>
+                
+                <td>
+                    {% if row.v_total %}R$ {{ row.v_total }}{% endif %}
+                </td>
+            {% endif %}
             
             <td>{{ row.funcao|title }}</td>
         </tr>
         {% empty %}
         <tr>
-            <td colspan="6" style="padding: 20px;">Nenhum registro de carreira encontrado para este funcionário.</td>
+            <td colspan="{% if is_administrative %}4{% else %}6{% endif %}" style="padding: 20px;">Nenhum registro de carreira encontrado.</td>
         </tr>
         {% endfor %}
     </tbody>
