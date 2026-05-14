@@ -23,7 +23,7 @@ from rhcontrol.forms import OccurrenceForm
 # ---------------------------------------------------------------------------
 # Base mixin — re-uses the project mixin; imported here for clarity.
 # ---------------------------------------------------------------------------
-from rhcontrol.mixins import RhAdminRequiredMixin
+from django.contrib.auth.mixins import PermissionRequiredMixin
 
 
 # ---------------------------------------------------------------------------
@@ -38,12 +38,15 @@ def _occurrence_list_url(employee_id: int) -> str:
 # List
 # ---------------------------------------------------------------------------
 
-class OccurrenceListView(RhAdminRequiredMixin, ListView):
+class OccurrenceListView(PermissionRequiredMixin, ListView):
     """
     GET  employees/<employee_id>/occurrences/
     Shows all occurrences for the given employee, most recent first.
     Paginated at 20 per page.
     """
+
+    permission_required = 'rhcontrol.view_occurrence'
+    raise_exception = True
     template_name = 'dashboard/pages/occurrence/list.html'
     context_object_name = 'occurrences'
     paginate_by = 20
@@ -87,12 +90,15 @@ class OccurrenceListView(RhAdminRequiredMixin, ListView):
 # Create
 # ---------------------------------------------------------------------------
 
-class OccurrenceCreateView(RhAdminRequiredMixin, CreateView):
+class OccurrenceCreateView(PermissionRequiredMixin, CreateView):
     """
     GET/POST  employees/<employee_id>/occurrences/create/
     Creates a new occurrence linked to the employee.
     Sets employee, created_by, and updated_by from the request context.
     """
+
+    permission_required = 'rhcontrol.create_occurrence'
+    raise_exception = True
     template_name = 'dashboard/pages/occurrence/form.html'
     form_class = OccurrenceForm
 
@@ -127,12 +133,14 @@ class OccurrenceCreateView(RhAdminRequiredMixin, CreateView):
 # Update
 # ---------------------------------------------------------------------------
 
-class OccurrenceUpdateView(RhAdminRequiredMixin, UpdateView):
+class OccurrenceUpdateView(PermissionRequiredMixin, UpdateView):
     """
     GET/POST  employees/<employee_id>/occurrences/<pk>/edit/
     Edits an existing occurrence that belongs to the employee.
     Sets updated_by on every save.
     """
+    permission_required = 'rhcontrol.update_occurrence'
+    raise_exception = True
     template_name = 'dashboard/pages/occurrence/form.html'
     form_class = OccurrenceForm
 
@@ -168,12 +176,16 @@ class OccurrenceUpdateView(RhAdminRequiredMixin, UpdateView):
 # Delete
 # ---------------------------------------------------------------------------
 
-class OccurrenceDeleteView(RhAdminRequiredMixin, DeleteView):
+class OccurrenceDeleteView(PermissionRequiredMixin, DeleteView):
     """
     GET/POST  employees/<employee_id>/occurrences/<pk>/delete/
     Shows confirmation page (GET) and hard-deletes on POST.
     """
+    permission_required = 'rhcontrol.delete_occurrence'
+    raise_exception = True
+
     template_name = 'dashboard/pages/occurrence/confirm_delete.html'
+    permission_required = 'rhcontrol.delete_occurrence'
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
@@ -191,7 +203,9 @@ class OccurrenceDeleteView(RhAdminRequiredMixin, DeleteView):
         ctx['employee'] = self.employee
         return ctx
     
-class AjaxSearchCidsView(RhAdminRequiredMixin, View):
+class AjaxSearchCidsView(PermissionRequiredMixin, View):
+    permission_required = 'rhcontrol.view_occurrence'
+    raise_exception = True
 
     def get(self, request, *args, **kwargs):
         query = request.GET.get('q', '').strip()
