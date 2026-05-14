@@ -97,7 +97,7 @@ class OccurrenceCreateView(PermissionRequiredMixin, CreateView):
     Sets employee, created_by, and updated_by from the request context.
     """
 
-    permission_required = 'rhcontrol.create_occurrence'
+    permission_required = 'rhcontrol.add_occurrence'
     raise_exception = True
     template_name = 'dashboard/pages/occurrence/form.html'
     form_class = OccurrenceForm
@@ -139,7 +139,7 @@ class OccurrenceUpdateView(PermissionRequiredMixin, UpdateView):
     Edits an existing occurrence that belongs to the employee.
     Sets updated_by on every save.
     """
-    permission_required = 'rhcontrol.update_occurrence'
+    permission_required = 'rhcontrol.change_occurrence'
     raise_exception = True
     template_name = 'dashboard/pages/occurrence/form.html'
     form_class = OccurrenceForm
