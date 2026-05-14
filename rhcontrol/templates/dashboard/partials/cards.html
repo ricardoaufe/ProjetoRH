@@ -5,13 +5,13 @@
     {% if perms.rhcontrol.view_employee %}
       <div class="card" onclick="location.href='{% url 'rhcontrol:employee_list' %}'">
         <h2 class="card-title">Funcionários Cadastrados</h2>
-        <p class="card-number">{{ employees_count }}</p>
+        <p class="card-number">{{ active_employees.count }}</p>
         <h4 class="desc">Funcionários que estão cadastrados atualmente</h4>
       </div>
     {% else %}
       <div class="card disabled-card">
         <h2 class="card-title">Funcionários Cadastrados</h2>
-        <p class="card-number">{{ employees_count }}</p>
+        <p class="card-number">{{ active_employees.count }}</p>
         <h4 class="desc">Funcionários que estão cadastrados atualmente</h4>
       </div>
     {% endif %}

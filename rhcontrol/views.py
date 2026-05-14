@@ -85,6 +85,7 @@ def dashboard_view(request):
 
     today = timezone.localdate()
     employees_count = Employee.objects.count()
+    active_employees = Employee.objects.filter(termination_date__isnull=True)
     vacations_count = Vacation.objects.filter(end_date__gte=today).count()
     hire_date = Employee.hire_date
     
@@ -111,6 +112,7 @@ def dashboard_view(request):
 
     context = {
         'employees_count':            employees_count,
+        'active_employees':           active_employees,
         'vacations_count':            vacations_count,
         'upcoming_events_count':      len(events),
         'upcoming_events_top':        events[:_VISIBLE_LIMIT],
