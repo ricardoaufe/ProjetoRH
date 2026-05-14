@@ -64,7 +64,7 @@
       </div>
       {% endif %} 
 
-      {% if form.instance.pk and is_rh_admin %}
+      {% if form.instance.pk and perms.rhcontrol.view_occurrence %}
       <a href="{% url 'rhcontrol:occurrence_list' employee_id=form.instance.pk %}" class="btn-dropdown-trigger" title="Ver todas as ocorrências" style = "decoration: none;">
         <i class="fa fa-exclamation-circle" style= "decoration: none;"></i> Ocorrências
       </a>
