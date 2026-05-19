@@ -72,28 +72,41 @@
                 {% regroup department.funcionarios_setor.all by job_title as cargos_agrupados %}
 
                 {% for grup in cargos_agrupados %}
-                    
-                    {% for employee in grup.list %}
-                    <tr class="job-row">
-                        
-                        {% if forloop.first %}
-                        <td rowspan="{{ grup.list|length }}" class="merged-cell">
-                            <strong>{{ grup.grouper.name|upper }}</strong>
-                        </td>
-                        {% endif %}
-                        
-                        <td><strong>{{ employee.name|upper }}</strong></td>
-                        
-                        <td class="text-center">{{ employee.company_tenure }}</td>
-                        
-                        {% if forloop.first %}
-                        <td rowspan="{{ grup.list|length }}" class="merged-cell text-right">
-                            R$ {{ grup.grouper.base_salary|floatformat:2 }}
-                        </td>
-                        {% endif %}
+                    {% with active_employees=grup.list|dictsort:"id" %}
+                        {% with active_count=0 %}
+                            {% for employee in active_employees %}
+                                {% if not employee.termination_date %}
+                                    {% with active_count|add:1 as active_count %}{% endwith %}
+                                {% endif %}
+                            {% endfor %}
+                            
+                            {% if active_count > 0 %}
+                                {% for employee in active_employees %}
+                                    {% if not employee.termination_date %}
+                                    <tr class="job-row">
+                                        
+                                        {% if forloop.first %}
+                                        <td rowspan="{{ active_count }}" class="merged-cell">
+                                            <strong>{{ grup.grouper.name|upper }}</strong>
+                                        </td>
+                                        {% endif %}
+                                        
+                                        <td><strong>{{ employee.name|upper }}</strong></td>
+                                        
+                                        <td class="text-center">{{ employee.company_tenure }}</td>
+                                        
+                                        {% if forloop.first %}
+                                        <td rowspan="{{ active_count }}" class="merged-cell text-right">
+                                            R$ {{ grup.grouper.base_salary|floatformat:2 }}
+                                        </td>
+                                        {% endif %}
 
-                    </tr>
-                    {% endfor %}
+                                    </tr>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                    {% endwith %}
                 {% endfor %}
 
                 <tr class="spacer-row"><td colspan="3" style="height: 15px; border: none;"></td></tr>
