@@ -1219,7 +1219,7 @@ def create_employees_department_pdf(request):
 @login_required
 @permission_required('rhcontrol.view_vacation', raise_exception=True)
 def create_vacation_list_pdf(request):
-    vacation_list = Vacation.objects.select_related('employee').all().order_by('employee__name')
+    vacation_list = Vacation.objects.select_related('employee').all().order_by('start_date')
 
     status_filter = request.GET.get('status', 'ativas') 
     search_query = request.GET.get('search', '')
