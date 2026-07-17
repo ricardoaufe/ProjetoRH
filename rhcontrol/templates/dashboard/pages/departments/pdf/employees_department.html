@@ -10,17 +10,18 @@
             width: 100%;
             border-collapse: collapse;
             margin-top: 5px;
+            table-layout: fixed;
         }
 
         .dept-header td {
-            background-color: #44444469;
-            color: #fff;
+            background-color: #f2f2f2;
+            color: #333333;            
             text-transform: uppercase;
             font-weight: bold;
-            font-size: 1rem;
+            font-size: 11px;
             padding: 6px 8px;
             text-align: center;
-            border: 1px solid #44444469;
+            border: 1px solid #ccc;
         }
         
         .col-header td {
@@ -28,21 +29,21 @@
             color: #333;
             font-weight: bold;
             font-size: 9px;
-            padding: 4px 8px;
+            padding: 6px 8px;
             text-align: left;
             border: 1px solid #ccc;
         }
 
         .job-row td {
             border: 1px solid #ccc;
-            padding: 5px 8px;
+            padding: 6px 8px;
             font-size: 10px;
             vertical-align: middle;
         }
 
-        .merged-cell {
-            background-color: transparent; 
-            vertical-align: middle;
+        /* Deixa as colunas de cargo e salário com um fundo cinza sutil para destacar o agrupamento */
+        .group-cell {
+            background-color: #fafafa; 
         }
 
         .text-right { text-align: right !important; }
@@ -50,7 +51,7 @@
     </style>
 
     <div style="margin-bottom: 15px; font-size: 9px; color: #555;">
-        Total Geral de Funcionários: {{ total_employees }}
+        Total Geral de Funcionários Ativos: {{ total_employees }}
     </div>
 
     <table class="data-table">
@@ -58,10 +59,12 @@
             
             <tbody style="page-break-inside: avoid;">
                 
+                <!-- Cabeçalho do Setor -->
                 <tr class="dept-header">
                     <td colspan="4">{{ department.name }}</td>
                 </tr>
 
+                <!-- Títulos das Colunas -->
                 <tr class="col-header">
                     <td width="30%">CARGO</td>
                     <td width="30%">FUNCIONÁRIO</td>
@@ -69,46 +72,44 @@
                     <td width="20%" class="text-right">SALÁRIO BASE</td>
                 </tr>
 
+                <!-- Agrupamento por Cargo -->
                 {% regroup department.funcionarios_setor.all by job_title as cargos_agrupados %}
 
                 {% for grup in cargos_agrupados %}
-                    
                     {% for employee in grup.list %}
-                    {% if not employee.termination_date %}
-                    <tr class="job-row">
-                        
-                        {% if forloop.first %}
-                        <td rowspan="{{ grup.list|length }}" class="merged-cell">
-                            <strong>{{ grup.grouper.name|upper }}</strong>
-                        </td>
-                        {% endif %}
-                        
-                        <td><strong>{{ employee.name|upper }}</strong></td>
-                        
-                        <td class="text-center">{{ employee.company_tenure }}</td>
-                        
-                        {% if forloop.first %}
-                        <td rowspan="{{ grup.list|length }}" class="merged-cell text-right">
-                            R$ {{ grup.grouper.base_salary|floatformat:2 }}
-                        </td>
-                        {% endif %}
+                        {% if not employee.termination_date %}
+                        <tr class="job-row">
+                            
+                            <!-- Celula do Cargo (Repete alinhado, sem quebrar o layout) -->
+                            <td class="group-cell">
+                                <strong>{{ grup.grouper.name|upper }}</strong>
+                            </td>
+                            
+                            <td><strong>{{ employee.name|upper }}</strong></td>
+                            
+                            <td class="text-center">{{ employee.company_tenure }}</td>
+                            
+                            <!-- Celula do Salário (Repete alinhado por linha do funcionário ativo) -->
+                            <td class="group-cell text-right">
+                                R$ {{ grup.grouper.base_salary|floatformat:2 }}
+                            </td>
 
-                    </tr>
-                    {% endif %}
+                        </tr>
+                        {% endif %}
                     {% endfor %}
                 {% endfor %}
 
-                <tr class="spacer-row"><td colspan="3" style="height: 15px; border: none;"></td></tr>
+                
+                <tr class="spacer-row"><td colspan="4" style="height: 15px; border: none;"></td></tr>
             
             </tbody> 
 
         {% empty %}
             <tbody>
                 <tr>
-                    <td style="text-align: center; padding: 20px;">Nenhum funcionário registrado no sistema.</td>
+                    <td colspan="4" style="text-align: center; padding: 20px;">Nenhum funcionário ativo registrado no sistema.</td>
                 </tr>
             </tbody>
         {% endfor %}
     </table>
-
 {% endblock %}
