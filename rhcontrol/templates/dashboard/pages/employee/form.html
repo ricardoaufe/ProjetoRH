@@ -60,6 +60,10 @@
             <i class="fa fa-file-text-o"></i> Regulamento Interno
             <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
           </a>
+          <a href="{% url 'rhcontrol:responsible_term_pdf' pk=form.instance.pk %}" target="_blank">
+            <i class="fa fa-file-text-o"></i> Termo de Responsabilidade
+            <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+          </a>
         </div>
       </div>
       {% endif %} 

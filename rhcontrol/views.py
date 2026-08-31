@@ -1089,6 +1089,30 @@ def create_commitment_term_pdf(request, pk):
 
 @login_required
 @permission_required('rhcontrol.view_employee', raise_exception=True)
+def create_responsible_term_pdf(request, pk):
+    employee = get_object_or_404(Employee, pk=pk)
+    context = {
+        'employee': employee,
+        'user': request.user,
+        'generated_at': timezone.now(),
+        'company_name_settings': settings.COMPANY_NAME,
+        'company_city': settings.COMPANY_CITY,
+    }
+
+    html_string = render_to_string('dashboard/pages/employee/pdf/responsability_term.html', context, request=request)
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    pdf = html.write_pdf()
+
+    response = HttpResponse(pdf, content_type='application/pdf')
+
+    safe_name = employee.name.replace(' ', '_')
+    filename = f"termo_de_ciencia_e_responsabilidade_ti_{employee.id}_{safe_name}.pdf"
+    response['Content-Disposition'] = f'inline; filename="{filename}"'
+
+    return response
+
+@login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def create_image_consent_pdf(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
     context = {

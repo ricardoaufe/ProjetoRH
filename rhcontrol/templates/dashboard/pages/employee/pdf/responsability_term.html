@@ -1,0 +1,106 @@
+{% extends 'reports/base_pdf.html' %}
+{% load static %}
+
+{% block title %}Termo de Ciência e Responsabilidade para Uso de Recursos de Tecnologia e Informação {{ employee.name }}{% endblock %}
+
+{% block header_title %}Termo de Ciência e Responsabilidade para Uso de Recursos de Tecnologia e Informação{% endblock %}
+
+{% block style %}
+    body {
+        font-family: 'Times New Roman', Times, serif;
+        font-size: 14px; 
+        line-height: 1.5;
+        padding-bottom: 2rem;
+        color: #000;
+    }
+    p {
+        text-align: justify;
+        margin-bottom: 1.2rem;
+    }
+    ul {
+        text-align: justify;
+        margin-bottom: 1.2rem;
+        padding-left: 2rem;
+    }
+    li {
+        margin-bottom: 0.6rem;
+    }
+    .field-line {
+        margin-bottom: 1rem;
+    }
+    .doc-title {
+        text-align: center;
+        font-weight: bold;
+        font-size: 18px;
+        margin-bottom: 30px;
+        text-transform: uppercase;
+    }
+    .page-break{
+        page-break-before: always;
+    }
+{% endblock style %}
+{% block content %}
+
+    <div class="doc-title">TERMO DE CIÊNCIA E RESPONSABILIDADE PARA USO DE RECURSOS DE TECNOLOGIA E INFORMAÇÃO</div>
+
+    <p class="field-line">
+        <strong>Colaborador(a):</strong> <span style="font-weight: bold;">{{ employee.name|default:"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" }}</span>
+    </p>
+    <p class="field-line">
+        <strong>Cargo/Função:</strong> <span style="font-weight: bold;">{{ employee.job_title.name|default:"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" }}</span> &nbsp;&nbsp;&nbsp;&nbsp; 
+        <strong>Dpto:</strong> <span style="font-weight: bold;">{{ employee.department.name|default:"&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" }}</span>
+    </p>
+
+    <p>
+        Declaro estar ciente de que os computadores, sistemas, internet, e-mail corporativo, impressoras, arquivos, pastas compartilhadas, equipamentos e demais recursos tecnológicos disponibilizados pela <strong>{{company_name_settings}}</strong> são ferramentas de trabalho e devem ser utilizados de forma responsável, segura e prioritariamente para fins profissionais.
+    </p>
+
+    <p style="margin-bottom: 0.6rem;">
+        Comprometo-me a:
+    </p>
+    <ul>
+        <li>manter minhas senhas e acessos pessoais em sigilo, não os compartilhando nem utilizando credenciais de outros colaboradores;</li>
+        <li>não instalar programas ou aplicativos, realizar alterações de configurações, desativar antivírus ou efetuar downloads sem autorização da Empresa;</li>
+        <li>não compartilhar, enviar, copiar ou armazenar documentos, arquivos, dados ou informações da Empresa em meios particulares ou com pessoas não autorizadas;</li>
+        <li>utilizar internet, e-mail, sistemas, impressoras e demais recursos da Empresa de forma adequada às minhas atividades profissionais, abstendo-me de conteúdo discriminatório, ofensivo, obsceno ou ilegal;</li>
+        <li>preservar a confidencialidade das informações de clientes, fornecedores, colaboradores e da própria Empresa, inclusive após o término do meu vínculo com a Empresa;</li>
+        <li>comunicar imediatamente à liderança qualquer suspeita de vírus, fraude, acesso indevido, perda de informações ou outro incidente relacionado à segurança;</li>
+        <li>zelar pelos equipamentos e recursos disponibilizados pela Empresa, comunicando eventuais danos, perdas ou extravios;</li>
+        <li>devolver, ao término do meu vínculo com a Empresa ou sempre que solicitado, todos os equipamentos, dispositivos, credenciais de acesso e demais recursos tecnológicos a mim confiados.</li>
+    </ul>
+
+    <p>
+        Caso venha a utilizar dispositivo pessoal (computador, tablet ou smartphone) para acesso a sistemas, e-mail corporativo ou dados da Empresa, comprometo-me a observar as mesmas regras de segurança e confidencialidade estabelecidas neste Termo, bem como as políticas de uso de dispositivos da Empresa.
+    </p>
+
+    
+
+    <p class="page-break">
+        Declaro ainda estar ciente de que a Empresa poderá, observados os limites da legislação aplicável, incluindo a Lei nº 13.709/2018 (Lei Geral de Proteção de Dados Pessoais - LGPD) e suas políticas internas, realizar controles, auditorias, registros de acesso e monitoramento dos equipamentos, sistemas, contas corporativas, internet e demais recursos tecnológicos disponibilizados para o trabalho, para fins de segurança, segurança da informação, proteção do patrimônio da Empresa, cumprimento de obrigações legais e regulatórias, e verificação da adequada utilização desses recursos, com base no legítimo interesse da Empresa. Eventuais dados pessoais tratados nesse contexto serão utilizados exclusivamente para essas finalidades, observados os princípios de necessidade e proporcionalidade.
+    </p>
+
+    <p>
+        Estou ciente de que o descumprimento das regras estabelecidas neste Termo poderá ser apurado pela Empresa e, conforme a gravidade da conduta, resultar na aplicação de medidas disciplinares — incluindo advertência, suspensão ou rescisão do contrato de trabalho por justa causa, nos termos do art. 482 da Consolidação das Leis do Trabalho (CLT) —, sem prejuízo da eventual responsabilização civil e/ou criminal cabível.
+    </p>
+
+    <p>
+        Declaro que li e compreendi o presente Termo e comprometo-me a observar as regras nele estabelecidas, bem como as demais normas internas da Empresa relacionadas ao uso de recursos tecnológicos, segurança e confidencialidade das informações.
+    </p>
+
+    <p style="font-weight: bold; margin-top: 30px; margin-bottom: 50px;">
+        {{company_city}}, {% now "d" %} de {% now "F" %} de {% now "Y" %}.
+    </p>
+
+    <table style="width: 100%; border: none; text-align: center; margin-top: 40px;">
+        <tr>
+            <td style="width: 45%; border-top: 1px solid #000; padding-top: 8px;">
+                Colaborador
+            </td>
+            <td style="width: 10%;"></td>
+            <td style="width: 45%; border-top: 1px solid #000; padding-top: 8px;">
+                {{company_name_settings}}
+            </td>
+        </tr>
+    </table>
+
+{% endblock content %}
