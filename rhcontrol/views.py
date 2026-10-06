@@ -580,28 +580,6 @@ def employee_delete(request, pk):
         'employee': employee
     })
 
-@login_required
-def load_job_titles(request):
-    department_id = request.GET.get('department_id')
-
-    if not department_id:
-        return JsonResponse([], safe=False)
-
-    jobs = JobTitle.objects.filter(department_id=department_id).order_by('name')
-
-    return JsonResponse(list(jobs.values('id', 'name', 'base_salary')), safe=False)
-
-@login_required
-def get_job_salary(request):
-    job_id = request.GET.get('job_id')
-    
-    if not job_id:
-        return JsonResponse({'salary': 0})
-
-    job = get_object_or_404(JobTitle, pk=job_id)
-
-    return JsonResponse({'salary': job.base_salary})
-
 #VACATIONS
 @permission_required('rhcontrol.view_vacation', raise_exception=True)
 @login_required
@@ -1512,19 +1490,13 @@ def ajax_load_employee_data(request):
 @permission_required('rhcontrol.view_jobtitle', raise_exception=True)
 def ajax_load_jobs_by_department(request):
     department_id = request.GET.get('department_id')
+    jobs = []
     if department_id:
-        available_jobs = JobTitle.objects.filter(department_id=department_id).order_by('name')
-        jobs_list = [
-            {
-                'id': job.id, 
-                'name': job.name, 
-                'salary': str(job.base_salary) if job.base_salary else '0.00'
-            } 
-            for job in available_jobs
+        jobs = [
+            {'id': j.id, 'name': j.name, 'salary': str(j.base_salary or '0.00')}
+            for j in JobTitle.objects.filter(department_id=department_id).order_by('name')
         ]
-        return JsonResponse({'success': True, 'jobs': jobs_list})
-        
-    return JsonResponse({'success': False, 'jobs': []})
+    return JsonResponse({'success': bool(department_id), 'jobs': jobs})
 
 @permission_required('rhcontrol.view_careerplan', raise_exception=True)
 @login_required
