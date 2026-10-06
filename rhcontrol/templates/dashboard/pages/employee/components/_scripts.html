@@ -131,13 +131,22 @@
         existingRows.forEach(row => setupFields(row));
 
         const salaryInput = document.getElementById('id_current_salary');
+        let salaryMask = null;
         if (salaryInput) {
             try {
-                IMask(salaryInput, {
+                salaryMask = IMask(salaryInput, {
                     mask: Number, scale: 2, signed: false, thousandsSeparator: '.', padFractionalZeros: true,
                     normalizeZeros: true, radix: ',', mapToRadix: ['.'], min: 0, max: 9999999999.99
                 });
             } catch(e) { console.error("Erro máscara salário:", e); }
+        }
+
+        function setSalary(value) {
+            if (salaryMask) {
+                salaryMask.value = value;          
+            } else if (salaryInput) {
+                salaryInput.value = value;
+            }
         }
         
         const departmentSelect = document.getElementById('id_department');
@@ -151,7 +160,7 @@
             
             departmentSelect.addEventListener('change', function() {
                 const departmentId = this.value;
-                if(salaryInput) { salaryInput.value = ''; salaryInput.dispatchEvent(new Event('input')); }
+                setSalary('');                
                 jobTitleSelect.innerHTML = '<option value="">---------</option>';
                 
                 if (!departmentId) return;
@@ -159,12 +168,12 @@
                 fetch(`${url}?department_id=${departmentId}`)
                     .then(response => response.json())
                     .then(data => {
-                        data.forEach(job => {
+                        if (!data.success) return;
+                        data.jobs.forEach(job => {
                             const option = document.createElement('option');
                             option.value = job.id;
                             option.textContent = job.name;
-                            const salario = job.base_salary ? job.base_salary : '';
-                            option.setAttribute('data-salary', salario);
+                            option.setAttribute('data-salary', job.salary || '');
                             jobTitleSelect.appendChild(option);
                         });
                     })
@@ -173,12 +182,8 @@
 
             jobTitleSelect.addEventListener('change', function() {
                 const selectedOption = this.options[this.selectedIndex];
-                let baseSalary = selectedOption.getAttribute('data-salary'); 
-                if (baseSalary && salaryInput) {
-                    let salarioFormatado = baseSalary.toString().replace('.', ',');
-                    salaryInput.value = salarioFormatado;
-                    salaryInput.dispatchEvent(new Event('input'));
-                }
+                const baseSalary = selectedOption ? selectedOption.getAttribute('data-salary') : '';
+                setSalary(baseSalary ? baseSalary.toString().replace('.', ',') : '');
             });
         }
 
