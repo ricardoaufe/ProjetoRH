@@ -344,10 +344,12 @@ class TrainingForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        if self.instance.pk:
-            self.fields['attended_employees'].queryset = self.instance.scheduled_employees.all()
-        else:
-            self.fields['attended_employees'].queryset = Employee.objects.none()
+
+        active_employees = Employee.objects.filter(termination_date__isnull=True).order_by('name')
+        if 'scheduled_employees' in self.fields:
+            self.fields['scheduled_employees'].queryset = active_employees
+        if 'attended_employees' in self.fields:
+            self.fields['attended_employees'].queryset = active_employees
 
 class OccurrenceForm(forms.ModelForm):
     class Meta:

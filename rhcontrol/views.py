@@ -794,7 +794,7 @@ def training_create(request):
                 elif target_dept:
                     employees_to_add = Employee.objects.filter(department=target_dept, termination_date__isnull=True)
                 else:
-                    employees_to_add = []
+                    employees_to_add = Employee.objects.filter(department=target_dept, termination_date__isnull=True)
 
                 training.scheduled_employees.set(employees_to_add)
                 training.attended_employees.set(employees_to_add)
