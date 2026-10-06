@@ -1,6 +1,9 @@
 import random
+
 from django.core.management.base import BaseCommand
-from rhcontrol.models import Employee, Department, JobTitle, Vacation
+
+from rhcontrol.models import Department, Employee, JobTitle, Vacation
+
 
 class Command(BaseCommand):
     help = 'Gera setores, cargos e funcionários fictícios e relacionados para testes.'

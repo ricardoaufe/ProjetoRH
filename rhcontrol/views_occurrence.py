@@ -7,24 +7,18 @@ All views are nested under an employee:
 Access is restricted to authenticated users who belong to the 'RhAdmin' group.
 Non-RhAdmin authenticated users receive HTTP 403 (PermissionDenied).
 """
-from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.core.paginator import Paginator
-from django.db.models import Q
-from django.http import JsonResponse
-from django.http import JsonResponse
-from django.shortcuts import get_object_or_404, redirect
-from django.urls import reverse
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, View
-
-from rhcontrol.models import CID, Employee, Occurrence
-from rhcontrol.forms import OccurrenceForm
-
-
 # ---------------------------------------------------------------------------
 # Base mixin — re-uses the project mixin; imported here for clarity.
 # ---------------------------------------------------------------------------
 from django.contrib.auth.mixins import PermissionRequiredMixin
+from django.db.models import Q
+from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect
+from django.urls import reverse
+from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
 
+from rhcontrol.forms import OccurrenceForm
+from rhcontrol.models import CID, Employee, Occurrence
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -114,7 +108,6 @@ class OccurrenceCreateView(PermissionRequiredMixin, CreateView):
         # Form already validated occurrence_date via clean_occurrence_date().
         # Use Model.save() directly to skip Occurrence.save()'s full_clean() call
         # and avoid raising the same error a second time as a non-field error.
-        from django.db.models import Model
         occurrence.save()
         return redirect(_occurrence_list_url(self.employee.pk))
 
@@ -157,7 +150,6 @@ class OccurrenceUpdateView(PermissionRequiredMixin, UpdateView):
         occurrence.updated_by = self.request.user
         # Form already validated occurrence_date via clean_occurrence_date().
         # Use Model.save() directly to skip Occurrence.save()'s full_clean() call.
-        from django.db.models import Model
         occurrence.save()
         return redirect(_occurrence_list_url(self.employee.pk))
 

@@ -1,5 +1,18 @@
 from django.contrib import admin
-from .models import Employee, Department, JobTitle, Vacation, Training, NotificationLog, NotificationRecipient, NotificationRule, CareerPlan, Occurrence
+
+from .models import (
+    CareerPlan,
+    Department,
+    Employee,
+    JobTitle,
+    NotificationLog,
+    NotificationRecipient,
+    NotificationRule,
+    Occurrence,
+    Training,
+    Vacation,
+)
+
 
 class EmployeeAdmin(admin.ModelAdmin):
     ...

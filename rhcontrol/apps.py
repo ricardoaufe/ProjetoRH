@@ -7,4 +7,4 @@ class RhcontrolConfig(AppConfig):
 
 class RhcontrolConfig(RhcontrolConfig):
     def ready(self):
-        import rhcontrol.signals 
+        pass

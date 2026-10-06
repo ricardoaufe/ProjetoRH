@@ -1,8 +1,23 @@
-from datetime import date, timezone
+from datetime import date
 from decimal import Decimal
-from django import forms 
+
+from django import forms
 from django.contrib.auth.models import Group, User
-from rhcontrol.models import Dependent, Employee, EmployeeHistory, JobTitle, NotificationRecipient, NotificationRule, Training, UserAlertPreference, Vacation, Department, CareerPlan, Occurrence
+
+from rhcontrol.models import (
+    CareerPlan,
+    Department,
+    Dependent,
+    Employee,
+    EmployeeHistory,
+    JobTitle,
+    NotificationRecipient,
+    NotificationRule,
+    Occurrence,
+    Training,
+    Vacation,
+)
+
 
 class LoginForm(forms.Form):
     email = forms.CharField(label='Usuário ou Email', max_length=100, widget=forms.TextInput(attrs={
@@ -581,7 +596,7 @@ class SystemUserForm(forms.ModelForm):
         if commit:
             user.save()
             role = self.cleaned_data['role']
-            user.groups.set([role]) #
+            user.groups.set([role])
             
         return user
 

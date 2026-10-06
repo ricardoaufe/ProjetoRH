@@ -1,15 +1,25 @@
-from decimal import Decimal
-import inspect
-
-from django.test import TestCase, Client
-from django.urls import reverse
-from django.contrib.auth.models import User
-from django.contrib.staticfiles import finders
-from rhcontrol.models import CareerPlan, Employee, EventTypes, JobTitle, NotificationRecipient, NotificationRule,NotificationLog, Training, Vacation, Department, Occurrence
-from rhcontrol.forms import EmployeeForm
 from datetime import datetime, timedelta
-from django.utils import timezone
+from decimal import Decimal
+
+from django.contrib.auth.models import User
 from django.core import mail
+from django.test import Client, TestCase
+from django.urls import reverse
+from django.utils import timezone
+
+from rhcontrol.forms import EmployeeForm
+from rhcontrol.models import (
+    CareerPlan,
+    Department,
+    Employee,
+    EventTypes,
+    JobTitle,
+    NotificationLog,
+    NotificationRecipient,
+    NotificationRule,
+    Training,
+    Vacation,
+)
 from rhcontrol.services import get_upcoming_events, process_career_plans
 
 

@@ -1,25 +1,47 @@
-from pydoc import html
-from django.conf import settings
-from django.http import HttpResponse, Http404, JsonResponse
-from django.shortcuts import render, redirect, get_object_or_404
-from django.urls import reverse
-from django.core.exceptions import PermissionDenied
-from rhcontrol.models import Employee, EmployeeHistory, Vacation, Training, JobTitle, Department, CareerPlan, Occurrence
-from django.db.models import Q, Prefetch, Count
-from django.core.paginator import Paginator
-from rhcontrol.forms import DependentFormSet, EmployeeHistoryForm, LoginForm, RoleGroupForm, SystemUserForm, SystemUserUpdateForm, UserUpdateForm, EmployeeForm, VacationForm, TrainingForm, DepartmentForm, JobTitleFormSet, CareerPlanForm
-from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
-from django.contrib.auth import login, authenticate, logout, update_session_auth_hash
-from django.contrib.auth.models import Group, Permission, User
-from django.contrib.auth.decorators import login_required, permission_required, user_passes_test
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.views.decorators.http import require_POST
-from django.contrib import messages 
 from datetime import date, timedelta, timezone
-from django.utils import timezone
+
+from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.auth.forms import PasswordChangeForm
+from django.contrib.auth.models import Group, Permission, User
+from django.core.exceptions import PermissionDenied
+from django.core.paginator import Paginator
+from django.db.models import Count, Prefetch, Q
+from django.http import Http404, HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
 from django.template.loader import render_to_string
+from django.urls import reverse
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 from weasyprint import HTML
 
+from rhcontrol.forms import (
+    CareerPlanForm,
+    DepartmentForm,
+    DependentFormSet,
+    EmployeeForm,
+    EmployeeHistoryForm,
+    JobTitleFormSet,
+    LoginForm,
+    RoleGroupForm,
+    SystemUserForm,
+    SystemUserUpdateForm,
+    TrainingForm,
+    UserUpdateForm,
+    VacationForm,
+)
+from rhcontrol.models import (
+    CareerPlan,
+    Department,
+    Employee,
+    EmployeeHistory,
+    JobTitle,
+    Occurrence,
+    Training,
+    Vacation,
+)
 from rhcontrol.services import get_historical_minimum_wage
 from rhcontrol.utils import RH_PERMISSION_MATRIX
 
@@ -81,6 +103,7 @@ def logout_view(request):
 @login_required
 def dashboard_view(request):
     from datetime import timedelta
+
     from .services import get_upcoming_events
 
     today = timezone.localdate()
@@ -149,7 +172,9 @@ def upcoming_events_view(request):
         employee_id     int
         department_id   int
     """
-    from datetime import timedelta, date as _date
+    from datetime import date as _date
+    from datetime import timedelta
+
     from .services import get_upcoming_events
 
     today = timezone.localdate()

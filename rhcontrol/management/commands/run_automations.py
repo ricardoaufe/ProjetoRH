@@ -1,7 +1,9 @@
-import time
-import sys
 import logging
+import sys
+import time
+
 from django.core.management.base import BaseCommand
+
 from rhcontrol.services import process_career_plans, process_notifications
 
 #The commands are: run_automations (career_plans or notifications)
@@ -66,7 +68,7 @@ class Command(BaseCommand):
                 has_failures = True
                 results[name] = {'status': 'FAILED', 'duration': duration, 'error': str(e)}
                 
-                self.stderr.write(self.style.ERROR(f"   [FAILED] {name} falhou em {duration:.2f}s: {str(e)}"))
+                self.stderr.write(self.style.ERROR(f"   [FAILED] {name} falhou em {duration:.2f}s: {e!s}"))
                 logger.exception(f"Erro fatal na automação '{name}'")
 
         total_duration = time.time() - start_time

@@ -1,14 +1,14 @@
-from django.db import models
 from datetime import date, timedelta
-from django.forms import ValidationError
-from django.utils import timezone
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.auth.models import User
 
 import holidays
-
 from django.conf import settings
+from django.contrib.auth.models import User
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
+from django.forms import ValidationError
+from django.utils import timezone
+
 
 class Vacation(models.Model):
     employee = models.ForeignKey('Employee', on_delete=models.CASCADE, related_name='vacations')
@@ -392,8 +392,8 @@ class Employee(models.Model):
     
     @property
     def is_on_leave(self):
-        from django.utils import timezone
         from django.db.models import Q
+        from django.utils import timezone
         
         hoje = timezone.localdate()
 
@@ -635,7 +635,7 @@ class Occurrence(models.Model):
 
         delta = (final_date - self.occurrence_date).days + 1
         
-        return delta if delta > 0 else 0
+        return max(0, delta)
 
     def clean(self):
         super().clean()
