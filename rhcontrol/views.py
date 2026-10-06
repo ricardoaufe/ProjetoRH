@@ -580,6 +580,7 @@ def employee_delete(request, pk):
         'employee': employee
     })
 
+@login_required
 def load_job_titles(request):
     department_id = request.GET.get('department_id')
 
@@ -590,6 +591,7 @@ def load_job_titles(request):
 
     return JsonResponse(list(jobs.values('id', 'name', 'base_salary')), safe=False)
 
+@login_required
 def get_job_salary(request):
     job_id = request.GET.get('job_id')
     
