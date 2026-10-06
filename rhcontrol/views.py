@@ -935,14 +935,14 @@ def create_employee_list_pdf(request):
     if query:
         employee_list = employee_list.filter(
             Q(name__icontains=query) | 
-            Q(cpf__icontains=query) | 
+            Q(cpf__icontains=query)  | 
             Q(email__icontains=query)
         )
     
     status_filter = request.GET.get('status', 'todos')
-    if status_filter == 'ativo':
+    if status_filter == 'active':
         employee_list = employee_list.filter(termination_date__isnull=True)
-    elif status_filter == 'demitido':
+    elif status_filter == 'terminated':
         employee_list = employee_list.filter(termination_date__isnull=False)
     
     sort_by = request.GET.get('sort', 'name')

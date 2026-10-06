@@ -23,7 +23,7 @@
     <div class="status-filters">
         <a href="{% url 'rhcontrol:employee_list' %}" class="{% if not request.GET.status %}active{% endif %}">Todos</a>
         <a href="{% url 'rhcontrol:employee_list' %}?status=active" class="{% if request.GET.status == 'active' %}active{% endif %}">Ativos</a>
-        <a href="{% url 'rhcontrol:employee_list' %}?status=demitido" class="{% if request.GET.status == 'demitido' %}active{% endif %}">Demitidos</a>
+        <a href="{% url 'rhcontrol:employee_list' %}?status=terminated" class="{% if request.GET.status == 'terminated' %}active{% endif %}">Demitidos</a>
     </div>
 
     <div class="filter-bar">
