@@ -175,3 +175,12 @@ LOGIN_URL = 'rhcontrol:login'
 LOGIN_REDIRECT_URL = 'rhcontrol:dashboard'
 
 LOGOUT_REDIRECT_URL = 'rhcontrol:login'
+
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"console": {"class": "logging.StreamHandler"}},
+    "loggers": {
+        "rhcontrol": {"handlers": ["console"], "level": "DEBUG"},
+    },
+}
