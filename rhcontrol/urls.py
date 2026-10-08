@@ -1,8 +1,9 @@
 from django.contrib import admin
 from django.urls import path
 
+from rhcontrol.views import occurrence as occurrence_views
+
 from . import views
-from . import views_occurrence as occurrence_views
 
 app_name = 'rhcontrol'
 urlpatterns = [
