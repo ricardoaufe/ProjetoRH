@@ -279,7 +279,9 @@ def process_career_plans(dry_run: bool = False) -> None:
     Motor diário de transições de status do Plano de Carreira.
     Roda via Hub (run_automations).
     """
-    from rhcontrol.models import EmployeeHistory  # Importação local para garantir acesso ao histórico
+    from rhcontrol.models import (
+        EmployeeHistory,  # Importação local para garantir acesso ao histórico
+    )
 
     today = timezone.localdate()
     if dry_run:
@@ -473,7 +475,7 @@ def _ue_append(
     object_type:     str,
     object_id:       int,
     status:          str           = "PENDING",
-    employee_id:     _Optional[int] = None,
+    employee_id:     _Optional[int]  = None,
     employee_name:   _Optional[str] = None,
     department_name: _Optional[str] = None,
     email_event:     bool           = False,
