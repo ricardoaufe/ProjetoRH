@@ -16,6 +16,7 @@ class EventTypes(models.TextChoices):
     CAREER_PLAN_REMINDER = 'CAREER_PLAN_REMINDER', 'Aviso de Promoção'
     CAREER_PLAN_CANCELLED = 'CAREER_PLAN_CANCELLED', 'Plano de Carreira Cancelado'
     CAREER_PLAN_EFFECTIVE = 'CAREER_PLAN_EFFECTIVE', 'Promoção Efetivada'
+    CONTRACT_END = 'CONTRACT_END', 'Fim de Contrato'
 
 class NotificationRule(models.Model):
 
