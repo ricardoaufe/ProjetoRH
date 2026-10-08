@@ -1,14 +1,24 @@
 import logging
 from datetime import date, timedelta
-from tokenize import String
-from django.core import mail
-from django.utils import timezone
-from .models import Employee, EventTypes, NotificationRule, Vacation, Training, NotificationRecipient, NotificationLog, CareerPlan
-from django.db.models import Q, QuerySet
-from django.core.mail import send_mail
+
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
-from django.db import transaction, IntegrityError
+from django.core.mail import send_mail
+from django.db import IntegrityError, transaction
+from django.db.models import Q, QuerySet
+from django.utils import timezone
+
+from .models import (
+    CareerPlan,
+    Employee,
+    EventTypes,
+    NotificationLog,
+    NotificationRecipient,
+    NotificationRule,
+    Training,
+    Vacation,
+)
+
 
 def get_events_for_notification() -> list[dict]:
     """
@@ -151,7 +161,7 @@ def process_notifications(dry_run: bool = False) -> None:
         except Exception as e:
             event_name = event.get('rule').get_event_type_display() if event.get('rule') else 'Desconhecido'
             emp_name = event.get('employee').name if event.get('employee') else 'Desconhecido'
-            logger.error(f"Falha ao processar evento [{event_name}] para [{emp_name}]: {str(e)}")
+            logger.error(f"Falha ao processar evento [{event_name}] para [{emp_name}]: {e!s}")
 
 def send_notification_for_event(event: dict, dry_run: bool = False) -> None:
     """
@@ -391,7 +401,7 @@ def process_career_plans(dry_run: bool = False) -> None:
                 notify_career_plan_event(plan, EventTypes.CAREER_PLAN_EFFECTIVE)
                 logger.info(f"Promoção de [{employee.name}] efetivada com sucesso e histórico registrado.")
             except Exception as e:
-                logger.error(f"Falha crítica ao efetivar promoção do plano {plan.id}: {str(e)}")
+                logger.error(f"Falha crítica ao efetivar promoção do plano {plan.id}: {e!s}")
 
     if dry_run:
         logger.info("=== [DRY-RUN] Finalizado ===")
@@ -416,7 +426,6 @@ def process_career_plans(dry_run: bool = False) -> None:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 import calendar as _calendar
-from typing import Optional as _Optional
 
 _UE_MAX_RANGE    = 180
 _UE_DEFAULT_DAYS = 30
@@ -450,7 +459,7 @@ _UE_META_FALLBACK = {"icon": "fa-calendar", "pill_class": "default", "category_l
 
 # ── Low-level helpers ───────────────────────────────────────────
 
-def _ue_clamp(start: _Optional[date], end: _Optional[date]) -> tuple[date, date]:
+def _ue_clamp(start: date | None, end: date | None) -> tuple[date, date]:
     """Enforce default and maximum date range."""
     today = timezone.localdate()
     if start is None:
@@ -475,9 +484,9 @@ def _ue_append(
     object_type:     str,
     object_id:       int,
     status:          str           = "PENDING",
-    employee_id:     _Optional[int]  = None,
-    employee_name:   _Optional[str] = None,
-    department_name: _Optional[str] = None,
+    employee_id:     int | None = None,
+    employee_name:   str | None = None,
+    department_name: str | None = None,
     email_event:     bool           = False,
     requires_action: bool           = False,
 ) -> None:
@@ -501,7 +510,7 @@ def _ue_append(
     })
 
 
-def _ue_next_annual(ref: date, start: date, end: date) -> _Optional[date]:
+def _ue_next_annual(ref: date, start: date, end: date) -> date | None:
     """
     Return the next occurrence of a recurring annual date (birthday, anniversary)
     that falls within [start, end]. Handles Feb-29 gracefully.
@@ -803,13 +812,13 @@ _UE_GENERATORS = {
 # ── Public API ──────────────────────────────────────────────────
 
 def get_upcoming_events(
-    start_date:        _Optional[date] = None,
-    end_date:          _Optional[date] = None,
-    categories:        _Optional[list[str]] = None,
+    start_date:        date | None = None,
+    end_date:          date | None = None,
+    categories:        list[str] | None = None,
     only_email_events: bool = False,
-    employee_id:       _Optional[int] = None,
-    department_id:     _Optional[int] = None,
-    status:            _Optional[str] = None,
+    employee_id:       int | None = None,
+    department_id:     int | None = None,
+    status:            str | None = None,
     limit:             int = 200,
 ) -> list[dict]:
     """

@@ -1,7 +1,10 @@
 import csv
 import urllib.request
+
 from django.core.management.base import BaseCommand
+
 from rhcontrol.models import CID
+
 
 class Command(BaseCommand):
     help = 'Carrega a lista completa de CIDs-10 de forma resiliente.'
@@ -74,4 +77,4 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f'Missão Cumprida! {len(cids_to_create)} doenças foram catalogadas no banco.'))
             
         except Exception as e:
-            self.stdout.write(self.style.ERROR(f'Erro ao processar a leitura do arquivo: {str(e)}'))
+            self.stdout.write(self.style.ERROR(f'Erro ao processar a leitura do arquivo: {e!s}'))

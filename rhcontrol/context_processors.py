@@ -1,5 +1,6 @@
 from django.conf import settings
 
+
 def company_info(request):
     """
     Disponibiliza os dados da empresa em todos os templates.
