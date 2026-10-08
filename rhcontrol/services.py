@@ -81,6 +81,30 @@ def get_events_for_notification() -> list[dict]:
                     'reference_year': vacation.start_date.year
                 })
 
+        elif rule.event_type == EventTypes.CONTRACT_END:
+            employees = Employee.objects.filter(
+                contract_end_date=target_date,
+                termination_date__isnull=True,
+            )
+            for emp in employees:
+                events_to_notify.append({
+                    'event_type': rule.event_type,
+                    'rule': rule,
+                    'employee': emp,
+                    'related_object': emp,
+                    'event_date': emp.contract_end_date,
+                    'reference_year': emp.contract_end_date.year,
+                    'custom_subject': f"Aviso RH: Fim de contrato ({emp.job_title}) - {emp.name}",
+                    'custom_body': (
+                        f"Olá,\n\n"
+                        f"O contrato por prazo determinado do(a) colaborador(a) {emp.name} "
+                        f"termina em {emp.contract_end_date}.\n\n"
+                        f"Cargo: {emp.job_title}\n"
+                        f"Setor: {emp.department}\n\n"
+                        f"Avalie a renovação ou o desligamento antes dessa data."
+                    ),
+                })
+
         elif rule.event_type == EventTypes.TRAINING_DUE:
             # NOTE: Training model does not have a 'due_date' or per-employee FK.
             # This handler is intentionally left as a no-op until those fields are added.
