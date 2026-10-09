@@ -3,11 +3,22 @@ Testes de regressão dos bugs corrigidos na Etapa 2 da auditoria.
 """
 from datetime import date, timedelta
 
+from django.core import mail
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from rhcontrol.models import Department, Employee, JobTitle, Occurrence
+from rhcontrol.models import (
+    CareerPlan,
+    Department,
+    Employee,
+    EventTypes,
+    JobTitle,
+    NotificationRecipient,
+    NotificationRule,
+    Occurrence,
+)
+from rhcontrol.services import process_career_plans
 from rhcontrol.tests_security import make_user
 
 
@@ -142,3 +153,39 @@ class AnonymousRedirectTests(TestCase):
         ]:
             with self.subTest(url=url):
                 self.assertEqual(self.client.get(url).status_code, 403)
+
+
+class DismissalCancelsCareerPlanEmailTests(TestCase):
+    """O RH é avisado por e-mail quando um plano é cancelado porque o funcionário foi desligado."""
+
+    def setUp(self):
+        NotificationRecipient.objects.create(
+            name='RH', email='rh@empresa.com', is_active=True, receive_all_events=True
+        )
+        self.employee = make_employee(current_salary=2500)
+        self.plan = CareerPlan.objects.create(
+            employee=self.employee,
+            proposed_job=self.employee.job_title,
+            proposed_salary=3000,
+            promotion_date=timezone.localdate() + timedelta(days=10),
+        )
+        self.employee.termination_date = timezone.localdate()
+        self.employee.save(update_fields=['termination_date'])
+
+    def test_cancellation_email_is_sent(self):
+        NotificationRule.objects.create(
+            event_type=EventTypes.CAREER_PLAN_CANCELLED, is_active=True, days_in_advance=0
+        )
+        process_career_plans()
+        self.plan.refresh_from_db()
+        self.assertEqual(self.plan.status, CareerPlan.PlanStatus.CANCELLED)
+        self.assertEqual(len(mail.outbox), 1)
+        self.assertIn('Funcionário desligado', mail.outbox[0].body)
+
+    def test_other_events_for_terminated_employee_stay_silent(self):
+        NotificationRule.objects.create(
+            event_type=EventTypes.CAREER_PLAN_REMINDER, is_active=True, days_in_advance=0
+        )
+        from rhcontrol.services import notify_career_plan_event
+        notify_career_plan_event(self.plan, EventTypes.CAREER_PLAN_REMINDER)
+        self.assertEqual(len(mail.outbox), 0)
