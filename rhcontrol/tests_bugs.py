@@ -43,3 +43,11 @@ class EmployeeStatusFilterTests(TestCase):
         response = self.client.get(reverse('rhcontrol:employee_list'))
         self.assertContains(response, '?status=terminated')
         self.assertContains(response, '?status=active')
+
+    def test_sort_by_mobile_phone(self):
+        self.active.mobile_phone = '(11) 99999-0000'
+        self.active.save()
+        self.terminated.mobile_phone = '(11) 90000-0000'
+        self.terminated.save()
+        response = self.client.get(reverse('rhcontrol:employee_list'), {'sort': 'mobile_phone'})
+        self.assertEqual(list(response.context['object_list']), [self.terminated, self.active])

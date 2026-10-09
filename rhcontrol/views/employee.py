@@ -52,7 +52,7 @@ def employee_view(request):
         employee_list = employee_list.filter(termination_date__isnull=False)
 
     sort_by = request.GET.get('sort', 'name')
-    valid_sort_fields = ['name', 'cpf','department__name']
+    valid_sort_fields = ['name', 'cpf', 'department__name', 'mobile_phone']
     if sort_by in valid_sort_fields:
         employee_list = employee_list.order_by(sort_by)
     else:
