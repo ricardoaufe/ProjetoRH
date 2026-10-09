@@ -45,7 +45,7 @@ def user_update_view(request, pk):
         return redirect('rhcontrol:user_list')
 
     if request.method == 'POST':
-        form = SystemUserUpdateForm(request.POST, instance=user)
+        form = SystemUserUpdateForm(request.POST, instance=user, request_user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, f"Usuário '{user.username}' atualizado com sucesso.")
@@ -53,7 +53,7 @@ def user_update_view(request, pk):
         else:
             messages.error(request, "Erro ao atualizar. Verifique os campos.")
     else:
-        form = SystemUserUpdateForm(instance=user)
+        form = SystemUserUpdateForm(instance=user, request_user=request.user)
 
     context = {
         'form': form,

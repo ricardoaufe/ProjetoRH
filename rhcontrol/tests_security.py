@@ -100,3 +100,30 @@ class RolePermissionWhitelistTests(TestCase):
         group.permissions.add(Permission.objects.get(codename='view_employee'))
         self.client.post(reverse('rhcontrol:role_update', kwargs={'pk': group.pk}), {'name': 'Perfil Teste'})
         self.assertFalse(group.permissions.exists())
+
+
+class SelfRoleChangeTests(TestCase):
+    """Um usuário não pode trocar o próprio perfil de acesso."""
+
+    def setUp(self):
+        self.basic = Group.objects.create(name='Consulta')
+        self.admin_group = Group.objects.create(name='RhAdmin')
+        self.user = make_user('operador', 'auth.change_user')
+        self.user.groups.add(self.basic)
+        self.client.force_login(self.user)
+
+    def _post(self, target, role):
+        return self.client.post(reverse('rhcontrol:user_update', kwargs={'pk': target.pk}), {
+            'first_name': target.first_name, 'last_name': target.last_name,
+            'email': target.email, 'username': target.username, 'role': role.pk,
+        })
+
+    def test_cannot_promote_self(self):
+        self._post(self.user, self.admin_group)
+        self.assertEqual(list(self.user.groups.all()), [self.basic])
+
+    def test_can_still_change_other_users_role(self):
+        other = User.objects.create_user(username='outro', password='senha-forte-123')
+        other.groups.add(self.basic)
+        self._post(other, self.admin_group)
+        self.assertEqual(list(other.groups.all()), [self.admin_group])

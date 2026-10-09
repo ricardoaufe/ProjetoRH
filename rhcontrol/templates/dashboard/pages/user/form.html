@@ -110,6 +110,9 @@
                     <small style="color: #6b7280; display: block; margin-top: 8px; font-size: 1.2rem;">
                         Este perfil definirá todas as permissões do usuário no sistema.
                     </small>
+                    {% if form.role.help_text %}
+                        <small style="color: #b45309; display: block; margin-top: 4px; font-size: 1.2rem;">{{ form.role.help_text }}</small>
+                    {% endif %}
                 </div>
 
                 <hr style="margin: 30px 0; border: 0; border-top: 1px solid #e5e7eb;">
