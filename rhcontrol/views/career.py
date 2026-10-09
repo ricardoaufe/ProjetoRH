@@ -8,8 +8,8 @@ from rhcontrol.forms import CareerPlanForm
 from rhcontrol.models import CareerPlan
 
 
-@permission_required('rhcontrol.view_careerplan', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.view_careerplan', raise_exception=True)
 def career_plan_list(request):
     """ View para listar todos os planos com filtros de busca, data, status e ordenação """
 

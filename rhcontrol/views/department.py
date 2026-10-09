@@ -8,8 +8,8 @@ from rhcontrol.forms import DepartmentForm, JobTitleFormSet
 from rhcontrol.models import Department, JobTitle
 
 
-@permission_required('rhcontrol.view_department', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.view_department', raise_exception=True)
 def department_list(request):
     departments = Department.objects.all().order_by('name') 
 
@@ -28,8 +28,8 @@ def department_list(request):
     
     return render(request, 'dashboard/pages/departments/list.html', context)
 
-@permission_required('rhcontrol.add_department', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.add_department', raise_exception=True)
 def department_create(request):
     if request.method == 'POST':
         form = DepartmentForm(request.POST)
@@ -52,8 +52,8 @@ def department_create(request):
         'title': 'Cadastrar Setores'
     })
 
-@permission_required('rhcontrol.change_department', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.change_department', raise_exception=True)
 def department_update(request, pk):
     department = get_object_or_404(Department, pk=pk)
 
@@ -79,8 +79,8 @@ def department_update(request, pk):
         'title': 'Editar Setor'
     })    
 
-@permission_required('rhcontrol.delete_department', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.delete_department', raise_exception=True)
 def department_delete(request, pk):
     department = get_object_or_404(Department, pk=pk)
 

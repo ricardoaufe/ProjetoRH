@@ -13,13 +13,13 @@ from rhcontrol.forms import DependentFormSet, EmployeeForm, EmployeeHistoryForm
 from rhcontrol.models import Employee, EmployeeHistory, JobTitle
 
 
-@permission_required('rhcontrol.view_employee', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def employees(request):
     return render(request, 'dashboard/pages/employee/list.html')
 
-@permission_required('rhcontrol.view_employee', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def employee_view(request):
     limit_date = timezone.now().date() - timedelta(days=366)
     
@@ -67,8 +67,8 @@ def employee_view(request):
     }
     return render(request, 'dashboard/pages/employee/list.html', context)
 
-@permission_required('rhcontrol.add_employee', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.add_employee', raise_exception=True)
 def employee_create(request):
     if request.method == 'POST':
         form = EmployeeForm(request.POST)
@@ -105,8 +105,8 @@ def employee_create(request):
         'title': 'Cadastrar Funcionário'
     })
 
-@permission_required('rhcontrol.change_employee', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.change_employee', raise_exception=True)
 def employee_update(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
 
@@ -312,8 +312,8 @@ def delete_history_log(request, pk):
     # Redireciona de volta para a edição do funcionário
     return redirect('rhcontrol:employee_update', pk=employee_id)
 
-@permission_required('rhcontrol.delete_employee', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.delete_employee', raise_exception=True)
 def employee_delete(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
 

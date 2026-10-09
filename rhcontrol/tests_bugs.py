@@ -107,3 +107,38 @@ class EmployeeSalaryChangeTests(TestCase):
         employee = make_employee(current_salary=2000)
         self._post_salary(employee, '3000.00')
         self.assertEqual(employee.history.get().reason, 'Mérito')
+
+
+class AnonymousRedirectTests(TestCase):
+    """Usuário deslogado é mandado para o login em todas as páginas (antes recebia 403)."""
+
+    PUBLIC = {'login', 'login_create'}
+
+    def test_every_page_redirects_anonymous_to_login(self):
+        from django.urls import get_resolver
+
+        employee = make_employee()
+        kwargs_by_name = {'pk': employee.pk, 'employee_id': employee.pk}
+        login_url = reverse('rhcontrol:login')
+        resolver = get_resolver().url_patterns
+        app_patterns = next(p for p in resolver if getattr(p, 'app_name', None) == 'rhcontrol')
+
+        for pattern in app_patterns.url_patterns:
+            if pattern.name in self.PUBLIC:
+                continue
+            kwargs = {k: kwargs_by_name[k] for k in pattern.pattern.converters}
+            url = reverse(f'rhcontrol:{pattern.name}', kwargs=kwargs)
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, 302)
+                self.assertTrue(response['Location'].startswith(login_url))
+
+    def test_logged_user_without_permission_still_gets_403(self):
+        employee = make_employee()
+        self.client.force_login(make_user('sem-permissao'))
+        for url in [
+            reverse('rhcontrol:employee_list'),
+            reverse('rhcontrol:occurrence_list', kwargs={'employee_id': employee.pk}),
+        ]:
+            with self.subTest(url=url):
+                self.assertEqual(self.client.get(url).status_code, 403)

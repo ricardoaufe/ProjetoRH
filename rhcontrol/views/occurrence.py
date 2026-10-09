@@ -4,8 +4,11 @@ views_occurrence.py — CRUD views for the Occurrence model.
 All views are nested under an employee:
     employees/<employee_id>/occurrences/...
 
-Access is restricted to authenticated users who belong to the 'RhAdmin' group.
-Non-RhAdmin authenticated users receive HTTP 403 (PermissionDenied).
+Access requires the matching rhcontrol.*_occurrence permission.
+Anonymous users are redirected to the login page; authenticated users
+without the permission receive HTTP 403. (PermissionRequiredMixin does
+this by default — setting raise_exception=True would send anonymous users
+a 403 too.)
 """
 # ---------------------------------------------------------------------------
 # Base mixin — re-uses the project mixin; imported here for clarity.
@@ -40,7 +43,6 @@ class OccurrenceListView(PermissionRequiredMixin, ListView):
     """
 
     permission_required = 'rhcontrol.view_occurrence'
-    raise_exception = True
     template_name = 'dashboard/pages/occurrence/list.html'
     context_object_name = 'occurrences'
     paginate_by = 20
@@ -92,7 +94,6 @@ class OccurrenceCreateView(PermissionRequiredMixin, CreateView):
     """
 
     permission_required = 'rhcontrol.add_occurrence'
-    raise_exception = True
     template_name = 'dashboard/pages/occurrence/form.html'
     form_class = OccurrenceForm
 
@@ -133,7 +134,6 @@ class OccurrenceUpdateView(PermissionRequiredMixin, UpdateView):
     Sets updated_by on every save.
     """
     permission_required = 'rhcontrol.change_occurrence'
-    raise_exception = True
     template_name = 'dashboard/pages/occurrence/form.html'
     form_class = OccurrenceForm
 
@@ -174,10 +174,7 @@ class OccurrenceDeleteView(PermissionRequiredMixin, DeleteView):
     Shows confirmation page (GET) and hard-deletes on POST.
     """
     permission_required = 'rhcontrol.delete_occurrence'
-    raise_exception = True
-
     template_name = 'dashboard/pages/occurrence/confirm_delete.html'
-    permission_required = 'rhcontrol.delete_occurrence'
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
@@ -197,7 +194,6 @@ class OccurrenceDeleteView(PermissionRequiredMixin, DeleteView):
     
 class AjaxSearchCidsView(PermissionRequiredMixin, View):
     permission_required = 'rhcontrol.view_occurrence'
-    raise_exception = True
 
     def get(self, request, *args, **kwargs):
         query = request.GET.get('q', '').strip()

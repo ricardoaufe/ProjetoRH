@@ -10,8 +10,8 @@ from rhcontrol.forms import VacationForm
 from rhcontrol.models import Vacation
 
 
-@permission_required('rhcontrol.view_vacation', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.view_vacation', raise_exception=True)
 def vacation_view(request):
     from django.utils import timezone
     vacation_list = Vacation.objects.select_related('employee').all()
@@ -60,8 +60,8 @@ def vacation_view(request):
     }
     return render(request, 'dashboard/pages/vacation/list.html', context)
 
-@permission_required('rhcontrol.add_vacation', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.add_vacation', raise_exception=True)
 def vacation_create(request):
     if request.method == 'POST':
         form = VacationForm(request.POST)
@@ -102,8 +102,8 @@ def vacation_create(request):
         'title': 'Cadastrar Férias'
     })
 
-@permission_required('rhcontrol.change_vacation', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.change_vacation', raise_exception=True)
 def vacation_update(request, pk):
     vacation = get_object_or_404(Vacation, pk=pk)
     form = VacationForm(request.POST or None, instance=vacation)
@@ -118,8 +118,8 @@ def vacation_update(request, pk):
         'title': 'Editar Férias'
     })
 
-@permission_required('rhcontrol.delete_vacation', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.delete_vacation', raise_exception=True)
 def vacation_delete(request, pk):
     vacation = get_object_or_404(Vacation, pk=pk)
 
