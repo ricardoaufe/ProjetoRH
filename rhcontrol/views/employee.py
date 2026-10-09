@@ -45,10 +45,10 @@ def employee_view(request):
     
     status_filter = request.GET.get('status')
     
-    # CORREÇÃO: Alterado de 'ativo' para 'active' para bater com o HTML
+    # Os valores precisam bater com os links do template (list.html) e com o PDF.
     if status_filter == 'active':
-        employee_list = employee_list.filter(termination_date__isnull=True) 
-    elif status_filter == 'demitido':
+        employee_list = employee_list.filter(termination_date__isnull=True)
+    elif status_filter == 'terminated':
         employee_list = employee_list.filter(termination_date__isnull=False)
 
     sort_by = request.GET.get('sort', 'name')
