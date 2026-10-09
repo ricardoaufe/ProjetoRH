@@ -677,7 +677,7 @@ def _ue_generate_career_plans(start: date, end: date, filters: dict) -> list[dic
         )
     )
 
-    for qs, extra_filter in ((promo_qs, True), (reminder_qs, True)):
+    for kind, qs in (("promotion", promo_qs), ("reminder", reminder_qs)):
         if filters.get("employee_id"):
             qs = qs.filter(employee_id=filters["employee_id"])
         if filters.get("department_id"):
@@ -685,7 +685,10 @@ def _ue_generate_career_plans(start: date, end: date, filters: dict) -> list[dic
         if filters.get("status"):
             qs = qs.filter(status=filters["status"])
 
-        if qs is promo_qs:
+        # Comparar pelo rótulo, e não com "qs is promo_qs": cada .filter()
+        # acima cria um queryset novo, e com filtro de funcionário/setor a
+        # identidade se perdia e as promoções caíam no ramo de aviso.
+        if kind == "promotion":
             for plan in qs:
                 emp  = plan.employee
                 dept = emp.department.name if emp.department_id else None
