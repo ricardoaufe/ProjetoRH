@@ -212,3 +212,30 @@ class VacationFormTests(TestCase):
         vacation.refresh_from_db()
         self.assertEqual(vacation.vacation_duration, 10)
 
+
+class DashboardTests(TestCase):
+    def test_card_e_grafico_contam_so_ativos(self):
+        self.client.force_login(
+            User.objects.create_superuser('admin', 'admin@empresa.com', 'senha-forte-123')
+        )
+        today = timezone.localdate()
+        cpfs = iter(['67134509206', '52998224725', '11144477735', '39053344705'])
+        department = Department.objects.create(name='Produção')
+        job = JobTitle.objects.create(name='Operador', department=department, base_salary=2500)
+
+        def employee(hired_days_ago, terminated=False):
+            return Employee.objects.create(
+                name=f'Func {hired_days_ago}', cpf=next(cpfs), birth_date=date(1990, 1, 1),
+                department=department, job_title=job,
+                hire_date=today - timedelta(days=hired_days_ago),
+                termination_date=today if terminated else None,
+            )
+
+        employee(100)                    # < 1 ano
+        employee(800)                    # 1 a 3 anos
+        employee(800, terminated=True)   # demitido: fora do card e do gráfico
+        employee(365 * 20)               # 15+ anos
+
+        response = self.client.get(reverse('rhcontrol:dashboard'))
+        self.assertEqual(response.context['active_employees_count'], 3)
+        self.assertEqual(response.context['chart_data'], [1, 1, 0, 0, 0, 1])

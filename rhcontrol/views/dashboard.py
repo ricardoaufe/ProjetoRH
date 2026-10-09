@@ -2,6 +2,7 @@ from datetime import date as _date
 from datetime import timedelta
 
 from django.contrib.auth.decorators import login_required, permission_required
+from django.db.models import Count, Q
 from django.shortcuts import render
 from django.utils import timezone
 
@@ -13,24 +14,34 @@ from rhcontrol.services import get_upcoming_events
 def dashboard_view(request):
 
     today = timezone.localdate()
-    employees_count = Employee.objects.count()
-    active_employees = Employee.objects.filter(termination_date__isnull=True)
     vacations_count = Vacation.objects.filter(end_date__gte=today).count()
-    hire_date = Employee.hire_date
-    
-   
-    date_1_year = today - timedelta(days=365)
-    date_3_years = today - timedelta(days=365*3)
-    date_5_years = today - timedelta(days=365*5)
-    date_10_years = today - timedelta(days=365*10)
-    date_15_years = today - timedelta(days=365*15)
 
-    count_less_1 = Employee.objects.filter(hire_date__gte=date_1_year).count()
-    count_1_to_3 = Employee.objects.filter(hire_date__lt=date_1_year, hire_date__gte=date_3_years).count()
-    count_3_to_5 = Employee.objects.filter(hire_date__lt=date_3_years, hire_date__gte=date_5_years).count()
-    count_5_to_10 = Employee.objects.filter(hire_date__lt=date_5_years, hire_date__gte=date_10_years).count()
-    count_10_to_15 = Employee.objects.filter(hire_date__lt=date_10_years, hire_date__gte=date_15_years).count()
-    count_more_15 = Employee.objects.filter(hire_date__lt=date_15_years).count()
+    # Faixas de tempo de casa do gráfico: (admitido antes de, admitido a partir de).
+    years_ago = {y: today - timedelta(days=365 * y) for y in (1, 3, 5, 10, 15)}
+    tenure_ranges = [
+        (None, years_ago[1]),
+        (years_ago[1], years_ago[3]),
+        (years_ago[3], years_ago[5]),
+        (years_ago[5], years_ago[10]),
+        (years_ago[10], years_ago[15]),
+        (years_ago[15], None),
+    ]
+
+    def _tenure_filter(before, since):
+        q = Q()
+        if before:
+            q &= Q(hire_date__lt=before)
+        if since:
+            q &= Q(hire_date__gte=since)
+        return q
+
+    # Uma consulta só para o card e as 6 barras (antes eram 8 consultas COUNT separadas).
+    # O gráfico diz "por funcionário ativo", então demitidos ficam de fora.
+    stats = Employee.objects.filter(termination_date__isnull=True).aggregate(
+        active=Count('id'),
+        **{f'range_{i}': Count('id', filter=_tenure_filter(before, since))
+           for i, (before, since) in enumerate(tenure_ranges)},
+    )
 
     events = get_upcoming_events(
         start_date=today,
@@ -40,21 +51,13 @@ def dashboard_view(request):
     _VISIBLE_LIMIT = 8
 
     context = {
-        'employees_count':            employees_count,
-        'active_employees':           active_employees,
+        'active_employees_count':     stats['active'],
         'vacations_count':            vacations_count,
         'upcoming_events_count':      len(events),
         'upcoming_events_top':        events[:_VISIBLE_LIMIT],
         'upcoming_events_more_count': max(0, len(events) - _VISIBLE_LIMIT),
 
-        'chart_data': [
-            count_less_1,
-            count_1_to_3,
-            count_3_to_5,
-            count_5_to_10,
-            count_10_to_15,
-            count_more_15,  
-        ]
+        'chart_data': [stats[f'range_{i}'] for i in range(len(tenure_ranges))],
     }
 
     return render(request, 'dashboard/pages/dashboard.html', context)
