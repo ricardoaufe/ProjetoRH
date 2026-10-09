@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
@@ -53,30 +51,12 @@ def vacation_create(request):
         form = VacationForm(request.POST)
         
         if form.is_valid():
-            employee = form.cleaned_data['employee']
-            start_date = form.cleaned_data['start_date']
-            duration = form.cleaned_data['vacation_duration']
-
-            if duration is None or duration <= 0:
-                form.add_error('vacation_duration', 'A duração deve ser maior que zero.')
-            else:
-                end_date = start_date + timedelta(days=duration - 1)
-
-                return_date = end_date + timedelta(days=1)
-
-                while return_date.weekday() >= 5:
-                    return_date += timedelta(days=1)
-
-                Vacation.objects.create(
-                    employee=employee,
-                    start_date=start_date,
-                    end_date=end_date,               
-                    vacation_duration=duration,      
-                    return_date=return_date          
-                )
-
-                messages.success(request, 'Férias cadastradas com sucesso!')
-                return redirect('rhcontrol:vacation_list') 
+            # Fim e retorno são calculados em Vacation.save(), que também
+            # pula feriados nacionais (o cálculo que existia aqui não pulava
+            # e era sobrescrito pelo model de qualquer forma).
+            form.save()
+            messages.success(request, 'Férias cadastradas com sucesso!')
+            return redirect('rhcontrol:vacation_list')
         else:
             messages.error(request, 'Erro ao cadastrar. Verifique os campos abaixo.')
     

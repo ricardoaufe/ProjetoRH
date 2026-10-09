@@ -91,9 +91,8 @@ class OccurrenceCreateView(PermissionRequiredMixin, CreateView):
         occurrence.employee = self.employee
         occurrence.created_by = self.request.user
         occurrence.updated_by = self.request.user
-        # Form already validated occurrence_date via clean_occurrence_date().
-        # Use Model.save() directly to skip Occurrence.save()'s full_clean() call
-        # and avoid raising the same error a second time as a non-field error.
+        # Occurrence.save() roda full_clean() de novo; como o form já validou
+        # os mesmos dados (clean_occurrence_date), essa segunda checagem passa.
         occurrence.save()
         return redirect(_occurrence_list_url(self.employee.pk))
 
@@ -133,8 +132,7 @@ class OccurrenceUpdateView(PermissionRequiredMixin, UpdateView):
     def form_valid(self, form):
         occurrence = form.save(commit=False)
         occurrence.updated_by = self.request.user
-        # Form already validated occurrence_date via clean_occurrence_date().
-        # Use Model.save() directly to skip Occurrence.save()'s full_clean() call.
+        # Occurrence.save() roda full_clean() de novo; o form já validou os dados.
         occurrence.save()
         return redirect(_occurrence_list_url(self.employee.pk))
 

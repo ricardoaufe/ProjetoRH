@@ -168,3 +168,47 @@ class ListAndPdfShareFiltersTests(TestCase):
     def test_training_pdf_status_filter(self):
         response = self.client.get(reverse('rhcontrol:training_list_pdf'), {'status': 'pendentes'})
         self.assertEqual(list(response.context['trainings']), [self.past_training])
+
+
+class VacationFormTests(TestCase):
+    """Datas calculadas só no model e duração validada no cadastro e na edição."""
+
+    def setUp(self):
+        self.client.force_login(
+            User.objects.create_superuser('admin', 'admin@empresa.com', 'senha-forte-123')
+        )
+        department = Department.objects.create(name='Produção')
+        job = JobTitle.objects.create(name='Operador', department=department, base_salary=2500)
+        self.employee = Employee.objects.create(
+            name='Ana Souza', cpf='67134509206', birth_date=date(1990, 3, 2),
+            department=department, job_title=job,
+        )
+
+    def test_create_pula_feriado_no_retorno(self):
+        # Fim em 24/12/2026: 25/12 é Natal (sexta), então o retorno é 28/12 (segunda).
+        response = self.client.post(reverse('rhcontrol:vacation_create'), {
+            'employee': self.employee.pk, 'start_date': '2026-12-15', 'vacation_duration': 10,
+        })
+        self.assertRedirects(response, reverse('rhcontrol:vacation_list'))
+        vacation = Vacation.objects.get()
+        self.assertEqual(vacation.end_date, date(2026, 12, 24))
+        self.assertEqual(vacation.return_date, date(2026, 12, 28))
+
+    def test_create_recusa_duracao_zero(self):
+        response = self.client.post(reverse('rhcontrol:vacation_create'), {
+            'employee': self.employee.pk, 'start_date': '2026-12-15', 'vacation_duration': 0,
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Vacation.objects.exists())
+
+    def test_update_recusa_duracao_negativa(self):
+        vacation = Vacation.objects.create(
+            employee=self.employee, start_date=date(2026, 12, 15), vacation_duration=10
+        )
+        response = self.client.post(reverse('rhcontrol:vacation_update', args=[vacation.pk]), {
+            'employee': self.employee.pk, 'start_date': '2026-12-15', 'vacation_duration': -5,
+        })
+        self.assertEqual(response.status_code, 200)
+        vacation.refresh_from_db()
+        self.assertEqual(vacation.vacation_duration, 10)
+
