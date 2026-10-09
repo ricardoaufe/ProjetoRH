@@ -1,4 +1,3 @@
-from django.contrib import admin
 from django.urls import path
 
 from rhcontrol.views import occurrence as occurrence_views
@@ -7,7 +6,6 @@ from . import views
 
 app_name = 'rhcontrol'
 urlpatterns = [
-    path('admin/', admin.site.urls),
     path('', views.dashboard_view, name='dashboard'),
     path('profile/', views.profile_view, name='profile'),
     path('profile/password/', views.change_password, name='change_password'),
