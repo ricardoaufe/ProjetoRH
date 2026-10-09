@@ -1,13 +1,13 @@
 """
 Testes de regressão dos bugs corrigidos na Etapa 2 da auditoria.
 """
-from datetime import date
+from datetime import date, timedelta
 
-from django.contrib.auth.models import User
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 
-from rhcontrol.models import Department, Employee, JobTitle
+from rhcontrol.models import Department, Employee, JobTitle, Occurrence
 from rhcontrol.tests_security import make_user
 
 
@@ -51,3 +51,30 @@ class EmployeeStatusFilterTests(TestCase):
         self.terminated.save()
         response = self.client.get(reverse('rhcontrol:employee_list'), {'sort': 'mobile_phone'})
         self.assertEqual(list(response.context['object_list']), [self.terminated, self.active])
+
+
+def make_employee(**extra):
+    department, job_title = make_department_and_job()
+    return Employee.objects.create(
+        name='Carlos Silva', cpf='67134509206', birth_date=date(1988, 7, 10),
+        department=department, job_title=job_title, **extra,
+    )
+
+
+class AbsenceDurationTests(TestCase):
+    """Afastamento sem data de fim conta os dias até hoje (antes dava erro e virava 0)."""
+
+    def test_open_absence_counts_until_today(self):
+        occurrence = Occurrence.objects.create(
+            employee=make_employee(), title='Atestado', description='-',
+            is_absence=True, occurrence_date=timezone.localdate() - timedelta(days=4),
+        )
+        self.assertEqual(occurrence.absence_duration, 5)
+
+    def test_closed_absence_counts_inclusive_days(self):
+        start = timezone.localdate() - timedelta(days=10)
+        occurrence = Occurrence.objects.create(
+            employee=make_employee(), title='Atestado', description='-',
+            is_absence=True, occurrence_date=start, end_date=start + timedelta(days=2),
+        )
+        self.assertEqual(occurrence.absence_duration, 3)

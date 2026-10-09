@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
@@ -77,7 +75,7 @@ class Occurrence(models.Model):
         if not self.is_absence:
             return 0
 
-        final_date = self.end_date if self.end_date else datetime.date.today()
+        final_date = self.end_date if self.end_date else timezone.localdate()
 
         delta = (final_date - self.occurrence_date).days + 1
         
