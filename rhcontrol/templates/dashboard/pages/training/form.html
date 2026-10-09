@@ -1,36 +1,12 @@
 {% extends 'global/base.html' %}
+{% load static %}
 
 {% block title %} Registrar Treinamento | {% endblock title %}
 
 {% block content %}
 <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
 
-<style>
-    /* Estilos extras para deixar os botões de 'Selecionar Todos' elegantes */
-    .btn-select-all {
-        background: #e9ecef;
-        border: 1px solid #ced4da;
-        color: #495057;
-        padding: 4px 12px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 1.2rem;
-        font-weight: 600;
-        transition: all 0.2s;
-    }
-    .btn-select-all:hover {
-        background: #dee2e6;
-        color: #212529;
-    }
-    .header-with-button {
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        margin-bottom: 10px;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-</style>
+<link rel="stylesheet" href="{% static 'global/css/pages/training-form.css' %}?v=1" />
 
 <div class="form-container">
     <div class="header-slot header-slot--start">

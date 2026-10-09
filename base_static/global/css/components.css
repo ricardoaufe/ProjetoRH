@@ -32,6 +32,23 @@
 
 
 /* ================================================================
+ * Mensagens do Django (dashboard/partials/messages.html)
+ * O JS adiciona .message--fade-out depois de alguns segundos.
+ * ================================================================ */
+
+.message {
+    opacity: 1;
+    transform: translateY(0);
+    transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out !important;
+}
+
+.message.message--fade-out {
+    opacity: 0 !important;
+    transform: translateY(-15px) !important;
+}
+
+
+/* ================================================================
  * Páginas de erro (403, 404, 500)
  * ================================================================ */
 

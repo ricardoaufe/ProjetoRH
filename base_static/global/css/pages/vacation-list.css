@@ -1,0 +1,36 @@
+/*
+ * vacation-list.css
+ * Estilos usados só em dashboard/pages/vacation/list.html.
+ * Antes ficavam num bloco <style> dentro do template.
+ */
+
+.search-form input[type="text"],
+.search-form input[type="date"] {
+    width: 100%;
+    padding: 6px 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 1.4rem;
+    height: 38px;
+}
+
+.name-group {
+    flex: 1.5; 
+    min-width: 200px;
+}
+
+.date-group {
+    display: flex;
+    align-items: center; 
+    gap: 8px; 
+    flex: 1;
+    min-width: 160px;
+}
+
+.date-group label {
+    margin: 0; 
+    font-weight: bold;
+    color: #555;
+    font-size: 1.2rem;
+    white-space: nowrap; 
+}

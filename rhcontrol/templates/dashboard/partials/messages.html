@@ -1,17 +1,4 @@
 {% if messages %}
-    <style>
-        .message {
-            opacity: 1;
-            transform: translateY(0);
-            transition: opacity 0.6s ease-in-out, transform 0.6s ease-in-out !important;
-        }
-
-        .message.sumir-suavemente {
-            opacity: 0 !important;
-            transform: translateY(-15px) !important; 
-        }
-    </style>
-
     <div class="messages-container">
         {% for message in messages %}
             <div class="message message-{{ message.tags }}">
@@ -28,7 +15,7 @@
 
                 setTimeout(function() {
 
-                    alert.classList.add('sumir-suavemente');
+                    alert.classList.add('message--fade-out');
 
                     setTimeout(function() {
                         alert.remove();
