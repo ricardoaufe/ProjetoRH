@@ -1,10 +1,10 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
-from django.db.models import Count, Q
+from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
 
+from rhcontrol.filters import filter_trainings
 from rhcontrol.forms import TrainingForm
 from rhcontrol.models import Employee, Training
 
@@ -12,41 +12,15 @@ from rhcontrol.models import Employee, Training
 @login_required
 @permission_required('rhcontrol.view_training', raise_exception=True)
 def training_view(request):
-    training_list = Training.objects.annotate(
-        num_attended=Count('attended_employees')
-    ).order_by('-start_date')
-    
+    training_list = filter_trainings(
+        Training.objects.annotate(num_attended=Count('attended_employees')),
+        request.GET,
+    )
+
     search_query = request.GET.get('search', '')
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
     status = request.GET.get('status', '')
-
-    if search_query:
-        training_list = training_list.filter(
-            Q(training_name__icontains=search_query) |
-            Q(training_provider__icontains=search_query)
-        )
-
-    if date_from:
-        training_list = training_list.filter(start_date__gte=date_from)
-    
-    if date_to:
-        training_list = training_list.filter(start_date__lte=date_to)
-
-    today = timezone.now().date()
-
-    
-
-    if status == 'proximos':
-        training_list = training_list.filter(start_date__gte=today)
-    elif status == 'pendentes':
-        training_list = training_list.filter(start_date__lt=today, num_attended=0)
-    elif status == 'realizados':
-        training_list = training_list.filter(start_date__lt=today, num_attended__gt=0)
-    elif status == 'integracao':
-        training_list = training_list.filter(is_integration=True)
-
-
 
     paginator = Paginator(training_list, 15)
     page_number = request.GET.get('page')
@@ -77,9 +51,8 @@ def training_create(request):
             if is_fundamental:
                 if all_depts:
                     employees_to_add = Employee.objects.filter(termination_date__isnull=True)
-                elif target_dept:
-                    employees_to_add = Employee.objects.filter(department=target_dept, termination_date__isnull=True)
                 else:
+                    # Sem setor escolhido, target_dept é None e ninguém é incluído.
                     employees_to_add = Employee.objects.filter(department=target_dept, termination_date__isnull=True)
 
                 training.scheduled_employees.set(employees_to_add)

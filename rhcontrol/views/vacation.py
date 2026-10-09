@@ -1,11 +1,9 @@
-from datetime import timedelta
-
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
 
+from rhcontrol.filters import filter_vacations
 from rhcontrol.forms import VacationForm
 from rhcontrol.models import Vacation
 
@@ -13,7 +11,6 @@ from rhcontrol.models import Vacation
 @login_required
 @permission_required('rhcontrol.view_vacation', raise_exception=True)
 def vacation_view(request):
-    from django.utils import timezone
     vacation_list = Vacation.objects.select_related('employee').all()
 
     search_query = request.GET.get('search', '')
@@ -31,20 +28,7 @@ def vacation_view(request):
     else:
         vacation_list = vacation_list.order_by('employee__name') 
 
-    hoje = timezone.localdate()
-    if status == 'historico':
-        vacation_list = vacation_list.filter(end_date__lt=hoje)
-    else:
-        vacation_list = vacation_list.filter(end_date__gte=hoje)
-
-    if search_query:
-        vacation_list = vacation_list.filter(employee__name__icontains=search_query)
-
-    if date_from:
-        vacation_list = vacation_list.filter(start_date__gte=date_from)
-
-    if date_to:
-        vacation_list = vacation_list.filter(start_date__lte=date_to)
+    vacation_list = filter_vacations(vacation_list, request.GET)
 
     paginator = Paginator(vacation_list, 30)
     page_number = request.GET.get('page')
@@ -67,30 +51,12 @@ def vacation_create(request):
         form = VacationForm(request.POST)
         
         if form.is_valid():
-            employee = form.cleaned_data['employee']
-            start_date = form.cleaned_data['start_date']
-            duration = form.cleaned_data['vacation_duration']
-
-            if duration is None or duration <= 0:
-                form.add_error('vacation_duration', 'A duração deve ser maior que zero.')
-            else:
-                end_date = start_date + timedelta(days=duration - 1)
-
-                return_date = end_date + timedelta(days=1)
-
-                while return_date.weekday() >= 5:
-                    return_date += timedelta(days=1)
-
-                Vacation.objects.create(
-                    employee=employee,
-                    start_date=start_date,
-                    end_date=end_date,               
-                    vacation_duration=duration,      
-                    return_date=return_date          
-                )
-
-                messages.success(request, 'Férias cadastradas com sucesso!')
-                return redirect('rhcontrol:vacation_list') 
+            # Fim e retorno são calculados em Vacation.save(), que também
+            # pula feriados nacionais (o cálculo que existia aqui não pulava
+            # e era sobrescrito pelo model de qualquer forma).
+            form.save()
+            messages.success(request, 'Férias cadastradas com sucesso!')
+            return redirect('rhcontrol:vacation_list')
         else:
             messages.error(request, 'Erro ao cadastrar. Verifique os campos abaixo.')
     

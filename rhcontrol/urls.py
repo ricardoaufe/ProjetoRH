@@ -67,7 +67,6 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
 
     path('ajax/load-job-titles/', views.ajax_load_jobs_by_department, name='ajax_load_job_titles'),
-    path('ajax/get-job-salary/', views.ajax_load_jobs_by_department, name='ajax_get_job_salary'),
 
     #PDFs
     path('employees/pdf/', views.create_employee_list_pdf, name='employee_list_pdf'),

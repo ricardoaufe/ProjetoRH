@@ -20,6 +20,7 @@ from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.views.generic import CreateView, DeleteView, ListView, UpdateView, View
 
+from rhcontrol.filters import filter_occurrences
 from rhcontrol.forms import OccurrenceForm
 from rhcontrol.models import CID, Employee, Occurrence
 
@@ -53,23 +54,7 @@ class OccurrenceListView(PermissionRequiredMixin, ListView):
         
     def get_queryset(self):
         queryset = Occurrence.objects.filter(employee=self.employee).select_related('created_by', 'updated_by')
-
-        search_query = self.request.GET.get('search', '').strip()
-        date_from = self.request.GET.get('date_from')
-        date_to = self.request.GET.get('date_to')
-        sort_by = self.request.GET.get('sort', '-occurrence_date')
-
-        if search_query:
-            queryset = queryset.filter(title__icontains=search_query)
-        if date_from:
-            queryset = queryset.filter(occurrence_date__gte=date_from)
-        if date_to:
-            queryset = queryset.filter(occurrence_date__lte=date_to)
-
-        if sort_by == 'occurrence_date':
-            return queryset.order_by('occurrence_date', 'created_at')
-        else:
-            return queryset.order_by('-occurrence_date', '-created_at')
+        return filter_occurrences(queryset, self.request.GET)
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
@@ -106,9 +91,8 @@ class OccurrenceCreateView(PermissionRequiredMixin, CreateView):
         occurrence.employee = self.employee
         occurrence.created_by = self.request.user
         occurrence.updated_by = self.request.user
-        # Form already validated occurrence_date via clean_occurrence_date().
-        # Use Model.save() directly to skip Occurrence.save()'s full_clean() call
-        # and avoid raising the same error a second time as a non-field error.
+        # Occurrence.save() roda full_clean() de novo; como o form já validou
+        # os mesmos dados (clean_occurrence_date), essa segunda checagem passa.
         occurrence.save()
         return redirect(_occurrence_list_url(self.employee.pk))
 
@@ -148,8 +132,7 @@ class OccurrenceUpdateView(PermissionRequiredMixin, UpdateView):
     def form_valid(self, form):
         occurrence = form.save(commit=False)
         occurrence.updated_by = self.request.user
-        # Form already validated occurrence_date via clean_occurrence_date().
-        # Use Model.save() directly to skip Occurrence.save()'s full_clean() call.
+        # Occurrence.save() roda full_clean() de novo; o form já validou os dados.
         occurrence.save()
         return redirect(_occurrence_list_url(self.employee.pk))
 

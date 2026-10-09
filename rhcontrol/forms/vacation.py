@@ -18,3 +18,11 @@ class VacationForm(forms.ModelForm):
                 attrs={"class": "form-control", "placeholder": "Ex: 30"}
             ),
         }
+
+    def clean_vacation_duration(self):
+        # Vale para cadastro e edição. Com 0 o model não calcula as datas
+        # (fim/retorno ficam vazios) e com valor negativo o fim cai antes do início.
+        duration = self.cleaned_data.get("vacation_duration")
+        if duration is None or duration <= 0:
+            raise forms.ValidationError("A duração deve ser maior que zero.")
+        return duration
