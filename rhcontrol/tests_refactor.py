@@ -74,7 +74,7 @@ class PdfEndpointsTests(TestCase):
             'employee_registration_pdf': 'ficha_cadastral_',
             'confidenciality_term_pdf': 'termo_de_confidencialidade_',
             'bank_presentation_pdf': 'apresentacao_bancaria_',
-            'personal_data_consent_pdf': f'_{pk}_',
+            'personal_data_consent_pdf': 'termo_de_consentimento_dados_pessoais_',
             'term_of_commitment_pdf': 'termo_de_compromisso_',
             'term_of_consent_pdf': 'termo_de_consentimento_uso_imagem_',
             'benefits_acquisition_pdf': 'termo_de_aquisicao_beneficios_',
@@ -89,7 +89,7 @@ class PdfEndpointsTests(TestCase):
     def test_list_pdfs(self):
         cases = {
             reverse('rhcontrol:employee_list_pdf'): 'lista_de_funcionarios',
-            reverse('rhcontrol:department_and_jobtitles_pdf'): 'setores_e_cargos',
+            reverse('rhcontrol:department_and_jobtitles_pdf'): 'filename="setores_e_cargos.pdf"',
             reverse('rhcontrol:employees_department_pdf'): 'funcionarios_por_setor',
             reverse('rhcontrol:create_vacation_list_pdf'): 'lista_de_ferias',
             reverse('rhcontrol:training_list_pdf'): 'lista_de_treinamentos',
@@ -98,6 +98,26 @@ class PdfEndpointsTests(TestCase):
         for url, filename_part in cases.items():
             with self.subTest(url=url):
                 self._assert_pdf(url, filename_part)
+
+    def test_pdf_footer_has_company_data(self):
+        # O rodapé do base_pdf.html usa company_* dos context processors; os
+        # PDFs renderizados sem o request saíam com o rodapé vazio.
+        from django.conf import settings
+        for url in [
+            reverse('rhcontrol:employee_list_pdf'),
+            reverse('rhcontrol:training_list_pdf'),
+            reverse('rhcontrol:occurrence_list_pdf', kwargs={'employee_id': self.employee.pk}),
+        ]:
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.context['company_address'], settings.COMPANY_ADDRESS)
+
+    def test_accented_name_in_filename(self):
+        response = self._assert_pdf(
+            reverse('rhcontrol:employee_registration_pdf', kwargs={'pk': self.employee.pk}), 'ficha_cadastral_'
+        )
+        # RFC 5987: nomes com acento vão codificados em filename*=utf-8''...
+        self.assertIn("Jos%C3%A9_da_Silva", response['Content-Disposition'])
 
 
 class ListAndPdfShareFiltersTests(TestCase):
