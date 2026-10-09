@@ -34,6 +34,20 @@ ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(','
 
 CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', 'http://127.0.0.1').split(',')
 
+# Segurança de transporte. Ligue USE_HTTPS=1 quando o sistema estiver
+# publicado atrás de HTTPS: os cookies de sessão/CSRF passam a trafegar só
+# por conexão criptografada, HTTP é redirecionado para HTTPS e o navegador
+# é instruído (HSTS) a nunca mais acessar o site sem HTTPS.
+# Fica desligado por padrão para não quebrar o runserver local (http://).
+USE_HTTPS = os.environ.get('USE_HTTPS') == '1'
+SESSION_COOKIE_SECURE = USE_HTTPS
+CSRF_COOKIE_SECURE = USE_HTTPS
+SECURE_SSL_REDIRECT = USE_HTTPS
+SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '31536000')) if USE_HTTPS else 0
+# Se o Django estiver atrás de um proxy (nginx, etc.) que termina o HTTPS:
+if os.environ.get('BEHIND_HTTPS_PROXY') == '1':
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 
 # Application definition
 
@@ -182,6 +196,10 @@ LOGGING = {
     "disable_existing_loggers": False,
     "handlers": {"console": {"class": "logging.StreamHandler"}},
     "loggers": {
-        "rhcontrol": {"handlers": ["console"], "level": "DEBUG"},
+        # Em produção, DEBUG pode gravar dados pessoais nos logs.
+        "rhcontrol": {
+            "handlers": ["console"],
+            "level": os.environ.get('LOG_LEVEL', 'DEBUG' if DEBUG else 'INFO'),
+        },
     },
 }

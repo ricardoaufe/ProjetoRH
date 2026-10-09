@@ -7,6 +7,7 @@ from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from rhcontrol.forms import DependentFormSet, EmployeeForm, EmployeeHistoryForm
 from rhcontrol.models import Employee, EmployeeHistory, JobTitle
@@ -297,6 +298,7 @@ def history_edit_view(request, pk):
 
 @login_required
 @permission_required('rhcontrol.change_employee', raise_exception=True)
+@require_POST
 def delete_history_log(request, pk):
     log = get_object_or_404(EmployeeHistory, pk=pk)
     employee_id = log.employee.pk # Guarda o ID pra voltar pra página certa

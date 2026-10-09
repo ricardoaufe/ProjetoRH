@@ -110,12 +110,19 @@ class SystemUserUpdateForm(forms.ModelForm):
             "username": forms.TextInput(attrs={"class": "form-control"}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, request_user=None, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
             grupo_atual = self.instance.groups.first()
             if grupo_atual:
                 self.fields["role"].initial = grupo_atual
+
+            # Ninguém altera o próprio perfil de acesso (evita autopromoção).
+            # Campo desabilitado: o Django ignora o valor do POST e usa o initial.
+            if request_user is not None and request_user.pk == self.instance.pk:
+                self.fields["role"].disabled = True
+                self.fields["role"].required = False
+                self.fields["role"].help_text = "Você não pode alterar o seu próprio perfil de acesso."
 
             email = self.instance.email
             if email:

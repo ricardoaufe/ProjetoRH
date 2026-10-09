@@ -1,3 +1,6 @@
+from django.contrib.auth.models import Permission
+from django.db.models import Q
+
 RH_PERMISSION_MATRIX = {
     'Funcionários': {
         'model': 'employee',
@@ -63,6 +66,7 @@ RH_PERMISSION_MATRIX = {
         }
 },
     'Usuários': {
+        'app_label': 'auth',
         'model': 'user',
         'actions': {
             'read': 'view_user',
@@ -72,6 +76,7 @@ RH_PERMISSION_MATRIX = {
         }
 },
     'Perfis de Acesso': {
+        'app_label': 'auth',
         'model': 'group',
         'actions': {
             'read': 'view_group',
@@ -81,3 +86,24 @@ RH_PERMISSION_MATRIX = {
         }
 }
 }
+
+
+def get_matrix_permissions(codenames):
+    """
+    Converte os codenames enviados pelo formulário em Permissions,
+    aceitando apenas as que existem na RH_PERMISSION_MATRIX.
+
+    O POST vem do navegador e pode ser editado: sem esse filtro, qualquer
+    codename do sistema (admin, sessions, ...) poderia ser atribuído a um perfil.
+    """
+    selected = set(codenames)
+    query = Q(pk__in=[])
+    for entry in RH_PERMISSION_MATRIX.values():
+        allowed = selected & set(entry['actions'].values())
+        if allowed:
+            query |= Q(
+                content_type__app_label=entry.get('app_label', 'rhcontrol'),
+                content_type__model=entry['model'],
+                codename__in=allowed,
+            )
+    return Permission.objects.filter(query)

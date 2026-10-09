@@ -101,7 +101,10 @@
     <p>Essa ação não poderá ser desfeita.</p>
     <div class="dialog-actions">
       <button onclick="closeDeleteModal()" class="btn-cancel-modal">Cancelar</button>
-      <a id="btnConfirmDelete" href="#" class="btn-confirm-modal">Sim, Excluir</a>
+      <form id="deleteForm" method="POST" action="" style="display: contents;">
+        {% csrf_token %}
+        <button type="submit" class="btn-confirm-modal" style="font-family: inherit;">Sim, Excluir</button>
+      </form>
     </div>
   </div>
 </dialog>

@@ -246,9 +246,9 @@
 
     function openDeleteModal(deleteUrl) {
         const dialog = document.getElementById('deleteModal');
-        const confirmBtn = document.getElementById('btnConfirmDelete');
-        if (dialog && confirmBtn) {
-            confirmBtn.href = deleteUrl;
+        const deleteForm = document.getElementById('deleteForm');
+        if (dialog && deleteForm) {
+            deleteForm.action = deleteUrl;
             dialog.showModal();
         }
     }
