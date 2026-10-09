@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 from decimal import Decimal
 
-from django.contrib.auth.models import User
+from django.contrib.auth.models import Permission, User
 from django.core import mail
 from django.test import Client, TestCase
 from django.urls import reverse
@@ -21,6 +21,13 @@ from rhcontrol.models import (
     Vacation,
 )
 from rhcontrol.services import get_upcoming_events, process_career_plans
+
+
+def grant_perms(user, *codenames):
+    """Dá ao usuário de teste as permissões que as views exigem."""
+    user.user_permissions.add(*Permission.objects.filter(
+        content_type__app_label='rhcontrol', codename__in=codenames
+    ))
 
 
 class RhcontrolTests(TestCase):
@@ -59,7 +66,8 @@ class VacationModelTests(TestCase):
             start_date=datetime(2026, 2, 1).date(),
             vacation_duration=10
         )
-        expected_end = datetime(2026, 2, 11).date()
+        # 10 dias contando o dia de início: 01/02 a 10/02.
+        expected_end = datetime(2026, 2, 10).date()
         self.assertEqual(vacation.end_date, expected_end)
 
     def test_vacation_return_date_skips_weekends(self):
@@ -219,6 +227,7 @@ class EmployeeViewTests(TestCase):
             username='admin',
             password='admin123'
         )
+        grant_perms(self.user, 'view_employee', 'add_employee', 'change_employee', 'delete_employee')
         self.client.login(username='admin', password='admin123')
         
         self.department = Department.objects.create(name='Produção')
@@ -299,6 +308,7 @@ class EmployeeFilterTests(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(username='user', password='pass')
+        grant_perms(self.user, 'view_employee')
         self.client.login(username='user', password='pass')
         
         self.department = Department.objects.create(name='RH')
@@ -360,7 +370,7 @@ class EmployeeFilterTests(TestCase):
     def test_filter_by_status_active(self):
         response = self.client.get(
             reverse('rhcontrol:employee_list'),
-            {'status': 'ativo'}
+            {'status': 'active'}
         )
         self.assertIn(self.employee1, response.context['object_list'])
         self.assertNotIn(self.employee2, response.context['object_list'])
@@ -368,7 +378,7 @@ class EmployeeFilterTests(TestCase):
     def test_filter_by_status_terminated(self):
         response = self.client.get(
             reverse('rhcontrol:employee_list'),
-            {'status': 'demitido'}
+            {'status': 'terminated'}
         )
         self.assertNotIn(self.employee1, response.context['object_list'])
         self.assertIn(self.employee2, response.context['object_list'])
@@ -387,24 +397,33 @@ class AjaxTests(TestCase):
             department=self.department,
             base_salary=6000.00
         )
-    
+        user = User.objects.create_user(username='ajax', password='pass')
+        grant_perms(user, 'view_jobtitle')
+        self.client.force_login(user)
+
     def test_load_job_titles(self):
         response = self.client.get(
             reverse('rhcontrol:ajax_load_job_titles'),
             {'department_id': self.department.id}
         )
         self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(len(data), 2)
-        self.assertEqual(data[0]['name'], 'Junior Developer')
-    
-    def test_get_job_salary(self):
+        jobs = response.json()['jobs']
+        self.assertEqual(len(jobs), 2)
+        self.assertEqual(jobs[0]['name'], 'Junior Developer')
+
+    def test_job_titles_include_base_salary(self):
+        # O formulário de funcionário preenche o salário a partir deste campo.
         response = self.client.get(
-            reverse('rhcontrol:ajax_get_job_salary'),
-            {'job_id': self.job1.id}
+            reverse('rhcontrol:ajax_load_job_titles'),
+            {'department_id': self.department.id}
         )
-        data = response.json()
-        self.assertEqual(float(data['salary']), 3000.00)
+        salaries = {job['name']: float(job['salary']) for job in response.json()['jobs']}
+        self.assertEqual(salaries['Junior Developer'], 3000.00)
+
+    def test_without_department_returns_no_jobs(self):
+        data = self.client.get(reverse('rhcontrol:ajax_load_job_titles')).json()
+        self.assertFalse(data['success'])
+        self.assertEqual(data['jobs'], [])
 
 class CipaStabilityTestes(TestCase):
     def setUp(self):
@@ -1031,8 +1050,9 @@ class ContractEndEventTests(TestCase):
 
     def test_contract_end_warning_event_generated_15_days_before(self):
         """
-        Testa o 'Caminho Feliz': Se o contrato acaba daqui a 15 dias, 
-        o evento de aviso DEVE aparecer hoje e estar marcado para enviar e-mail.
+        Testa o 'Caminho Feliz': se o contrato acaba daqui a 15 dias, o aviso
+        entra na janela de hoje, exibe a data real do fim do contrato e está
+        marcado para enviar e-mail.
         """
         hoje = timezone.localdate()
         data_fim_contrato = hoje + timedelta(days=15)
@@ -1060,8 +1080,9 @@ class ContractEndEventTests(TestCase):
         
         evento = eventos_fim_contrato[0]
         
-        # 2. Verifica se a data do aviso caiu exatamente para HOJE (15 dias antes)
-        self.assertEqual(evento['date'], hoje, "A data do aviso deve ser exatamente 15 dias antes do fim do contrato.")
+        # 2. O evento exibe a data real do fim do contrato (o aviso só decide
+        #    QUANDO ele entra na lista: 15 dias antes).
+        self.assertEqual(evento['date'], data_fim_contrato, "O evento deve mostrar a data real do fim do contrato.")
         
         # 3. Verifica se a flag de enviar e-mail está ativada para o worker/celery pegar depois
         self.assertTrue(evento['email_event'], "A flag 'email_event' deve ser True para o disparo de email ocorrer.")

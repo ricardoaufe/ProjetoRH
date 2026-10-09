@@ -3,6 +3,7 @@
 ![Status](https://img.shields.io/badge/STATUS-EM%20DESENVOLVIMENTO-yellow?style=for-the-badge)
 ![Python](https://img.shields.io/badge/Python-3.11-blue?style=for-the-badge&logo=python)
 ![Django](https://img.shields.io/badge/Django-5.0-092E20?style=for-the-badge&logo=django)
+[![Testes](https://github.com/ricardoaufe/ProjetoRH/actions/workflows/tests.yml/badge.svg)](https://github.com/ricardoaufe/ProjetoRH/actions/workflows/tests.yml)
 
 ## 💻 Sobre o Projeto
 
@@ -89,6 +90,14 @@ python manage.py runserver
 http://127.0.0.1:8000 #Use o login e senha criados no passo 6.
 
 ```
+
+### Rodando os testes
+
+```bash
+pytest
+```
+
+Os testes também rodam automaticamente no GitHub Actions a cada push na `main` e em todo Pull Request (`.github/workflows/tests.yml`).
 
 ## 💡 Aprendizados e Desafios
 
