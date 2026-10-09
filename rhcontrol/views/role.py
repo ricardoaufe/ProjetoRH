@@ -1,11 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
-from django.contrib.auth.models import Group, Permission
+from django.contrib.auth.models import Group
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 
 from rhcontrol.forms import RoleGroupForm
-from rhcontrol.utils import RH_PERMISSION_MATRIX
+from rhcontrol.utils import RH_PERMISSION_MATRIX, get_matrix_permissions
 
 
 @login_required
@@ -15,11 +15,7 @@ def role_create_view(request):
         form = RoleGroupForm(request.POST)
         if form.is_valid():
             new_group = form.save()
-            permissions_selected = request.POST.getlist('permissions')
-
-            if permissions_selected:
-                real_permissions = Permission.objects.filter(codename__in=permissions_selected)
-                new_group.permissions.set(real_permissions)
+            new_group.permissions.set(get_matrix_permissions(request.POST.getlist('permissions')))
 
             return redirect('rhcontrol:role_list')
         
@@ -54,13 +50,8 @@ def role_update_view(request, pk):
         form = RoleGroupForm(request.POST, instance=group)
         if form.is_valid():
             grupo_salvo = form.save()
-            permissoes_selecionadas = request.POST.getlist('permissions')
-            
-            if permissoes_selecionadas:
-                permissoes_reais = Permission.objects.filter(codename__in=permissoes_selecionadas)
-                grupo_salvo.permissions.set(permissoes_reais)
-            else:
-                grupo_salvo.permissions.clear() # Remove tudo se desmarcar tudo
+            # set() com lista vazia remove tudo se desmarcar tudo
+            grupo_salvo.permissions.set(get_matrix_permissions(request.POST.getlist('permissions')))
                 
             messages.success(request, f"Perfil '{grupo_salvo.name}' atualizado com sucesso!")
             return redirect('rhcontrol:role_list')

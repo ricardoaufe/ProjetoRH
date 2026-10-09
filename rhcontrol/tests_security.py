@@ -4,7 +4,7 @@ Testes de regressão das correções de segurança (Etapa 1 da auditoria).
 import importlib
 from datetime import date
 
-from django.contrib.auth.models import Permission, User
+from django.contrib.auth.models import Group, Permission, User
 from django.test import TestCase, override_settings
 from django.urls import Resolver404, reverse
 from django.urls.resolvers import RegexPattern, URLResolver
@@ -64,3 +64,39 @@ class HistoryDeleteRequiresPostTests(TestCase):
         response = self.client.post(self.url)
         self.assertEqual(response.status_code, 302)
         self.assertFalse(EmployeeHistory.objects.filter(pk=self.history.pk).exists())
+
+
+class RolePermissionWhitelistTests(TestCase):
+    """Perfis só recebem permissões da RH_PERMISSION_MATRIX, mesmo com POST adulterado."""
+
+    def setUp(self):
+        self.user = make_user('gestor', 'auth.add_group', 'auth.change_group')
+        self.client.force_login(self.user)
+
+    def test_create_ignores_permissions_outside_matrix(self):
+        self.client.post(reverse('rhcontrol:role_create'), {
+            'name': 'Perfil Teste',
+            'permissions': ['view_employee', 'delete_session', 'add_permission', 'change_logentry'],
+        })
+        group = Group.objects.get(name='Perfil Teste')
+        self.assertEqual(
+            set(group.permissions.values_list('content_type__app_label', 'codename')),
+            {('rhcontrol', 'view_employee')},
+        )
+
+    def test_update_ignores_permissions_outside_matrix(self):
+        group = Group.objects.create(name='Perfil Teste')
+        self.client.post(reverse('rhcontrol:role_update', kwargs={'pk': group.pk}), {
+            'name': 'Perfil Teste',
+            'permissions': ['change_user', 'delete_session'],
+        })
+        self.assertEqual(
+            set(group.permissions.values_list('content_type__app_label', 'codename')),
+            {('auth', 'change_user')},
+        )
+
+    def test_update_with_nothing_selected_clears_permissions(self):
+        group = Group.objects.create(name='Perfil Teste')
+        group.permissions.add(Permission.objects.get(codename='view_employee'))
+        self.client.post(reverse('rhcontrol:role_update', kwargs={'pk': group.pk}), {'name': 'Perfil Teste'})
+        self.assertFalse(group.permissions.exists())
