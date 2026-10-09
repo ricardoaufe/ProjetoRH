@@ -13,13 +13,13 @@ from rhcontrol.forms import DependentFormSet, EmployeeForm, EmployeeHistoryForm
 from rhcontrol.models import Employee, EmployeeHistory, JobTitle
 
 
-@permission_required('rhcontrol.view_employee', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def employees(request):
     return render(request, 'dashboard/pages/employee/list.html')
 
-@permission_required('rhcontrol.view_employee', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.view_employee', raise_exception=True)
 def employee_view(request):
     limit_date = timezone.now().date() - timedelta(days=366)
     
@@ -45,14 +45,14 @@ def employee_view(request):
     
     status_filter = request.GET.get('status')
     
-    # CORREÇÃO: Alterado de 'ativo' para 'active' para bater com o HTML
+    # Os valores precisam bater com os links do template (list.html) e com o PDF.
     if status_filter == 'active':
-        employee_list = employee_list.filter(termination_date__isnull=True) 
-    elif status_filter == 'demitido':
+        employee_list = employee_list.filter(termination_date__isnull=True)
+    elif status_filter == 'terminated':
         employee_list = employee_list.filter(termination_date__isnull=False)
 
     sort_by = request.GET.get('sort', 'name')
-    valid_sort_fields = ['name', 'cpf','department__name']
+    valid_sort_fields = ['name', 'cpf', 'department__name', 'mobile_phone']
     if sort_by in valid_sort_fields:
         employee_list = employee_list.order_by(sort_by)
     else:
@@ -67,8 +67,8 @@ def employee_view(request):
     }
     return render(request, 'dashboard/pages/employee/list.html', context)
 
-@permission_required('rhcontrol.add_employee', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.add_employee', raise_exception=True)
 def employee_create(request):
     if request.method == 'POST':
         form = EmployeeForm(request.POST)
@@ -105,8 +105,8 @@ def employee_create(request):
         'title': 'Cadastrar Funcionário'
     })
 
-@permission_required('rhcontrol.change_employee', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.change_employee', raise_exception=True)
 def employee_update(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
 
@@ -154,7 +154,11 @@ def employee_update(request, pk):
             elif has_job_change:
                 auto_reason = "Promoção"
             elif has_salary_change:
-                if new_employee.current_salary > old_salary:
+                # Um dos lados pode ser None (salário definido/removido agora):
+                # comparar None com Decimal lança TypeError.
+                if old_salary is None:
+                    auto_reason = "Definição de Salário"
+                elif new_employee.current_salary is not None and new_employee.current_salary > old_salary:
                     auto_reason = "Mérito"
                 else:
                     auto_reason = "Reajuste"
@@ -308,8 +312,8 @@ def delete_history_log(request, pk):
     # Redireciona de volta para a edição do funcionário
     return redirect('rhcontrol:employee_update', pk=employee_id)
 
-@permission_required('rhcontrol.delete_employee', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.delete_employee', raise_exception=True)
 def employee_delete(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
 

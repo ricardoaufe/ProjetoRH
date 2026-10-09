@@ -9,8 +9,8 @@ from rhcontrol.forms import TrainingForm
 from rhcontrol.models import Employee, Training
 
 
-@permission_required('rhcontrol.view_training', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.view_training', raise_exception=True)
 def training_view(request):
     training_list = Training.objects.annotate(
         num_attended=Count('attended_employees')
@@ -61,8 +61,8 @@ def training_view(request):
     }
     return render(request, 'dashboard/pages/training/list.html', context)
 
-@permission_required('rhcontrol.add_training', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.add_training', raise_exception=True)
 def training_create(request):
     if request.method == 'POST':
         form = TrainingForm(request.POST)
@@ -95,8 +95,8 @@ def training_create(request):
     
     return render(request, 'dashboard/pages/training/form.html', {'form': form})
 
-@permission_required('rhcontrol.change_training', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.change_training', raise_exception=True)
 def training_update(request, pk):
     training = get_object_or_404(Training, pk=pk)
     form = TrainingForm(request.POST or None, instance=training)
@@ -111,8 +111,8 @@ def training_update(request, pk):
         'title': 'Editar Treinamento'
     })    
 
-@permission_required('rhcontrol.delete_training', raise_exception=True)
 @login_required
+@permission_required('rhcontrol.delete_training', raise_exception=True)
 def training_delete(request, pk):
     training = get_object_or_404(Training, pk=pk)
 

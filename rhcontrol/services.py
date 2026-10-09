@@ -170,7 +170,10 @@ def send_notification_for_event(event: dict, dry_run: bool = False) -> None:
     """
     rule = event['rule']
     employee = event['employee']
-    if employee.termination_date:
+    # Avisos sobre funcionários desligados não fazem sentido, exceto quando o
+    # próprio aviso é consequência do desligamento (ex.: plano de carreira
+    # cancelado porque o funcionário saiu). Esses eventos marcam a flag abaixo.
+    if employee.termination_date and not event.get('notify_terminated_employee'):
         logger.info(f"Ignorado: Notificação de [{event['rule'].get_event_type_display()}] abortada para {employee.name} (colaborador desligado em {employee.termination_date}).")
         return
     related_object = event['related_object']
@@ -279,6 +282,9 @@ def notify_career_plan_event(plan: CareerPlan, event_type: str, dry_run: bool = 
         'reference_year': plan.promotion_date.year,
         'custom_subject': subject,
         'custom_body': body,
+        # O cancelamento por desligamento precisa chegar ao RH mesmo com o
+        # funcionário já desligado.
+        'notify_terminated_employee': event_type == EventTypes.CAREER_PLAN_CANCELLED,
     }
 
     send_notification_for_event(event_dict, dry_run=dry_run)
