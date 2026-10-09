@@ -15,11 +15,6 @@ from rhcontrol.models import Employee, EmployeeHistory, JobTitle
 
 @login_required
 @permission_required('rhcontrol.view_employee', raise_exception=True)
-def employees(request):
-    return render(request, 'dashboard/pages/employee/list.html')
-
-@login_required
-@permission_required('rhcontrol.view_employee', raise_exception=True)
 def employee_view(request):
     limit_date = timezone.now().date() - timedelta(days=366)
     
@@ -162,7 +157,6 @@ def employee_update(request, pk):
         messages.success(request, 'Funcionário atualizado com sucesso!')
         return redirect('rhcontrol:employee_list')
 
-    scheduled = employee.scheduled_trainings.all()
     attended = employee.attended_trainings.all().order_by('-start_date')
     history_log = employee.history.all().order_by('-date_changed')
     total_hours = sum(t.training_total_hours or 0 for t in attended)
@@ -199,7 +193,6 @@ def employee_update(request, pk):
         employee.occurrences
         .order_by('-occurrence_date', '-created_at')[:5]
     )
-    is_rh_admin = request.user.groups.filter(name='RhAdmin').exists()
 
     return render(request, 'dashboard/pages/employee/form.html', {
         'form': form,
@@ -211,7 +204,6 @@ def employee_update(request, pk):
         'leaves_history': leaves_history,
         'total_hours': total_hours,
         'occurrences_top5': occurrences_top5,
-        'is_rh_admin': is_rh_admin,
         'job_titles': job_titles,
     })
 

@@ -7,7 +7,6 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
 from django.core.cache import cache
-from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
@@ -144,8 +143,3 @@ def change_password(request):
         'form': form,
         'title': 'Alterar Senha'
     })
-
-def is_rh_admin(user):
-    if user.groups.filter(name='RhAdmin').exists() or user.is_superuser:
-        return True
-    raise PermissionDenied

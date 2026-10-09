@@ -51,9 +51,8 @@ def training_create(request):
             if is_fundamental:
                 if all_depts:
                     employees_to_add = Employee.objects.filter(termination_date__isnull=True)
-                elif target_dept:
-                    employees_to_add = Employee.objects.filter(department=target_dept, termination_date__isnull=True)
                 else:
+                    # Sem setor escolhido, target_dept é None e ninguém é incluído.
                     employees_to_add = Employee.objects.filter(department=target_dept, termination_date__isnull=True)
 
                 training.scheduled_employees.set(employees_to_add)
