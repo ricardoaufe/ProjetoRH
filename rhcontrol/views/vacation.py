@@ -4,8 +4,8 @@ from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404, redirect, render
-from django.utils import timezone
 
+from rhcontrol.filters import filter_vacations
 from rhcontrol.forms import VacationForm
 from rhcontrol.models import Vacation
 
@@ -13,7 +13,6 @@ from rhcontrol.models import Vacation
 @login_required
 @permission_required('rhcontrol.view_vacation', raise_exception=True)
 def vacation_view(request):
-    from django.utils import timezone
     vacation_list = Vacation.objects.select_related('employee').all()
 
     search_query = request.GET.get('search', '')
@@ -31,20 +30,7 @@ def vacation_view(request):
     else:
         vacation_list = vacation_list.order_by('employee__name') 
 
-    hoje = timezone.localdate()
-    if status == 'historico':
-        vacation_list = vacation_list.filter(end_date__lt=hoje)
-    else:
-        vacation_list = vacation_list.filter(end_date__gte=hoje)
-
-    if search_query:
-        vacation_list = vacation_list.filter(employee__name__icontains=search_query)
-
-    if date_from:
-        vacation_list = vacation_list.filter(start_date__gte=date_from)
-
-    if date_to:
-        vacation_list = vacation_list.filter(start_date__lte=date_to)
+    vacation_list = filter_vacations(vacation_list, request.GET)
 
     paginator = Paginator(vacation_list, 30)
     page_number = request.GET.get('page')

@@ -3,12 +3,12 @@ from datetime import date, timedelta
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.core.paginator import Paginator
-from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from rhcontrol.filters import filter_employees
 from rhcontrol.forms import DependentFormSet, EmployeeForm, EmployeeHistoryForm
 from rhcontrol.models import Employee, EmployeeHistory, JobTitle
 
@@ -31,32 +31,7 @@ def employee_view(request):
     for emp in expired_employees:
         emp.check_cipa_expiration()
 
-    employee_list = Employee.objects.select_related('department').all().order_by('name')
-
-    query = request.GET.get('search', '')
-    if query:
-        employee_list = employee_list.filter(
-            Q(name__icontains=query) | 
-            Q(cpf__icontains=query) |
-            Q(email__icontains=query) |
-            Q(department__name__icontains=query) |
-            Q(mobile_phone__icontains=query)
-        )
-    
-    status_filter = request.GET.get('status')
-    
-    # Os valores precisam bater com os links do template (list.html) e com o PDF.
-    if status_filter == 'active':
-        employee_list = employee_list.filter(termination_date__isnull=True)
-    elif status_filter == 'terminated':
-        employee_list = employee_list.filter(termination_date__isnull=False)
-
-    sort_by = request.GET.get('sort', 'name')
-    valid_sort_fields = ['name', 'cpf', 'department__name', 'mobile_phone']
-    if sort_by in valid_sort_fields:
-        employee_list = employee_list.order_by(sort_by)
-    else:
-        employee_list = employee_list.order_by('name')
+    employee_list = filter_employees(Employee.objects.select_related('department'), request.GET)
 
     paginator = Paginator(employee_list, 40)
     page_number = request.GET.get('page')

@@ -1,12 +1,13 @@
 from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
-from django.db.models import Count, Prefetch, Q
+from django.db.models import Count, Prefetch
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 from weasyprint import HTML
 
+from rhcontrol.filters import filter_employees, filter_occurrences, filter_trainings, filter_vacations
 from rhcontrol.models import (
     Department,
     Employee,
@@ -22,29 +23,9 @@ from rhcontrol.services import get_historical_minimum_wage
 @login_required
 @permission_required('rhcontrol.view_employee', raise_exception=True)
 def create_employee_list_pdf(request):
-    employee_list = Employee.objects.select_related('department').all()
-    
+    employee_list = filter_employees(Employee.objects.select_related('department'), request.GET)
     query = request.GET.get('search', '')
-    if query:
-        employee_list = employee_list.filter(
-            Q(name__icontains=query) | 
-            Q(cpf__icontains=query)  | 
-            Q(email__icontains=query)
-        )
-    
     status_filter = request.GET.get('status', 'todos')
-    if status_filter == 'active':
-        employee_list = employee_list.filter(termination_date__isnull=True)
-    elif status_filter == 'terminated':
-        employee_list = employee_list.filter(termination_date__isnull=False)
-    
-    sort_by = request.GET.get('sort', 'name')
-    valid_sort_fields = ['name', 'cpf', 'department__name', 'mobile_phone']
-    
-    if sort_by in valid_sort_fields:
-        employee_list = employee_list.order_by(sort_by)
-    else:
-        employee_list = employee_list.order_by('name')
 
     context = {
         'employees': employee_list,
@@ -336,25 +317,13 @@ def create_employees_department_pdf(request):
 @login_required
 @permission_required('rhcontrol.view_vacation', raise_exception=True)
 def create_vacation_list_pdf(request):
-    vacation_list = Vacation.objects.select_related('employee').all().order_by('start_date')
-
-    status_filter = request.GET.get('status', 'ativas') 
+    vacation_list = filter_vacations(
+        Vacation.objects.select_related('employee').order_by('start_date'), request.GET
+    )
+    status_filter = request.GET.get('status', 'ativas')
     search_query = request.GET.get('search', '')
     date_from = request.GET.get('date_from', '')
     date_to = request.GET.get('date_to', '')
-    
-    today = timezone.now().date()
-
-    if search_query:
-        vacation_list = vacation_list.filter(employee__name__icontains=search_query)
-    if date_from:
-        vacation_list = vacation_list.filter(start_date__gte=date_from)
-    if date_to:
-        vacation_list = vacation_list.filter(start_date__lte=date_to)
-    if status_filter == 'ativas':
-        vacation_list = vacation_list.filter(end_date__gte=today)
-    elif status_filter == 'historico':
-        vacation_list = vacation_list.filter(end_date__lt=today)
 
     context = {
         'vacation': vacation_list,
@@ -379,45 +348,17 @@ def create_vacation_list_pdf(request):
 @login_required
 @permission_required('rhcontrol.view_training', raise_exception=True)
 def create_training_list_pdf(request):
-    training_list = Training.objects.annotate(
-        num_attended=Count('attended_employees', distinct=True),
-        num_scheduled=Count('scheduled_employees', distinct=True)
-    ).all()
-
+    training_list = filter_trainings(
+        Training.objects.annotate(
+            num_attended=Count('attended_employees', distinct=True),
+            num_scheduled=Count('scheduled_employees', distinct=True),
+        ),
+        request.GET,
+    )
     query = request.GET.get('search', '')
-    if query:
-        training_list = training_list.filter(
-            Q(training_name__icontains=query) | 
-            Q(training_provider__icontains=query)
-        )
-
     date_from = request.GET.get('date_from', '')
-    if date_from:
-        training_list = training_list.filter(start_date__gte=date_from)
-        
     date_to = request.GET.get('date_to', '')
-    if date_to:
-        training_list = training_list.filter(start_date__lte=date_to)
-
-    status_filter = request.GET.get('status', 'todos')
-    today = timezone.now().date()
-    
-    if status_filter == 'proximos':
-        training_list = training_list.filter(start_date__gte=today)
-    elif status_filter == 'pendentes':
-        training_list = training_list.filter(start_date__lt=today, num_attended=0)
-    elif status_filter == 'realizados':
-        training_list = training_list.filter(start_date__lt=today, num_attended__gt=0)
-    elif status_filter == 'integracao':
-        training_list = training_list.filter(is_integration=True)
-        
-    sort_by = request.GET.get('sort', '-start_date')
-    valid_sort_fields = ['training_name', 'start_date', 'end_date', 'training_provider', 'training_total_hours']
-    
-    if sort_by.lstrip('-') in valid_sort_fields:
-        training_list = training_list.order_by(sort_by)
-    else:
-        training_list = training_list.order_by('-start_date')
+    status_filter = request.GET.get('status') or 'todos'
 
     context = {
         'trainings': training_list,
@@ -449,24 +390,12 @@ def create_occurrence_list_pdf(request, employee_id):
     """
     employee = get_object_or_404(Employee, pk=employee_id)
 
-    queryset = Occurrence.objects.filter(employee=employee).select_related('created_by')
-
+    queryset = filter_occurrences(
+        Occurrence.objects.filter(employee=employee).select_related('created_by'), request.GET
+    )
     search_query = request.GET.get('search', '').strip()
     date_from = request.GET.get('date_from')
     date_to = request.GET.get('date_to')
-    sort_by = request.GET.get('sort', '-occurrence_date')
-
-    if search_query:
-        queryset = queryset.filter(title__icontains=search_query)
-    if date_from:
-        queryset = queryset.filter(occurrence_date__gte=date_from)
-    if date_to:
-        queryset = queryset.filter(occurrence_date__lte=date_to)
-
-    if sort_by == 'occurrence_date':
-        queryset = queryset.order_by('occurrence_date', 'created_at')
-    else:
-        queryset = queryset.order_by('-occurrence_date', '-created_at')
 
     context = {
         'occurrences': queryset,
