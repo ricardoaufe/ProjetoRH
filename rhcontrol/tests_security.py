@@ -5,12 +5,14 @@ import importlib
 from datetime import date
 
 from django.contrib.auth.models import Group, Permission, User
+from django.core.cache import cache
 from django.test import TestCase, override_settings
 from django.urls import Resolver404, reverse
 from django.urls.resolvers import RegexPattern, URLResolver
 
 import rh.urls
 from rhcontrol.models import Department, Employee, EmployeeHistory, JobTitle
+from rhcontrol.views.auth import LOGIN_MAX_ATTEMPTS, LOGIN_MAX_ATTEMPTS_PER_IP
 
 
 class ProjectFilesExposureTests(TestCase):
@@ -127,3 +129,47 @@ class SelfRoleChangeTests(TestCase):
         other.groups.add(self.basic)
         self._post(other, self.admin_group)
         self.assertEqual(list(other.groups.all()), [self.admin_group])
+
+
+class LoginRateLimitTests(TestCase):
+    """Depois de várias senhas erradas o login é bloqueado temporariamente."""
+
+    def setUp(self):
+        cache.clear()
+        self.user = User.objects.create_user(
+            username='ana', email='ana@empresa.com', password='senha-correta-123'
+        )
+        self.url = reverse('rhcontrol:login_create')
+
+    def tearDown(self):
+        cache.clear()
+
+    def _login(self, login, password, ip='10.0.0.1'):
+        return self.client.post(self.url, {'email': login, 'password': password}, REMOTE_ADDR=ip)
+
+    def test_locks_account_after_max_failures(self):
+        for _ in range(LOGIN_MAX_ATTEMPTS):
+            self.assertEqual(self._login('ana', 'errada').status_code, 200)
+        # Mesmo com a senha certa, a conta fica bloqueada durante a janela.
+        response = self._login('ana', 'senha-correta-123')
+        self.assertEqual(response.status_code, 429)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_lock_counts_username_and_email_case_insensitively(self):
+        for _ in range(LOGIN_MAX_ATTEMPTS):
+            self._login('ANA', 'errada')
+        self.assertEqual(self._login('ana', 'senha-correta-123').status_code, 429)
+
+    def test_success_resets_counter(self):
+        for _ in range(LOGIN_MAX_ATTEMPTS - 1):
+            self._login('ana', 'errada')
+        self.assertEqual(self._login('ana', 'senha-correta-123').status_code, 302)
+        self.client.logout()
+        self.assertEqual(self._login('ana', 'errada').status_code, 200)
+
+    def test_locks_ip_trying_many_accounts(self):
+        for i in range(LOGIN_MAX_ATTEMPTS_PER_IP):
+            self._login(f'usuario{i}', 'errada')
+        self.assertEqual(self._login('ana', 'senha-correta-123').status_code, 429)
+        # Outro IP não é afetado.
+        self.assertEqual(self._login('ana', 'senha-correta-123', ip='10.0.0.2').status_code, 302)

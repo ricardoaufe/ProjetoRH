@@ -1,8 +1,12 @@
+import hashlib
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import User
+from django.core.cache import cache
 from django.core.exceptions import PermissionDenied
 from django.http import Http404
 from django.shortcuts import redirect, render
@@ -23,6 +27,38 @@ def login_view(request):
         'form_action': reverse('rhcontrol:login_create'),
     })
 
+# Proteção contra força bruta: depois de LOGIN_MAX_ATTEMPTS falhas dentro de
+# LOGIN_LOCKOUT_SECONDS, novas tentativas são recusadas sem nem checar a senha.
+# Contamos por login digitado (protege uma conta) e por IP (protege contra
+# alguém testando várias contas). O contador vive no cache do Django.
+LOGIN_MAX_ATTEMPTS = getattr(settings, 'LOGIN_MAX_ATTEMPTS', 5)
+LOGIN_MAX_ATTEMPTS_PER_IP = getattr(settings, 'LOGIN_MAX_ATTEMPTS_PER_IP', 20)
+LOGIN_LOCKOUT_SECONDS = getattr(settings, 'LOGIN_LOCKOUT_SECONDS', 15 * 60)
+
+
+def _login_attempt_keys(request, login_input):
+    login_hash = hashlib.sha256(login_input.lower().encode()).hexdigest()
+    ip = request.META.get('REMOTE_ADDR', '')
+    return (
+        (f'login-fail:user:{login_hash}', LOGIN_MAX_ATTEMPTS),
+        (f'login-fail:ip:{ip}', LOGIN_MAX_ATTEMPTS_PER_IP),
+    )
+
+
+def _is_login_locked(keys):
+    return any(cache.get(key, 0) >= limit for key, limit in keys)
+
+
+def _register_login_failure(keys):
+    for key, _ in keys:
+        # add() só cria se não existir; o prazo conta a partir da 1ª falha.
+        cache.add(key, 0, LOGIN_LOCKOUT_SECONDS)
+        try:
+            cache.incr(key)
+        except ValueError:  # expirou entre o add() e o incr()
+            cache.set(key, 1, LOGIN_LOCKOUT_SECONDS)
+
+
 def login_create(request):
     if request.method != 'POST':
         raise Http404()
@@ -32,6 +68,14 @@ def login_create(request):
     if form.is_valid():
         login_input = form.cleaned_data.get('email', '').strip()
         password = form.cleaned_data.get('password', '')
+        attempt_keys = _login_attempt_keys(request, login_input)
+
+        if _is_login_locked(attempt_keys):
+            messages.error(request, 'Muitas tentativas de login. Aguarde alguns minutos e tente novamente.')
+            return render(request, 'authors/pages/login.html', {
+                'form': form,
+                'form_action': reverse('rhcontrol:login_create')
+            }, status=429)
 
         user = authenticate(request, username=login_input, password=password)
 
@@ -41,10 +85,12 @@ def login_create(request):
                 user = authenticate(request, username=user_obj.username, password=password)
 
         if user is not None:
+            cache.delete(attempt_keys[0][0])
             messages.success(request, 'Logado com sucesso!')
             login(request, user)
             return redirect('rhcontrol:dashboard')
         else:
+            _register_login_failure(attempt_keys)
             messages.error(request, 'Usuário ou senha incorretos.')
     else:
         messages.error(request, 'Erro de validação.')
