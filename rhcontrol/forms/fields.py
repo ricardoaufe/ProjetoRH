@@ -22,4 +22,4 @@ class BRLDecimalField(forms.CharField):
         try:
             return Decimal(str(value).replace(".", "").replace(",", "."))
         except InvalidOperation:
-            raise forms.ValidationError("Valor inválido")
+            raise forms.ValidationError("Valor inválido") from None

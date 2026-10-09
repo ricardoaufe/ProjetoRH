@@ -63,7 +63,7 @@ class Command(BaseCommand):
         funcionarios_criados = []
         cpfs_gerados = set() # Controle local para evitar repetição de CPF no sorteio do Faker
 
-        for i in range(quantidade):
+        for _ in range(quantidade):
             # Garante que o Faker não gere um CPF repetido nesta mesma rodada
             cpf_valido = fake.cpf()
             while cpf_valido in cpfs_gerados:

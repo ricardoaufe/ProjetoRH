@@ -299,9 +299,7 @@ class EmployeeViewTests(TestCase):
             department=self.department,
             job_title=self.job_title
         )
-        response = self.client.post(
-            reverse('rhcontrol:employee_delete', args=[employee.id])
-        )
+        self.client.post(reverse('rhcontrol:employee_delete', args=[employee.id]))
         self.assertFalse(Employee.objects.filter(id=employee.id).exists())
 
 class EmployeeFilterTests(TestCase):

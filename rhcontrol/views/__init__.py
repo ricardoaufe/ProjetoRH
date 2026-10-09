@@ -33,7 +33,7 @@ from .employee import (
 )
 from .pdf import (
     create_bank_presentation_pdf,
-    create_benefits_acquisition_pdf,  
+    create_benefits_acquisition_pdf,
     create_commitment_term_pdf,
     create_confidenciality_pdf,
     create_department_and_jobtitle_pdf,

@@ -1,5 +1,5 @@
 from datetime import date
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 
 from django import forms
 
@@ -169,8 +169,8 @@ class EmployeeForm(forms.ModelForm):
         salary_str = str(salary).replace(".", "").replace(",", ".")
         try:
             return Decimal(salary_str)
-        except:
-            raise forms.ValidationError("Valor inválido")
+        except InvalidOperation:
+            raise forms.ValidationError("Valor inválido") from None
 
     def clean_old_salary(self):
         salary = self.cleaned_data.get("old_salary")
@@ -179,8 +179,8 @@ class EmployeeForm(forms.ModelForm):
         salary_str = str(salary).replace(".", "").replace(",", ".")
         try:
             return Decimal(salary_str)
-        except:
-            raise forms.ValidationError("Valor inválido")
+        except InvalidOperation:
+            raise forms.ValidationError("Valor inválido") from None
 
     def clean(self):
         cleaned_data = super().clean()
@@ -238,7 +238,7 @@ class EmployeeForm(forms.ModelForm):
         else:
             self.fields["job_title"].queryset = JobTitle.objects.none()
 
-        for field_name, field in self.fields.items():
+        for field in self.fields.values():
             if isinstance(field.widget, forms.DateInput):
                 field.widget.attrs.update({"class": "form-control", "type": "date"})
 

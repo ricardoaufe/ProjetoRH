@@ -1,3 +1,4 @@
+import calendar as _calendar
 import logging
 from datetime import date, timedelta
 
@@ -431,7 +432,6 @@ def process_career_plans(dry_run: bool = False) -> None:
 #
 # ═══════════════════════════════════════════════════════════════════════════════
 
-import calendar as _calendar
 
 _UE_MAX_RANGE    = 180
 _UE_DEFAULT_DAYS = 30

@@ -7,9 +7,10 @@ weasyprint==68.0
 holidays==0.86
 python-dotenv==1.2.1
 
-# --- Testes ---
+# --- Testes e qualidade ---
 pytest==9.0.2
 pytest-django==4.11.1
+ruff==0.16.8
 
 # --- Dependências indiretas ---
 asgiref==3.11.0
