@@ -9,15 +9,15 @@
 {% block content %}
 <div class="container-fluid">
     
-  <div class="career-table-container" style="background-color: #ffffff; padding: 25px; margin: 80px 30px 30px 30px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);">
+  <div class="career-table-container career-form">
     
-    <div class="career-page-header" style="border-bottom: 1px solid #e0e0e0; margin-bottom: 20px; padding-bottom: 15px;">
-        <div style="flex: 1; display: flex; justify-content: flex-start;">
+    <div class="career-page-header career-form__header">
+        <div class="header-slot header-slot--start">
             <a href="{% url 'rhcontrol:career_plan_list' %}" class="btn-back" title="Voltar">
                 <i class="fa fa-chevron-left"></i>
             </a>
         </div>
-        <h2 style="margin: 0; font-size: 24px; color: #333;">
+        <h2 class="career-form__title">
             <i class="fas {% if is_update %}fa-edit{% else %}fa-plus-circle{% endif %} text-primary"></i> 
             {% if is_update %}Editar Plano de Carreira{% else %}Criar Novo Plano de Carreira{% endif %}
         </h2>
@@ -27,54 +27,54 @@
         {% csrf_token %}
         
         {% if form.errors %}
-            <div style="background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin-bottom: 20px;">
+            <div class="career-form__errors">
                 <strong><i class="fas fa-exclamation-triangle"></i> Atenção:</strong> Verifique os campos em vermelho abaixo.
             </div>
         {% endif %}
 
         <div class="row">
-            <div class="col-md-12" style="margin-bottom: 20px;">
-                <label for="{{ form.employee.id_for_label }}" style="font-weight: 600; margin-bottom: 5px; display: block;">Funcionário:</label>
+            <div class="col-md-12 career-form__field">
+                <label for="{{ form.employee.id_for_label }}" class="career-form__label">Funcionário:</label>
                 {{ form.employee }}
-                {% if form.employee.errors %}<small style="color: red;">{{ form.employee.errors.0 }}</small>{% endif %}
+                {% if form.employee.errors %}<small class="u-text-red">{{ form.employee.errors.0 }}</small>{% endif %}
             </div>
 
-            <div class="col-md-4" style="margin-bottom: 20px;">
-                <label style="font-weight: 600; color: #6c757d; margin-bottom: 5px; display: block;">Setor Atual:</label>
-                <input type="text" id="display_dept" class="form-control" readonly placeholder="Aguardando..." style="background-color: #e9ecef;">
+            <div class="col-md-4 career-form__field">
+                <label class="career-form__label career-form__label--muted">Setor Atual:</label>
+                <input type="text" id="display_dept" class="form-control career-form__readonly" readonly placeholder="Aguardando...">
             </div>
-            <div class="col-md-4" style="margin-bottom: 20px;">
-                <label style="font-weight: 600; color: #6c757d; margin-bottom: 5px; display: block;">Cargo Atual:</label>
-                <input type="text" id="display_job" class="form-control" readonly placeholder="Aguardando..." style="background-color: #e9ecef;">
+            <div class="col-md-4 career-form__field">
+                <label class="career-form__label career-form__label--muted">Cargo Atual:</label>
+                <input type="text" id="display_job" class="form-control career-form__readonly" readonly placeholder="Aguardando...">
             </div>
-            <div class="col-md-4" style="margin-bottom: 20px;">
-                <label style="font-weight: 600; color: #6c757d; margin-bottom: 5px; display: block;">Salário Atual:</label>
-                <input type="text" id="display_salary" class="form-control" readonly placeholder="Aguardando..." style="background-color: #e9ecef;">
+            <div class="col-md-4 career-form__field">
+                <label class="career-form__label career-form__label--muted">Salário Atual:</label>
+                <input type="text" id="display_salary" class="form-control career-form__readonly" readonly placeholder="Aguardando...">
             </div>
 
-            <div class="col-md-3" style="margin-bottom: 20px;">
-                <label for="{{ form.proposed_department.id_for_label }}" style="font-weight: 600; margin-bottom: 5px; display: block;">Novo Setor:</label>
+            <div class="col-md-3 career-form__field">
+                <label for="{{ form.proposed_department.id_for_label }}" class="career-form__label">Novo Setor:</label>
                 {{ form.proposed_department }}
-                {% if form.proposed_department.errors %}<small style="color: red;">{{ form.proposed_department.errors.0 }}</small>{% endif %}
+                {% if form.proposed_department.errors %}<small class="u-text-red">{{ form.proposed_department.errors.0 }}</small>{% endif %}
             </div>
-            <div class="col-md-3" style="margin-bottom: 20px;">
-                <label for="{{ form.proposed_job.id_for_label }}" style="font-weight: 600; margin-bottom: 5px; display: block;">Novo Cargo:</label>
+            <div class="col-md-3 career-form__field">
+                <label for="{{ form.proposed_job.id_for_label }}" class="career-form__label">Novo Cargo:</label>
                 {{ form.proposed_job }}
-                {% if form.proposed_job.errors %}<small style="color: red;">{{ form.proposed_job.errors.0 }}</small>{% endif %}
+                {% if form.proposed_job.errors %}<small class="u-text-red">{{ form.proposed_job.errors.0 }}</small>{% endif %}
             </div>
-            <div class="col-md-3" style="margin-bottom: 20px;">
-                <label for="{{ form.proposed_salary.id_for_label }}" style="font-weight: 600; margin-bottom: 5px; display: block;">Salário Proposto (R$):</label>
+            <div class="col-md-3 career-form__field">
+                <label for="{{ form.proposed_salary.id_for_label }}" class="career-form__label">Salário Proposto (R$):</label>
                 {{ form.proposed_salary }}
-                {% if form.proposed_salary.errors %}<small style="color: red;">{{ form.proposed_salary.errors.0 }}</small>{% endif %}
+                {% if form.proposed_salary.errors %}<small class="u-text-red">{{ form.proposed_salary.errors.0 }}</small>{% endif %}
             </div>
-            <div class="col-md-3" style="margin-bottom: 20px;">
-                <label for="{{ form.promotion_date.id_for_label }}" style="font-weight: 600; margin-bottom: 5px; display: block;">Data da Promoção:</label>
+            <div class="col-md-3 career-form__field">
+                <label for="{{ form.promotion_date.id_for_label }}" class="career-form__label">Data da Promoção:</label>
                 {{ form.promotion_date }}
-                {% if form.promotion_date.errors %}<small style="color: red;">{{ form.promotion_date.errors.0 }}</small>{% endif %}
+                {% if form.promotion_date.errors %}<small class="u-text-red">{{ form.promotion_date.errors.0 }}</small>{% endif %}
             </div>
         </div>
 
-        <div style="margin-top: 20px; border-top: 1px solid #e0e0e0; padding-top: 15px; display: flex; justify-content: space-between;">
+        <div class="career-form__actions">
             <div>
                 <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Salvar Plano</button>
                 <a href="{% url 'rhcontrol:career_plan_list' %}" class="btn btn-secondary">Voltar</a>

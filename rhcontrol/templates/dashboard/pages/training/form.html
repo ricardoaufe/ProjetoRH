@@ -33,7 +33,7 @@
 </style>
 
 <div class="form-container">
-    <div style="flex: 1; display: flex; justify-content: flex-start;">
+    <div class="header-slot header-slot--start">
       <a href="{% url 'rhcontrol:training_list' %}" class="btn-back" title="Voltar">
           <i class="fa fa-chevron-left"></i>
       </a>
@@ -51,37 +51,37 @@
             {% include 'partials/form_field.html' with field=form.training_total_hours label="Duração (horas)" %}
             {% include 'partials/form_field.html' with field=form.training_location_type label="Local do Treinamento" %}
             
-            <div style="grid-column: 1 / -1; background: #e0f2fe; border: 1px solid #bae6fd; border-left: 5px solid #0284c7; padding: 15px 20px; border-radius: 6px; margin-bottom: 10px;">
-                <label style="font-weight: 600; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; cursor: pointer; color: #0369a1; margin: 0;">
+            <div class="callout callout--info grid-full">
+                <label class="callout__label">
                     {{ form.is_integration }}
                     Treinamento de Integração (Onboarding)?
                 </label>
-                <small style="color: #0369a1; display: block; margin-top: 5px; margin-left: 28px; font-size: 1.2rem;">
+                <small class="callout__hint">
                     Marque esta opção para que este treinamento seja adicionado automaticamente no histórico de novos funcionários sem necessidade de informar datas.
                 </small>
             </div>
             
-            <div style="grid-column: 1 / -1;">
+            <div class="grid-full">
                 {% include 'partials/form_field.html' with field=form.training_description label="Descrição" %}
             </div>
         </div>
 
-        <div style="margin-top: 30px; border-top: 1px solid #dee2e6; padding-top: 25px;">
+        <div class="training-form__section">
             
-            <div style="background-color: #f8f9fa; padding: 12px 20px; border-radius: 6px; border: 1px solid #e9ecef; margin-bottom: 25px; width: fit-content; height: fit-content; min-width: 320px;">
+            <div class="training-form__fundamental">
                 {% include 'partials/form_field.html' with field=form.is_fundamental label="É Treinamento Fundamental?" %}
             </div>
 
-            <div id="div_target_department" class="hidden conditional-box" style="margin-bottom: 25px;">
-                <h4 style="margin-top: 0; color: #495057;">Configuração de Setor</h4>
-                <p style="font-size: 1.3rem; color: #6c757d; margin-bottom: 15px;">
+            <div id="div_target_department" class="hidden conditional-box training-form__department">
+                <h4 class="training-form__department-title">Configuração de Setor</h4>
+                <p class="training-form__department-help">
                     Todos os funcionários ativos deste setor serão inscritos automaticamente.
                 </p>
-                <div style="display: flex; gap: 20px; align-items: center; flex-wrap: wrap;">
-                    <div style="flex: 1; min-width: 250px;">
+                <div class="training-form__department-row">
+                    <div class="training-form__department-select">
                         {% include 'partials/form_field.html' with field=form.target_department label="Selecione o Setor" %}
                     </div>
-                    <div style="padding-top: 10px;">
+                    <div class="training-form__all-departments">
                         {% include 'partials/form_field.html' with field=form.all_departments %}
                     </div>
                 </div>
@@ -90,25 +90,25 @@
             <div id="div_scheduled_employees">
                 <div class="header-with-button">
                     <div>
-                        <h4 style="margin-top: 0; font-size: 1.6rem; color: #495057; margin-bottom: 5px;">Seleção de Participantes</h4>
-                        <p style="font-size: 1.3rem; color: #6c757d; margin: 0;">Pesquise pelo nome ou selecione todos.</p>
+                        <h4 class="training-form__heading">Seleção de Participantes</h4>
+                        <p class="training-form__heading-help">Pesquise pelo nome ou selecione todos.</p>
                     </div>
                     <button type="button" class="btn-select-all" data-target="id_scheduled_employees">
                         <i class="fa fa-check-double"></i> Selecionar Todos
                     </button>
                 </div>
                 
-                <div style="margin-bottom: 30px;">
+                <div class="training-form__participants">
                     {% include 'partials/form_field.html' with field=form.scheduled_employees %}
                 </div>
 
                 {% if form.instance.pk %}
-                    <hr style="margin: 30px 0; border-color: #dee2e6;">
+                    <hr class="training-form__divider">
                     
                     <div class="header-with-button">
                         <div>
-                            <h4 style="margin-top: 0; font-size: 1.6rem; color: #198754; margin-bottom: 5px;">Confirmação de Presença</h4>
-                            <p style="font-size: 1.3rem; color: #6c757d; margin: 0;">Destes previstos, quem realmente veio?</p>
+                            <h4 class="training-form__heading training-form__heading--success">Confirmação de Presença</h4>
+                            <p class="training-form__heading-help">Destes previstos, quem realmente veio?</p>
                         </div>
                         <button type="button" class="btn-select-all" data-target="id_attended_employees">
                             <i class="fa fa-check-double"></i> Marcar Todos
@@ -123,7 +123,7 @@
 
         </div>
 
-        <div class="form-actions" style="margin-top: 40px;">
+        <div class="form-actions">
             <button type="submit" class="btn-save">Salvar Treinamento</button>
             {% if form.instance.pk %}
                 <a href="{% url 'rhcontrol:training_delete' pk=form.instance.pk %}" class="btn-delete">

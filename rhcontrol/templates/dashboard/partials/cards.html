@@ -39,7 +39,7 @@
         <span class="upcoming-events-badge">{{ upcoming_events_count }}</span>
       </div>
       
-      <p class="desc" style="margin-bottom: 12px">Próximos 30 dias</p>
+      <p class="desc upcoming-events-period">Próximos 30 dias</p>
 
       <ul class="upcoming-events-list">
         {% for event in upcoming_events_top %}
@@ -55,7 +55,7 @@
           </li>
         {% empty %}
           <li class="upcoming-event-empty">
-            <i class="fas fa-check-circle" style="color: #28a745; margin-right: 6px"></i>
+            <i class="fas fa-check-circle upcoming-event-empty__icon"></i>
             Nenhum evento nos próximos 30 dias
           </li>
         {% endfor %}
@@ -72,7 +72,7 @@
           Ver Todos <i class="fas fa-arrow-right"></i>
         </a>
       {% else %}
-        <span class="upcoming-events-see-all disabled-link" style="color: #a0a0a0; cursor: not-allowed;">
+        <span class="upcoming-events-see-all disabled-link">
           -
         </span>
       {% endif %}

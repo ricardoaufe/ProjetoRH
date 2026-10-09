@@ -5,13 +5,13 @@
 {% block content %}
 
 <div class="form-container">
-    <div style="flex: 1; display: flex; justify-content: flex-start;">
+    <div class="header-slot header-slot--start">
       <a href="{% url 'rhcontrol:department_list' %}" class="btn-back" title="Voltar">
           <i class="fa fa-chevron-left"></i>
       </a>
     </div>
-    <div class="form-header" style="margin-bottom: 20px;">
-        <h2 style="margin: 0;">{{ title|default:"Cadastrar Setores" }}</h2>
+    <div class="form-header form-header--spaced">
+        <h2 class="u-m-0">{{ title|default:"Cadastrar Setores" }}</h2>
     </div>
 
     <form method="POST" id="departmentForm" novalidate>
@@ -22,15 +22,15 @@
             {% include 'partials/form_field.html' with field=form.description label="Descrição do Setor" %}
         </div>
 
-        <hr style="margin: 30px 0; border: 0; border-top: 1px solid #ddd;">
+        <hr class="form-divider form-divider--gray">
 
-        <h3 class="section-title" style="margin-bottom: 15px;">Cargos Vinculados</h3>
+        <h3 class="section-title section-title--tight">Cargos Vinculados</h3>
         
         {{ formset.management_form }}
 
         <div id="job-titles-container">
             {% for job_form in formset %}
-                <div class="job-row" style="margin-bottom: 15px; background-color: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+                <div class="job-row job-card">
                     
                     {% for hidden in job_form.hidden_fields %}
                         {{ hidden }}
@@ -40,28 +40,28 @@
                         {{ job_form.DELETE }}
                     </div>
 
-                    <div class="job-header" onclick="toggleJobBody(this)" style="padding: 15px; background-color: #f8f9fa; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0e0e0;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
-                            <i class="fa fa-chevron-right job-arrow" style="transition: transform 0.2s; color: #6c757d;"></i>
-                            <h4 style="margin: 0; font-size: 1.4rem; color: #495057; font-weight: 600;">
+                    <div class="job-header job-card__header" onclick="toggleJobBody(this)">
+                        <div class="job-card__title-group">
+                            <i class="fa fa-chevron-right job-arrow job-card__arrow"></i>
+                            <h4 class="job-card__title">
                                 <span class="job-name-display">{{ job_form.instance.name|default:"Novo Cargo"|upper }}</span>
-                                <small style="font-weight: 400; color: #6c757d; margin-left: 5px; font-size: 1.2rem;">
+                                <small class="job-card__subtitle">
                                     (Salário Base: <span class="job-salary-display">R$ {{ job_form.instance.base_salary|default:"0,00"|floatformat:2 }}</span>)
                                 </small>
                             </h4>
                         </div>
                         
-                        <div style="display: flex; gap: 10px;">
+                        <div class="job-card__actions">
                             {% if formset.can_delete %}
-                                <button type="button" class="remove-job-btn" style="border: none; background: transparent; color: #dc3545; font-size: 1.2rem; cursor: pointer;" title="Excluir Cargo">
+                                <button type="button" class="remove-job-btn card-remove-button" title="Excluir Cargo">
                                     <i class="fa fa-trash"></i>
                                 </button>
                             {% endif %}
                         </div>
                     </div>
 
-                    <div class="job-body" style="padding: 20px; display: none;"> 
-                        <div class="form-content" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px;">
+                    <div class="job-body job-card__body" style="display: none;"> 
+                        <div class="form-content job-card__fields">
                             
                             {% include 'partials/form_field.html' with field=job_form.name label="Nome do Cargo" grid_class="col-span-6 job-name-input" %}
                             
@@ -75,37 +75,37 @@
             {% endfor %}
         </div>
 
-        <button type="button" id="add-job-btn" style="background-color: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-weight: 600; margin-bottom: 20px;">
+        <button type="button" id="add-job-btn" class="add-row-button add-row-button--job">
             + Adicionar Cargo
         </button>
 
-        <div id="empty-form" style="display:none;">
-            <div class="job-row" style="margin-bottom: 15px; background-color: #fff; border: 1px solid #e0e0e0; border-radius: 6px; overflow: hidden;">
+        <div id="empty-form" style="display: none;">
+            <div class="job-row job-card">
                 
                 <div style="display: none;">
                     {{ formset.empty_form.DELETE }}
                 </div>
 
-                <div class="job-header" onclick="toggleJobBody(this)" style="padding: 15px; background-color: #f8f9fa; cursor: pointer; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #e0e0e0;">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <i class="fa fa-chevron-down job-arrow" style="transition: transform 0.2s; color: #6c757d;"></i>
-                        <h4 style="margin: 0; font-size: 1.1rem; color: #495057; font-weight: 600;">
+                <div class="job-header job-card__header" onclick="toggleJobBody(this)">
+                    <div class="job-card__title-group">
+                        <i class="fa fa-chevron-down job-arrow job-card__arrow"></i>
+                        <h4 class="job-card__title job-card__title--small">
                             <span class="job-name-display">NOVO CARGO</span>
-                            <small style="font-weight: 400; color: #6c757d; margin-left: 5px; font-size: 0.85rem;">
+                            <small class="job-card__subtitle job-card__subtitle--small">
                                 (Salário Base: <span class="job-salary-display">R$ 0,00</span>)
                             </small>
                         </h4>
                     </div>
                     
-                    <div style="display: flex; gap: 10px;">
-                        <button type="button" class="remove-job-btn" data-new="true" style="border: none; background: transparent; color: #dc3545; font-size: 1.2rem; cursor: pointer;">
+                    <div class="job-card__actions">
+                        <button type="button" class="remove-job-btn card-remove-button" data-new="true">
                             <i class="fa fa-trash"></i>
                         </button>
                     </div>
                 </div>
 
-                <div class="job-body" style="padding: 20px; display: block;"> 
-                    <div class="form-content" style="display: grid; grid-template-columns: repeat(8, 1fr); gap: 20px;">
+                <div class="job-body job-card__body"> 
+                    <div class="form-content job-card__fields">
                         {% include 'partials/form_field.html' with field=formset.empty_form.name label="Nome do Cargo" grid_class="col-span-6 job-name-input" %}
                         {% include 'partials/form_field.html' with field=formset.empty_form.base_salary label="Salário Base" is_money=True grid_class="col-span-2 job-salary-input" %}
                         {% include 'partials/form_field.html' with field=formset.empty_form.description label="Descrição do Cargo" grid_class="col-span-8" %}

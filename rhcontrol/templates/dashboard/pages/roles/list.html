@@ -16,24 +16,24 @@
         <thead>
             <tr>
                 <th>Nome do Perfil de Acesso</th>
-                <th style="text-align: center;">Usuários com este perfil</th>
-                <th style="text-align: center;">Ações</th>
+                <th class="u-text-center">Usuários com este perfil</th>
+                <th class="u-text-center">Ações</th>
             </tr>
         </thead>
         <tbody>
             {% for role in roles %}
             <tr>
-                <td style="font-weight: 500; font-size: 1.4rem;">
+                <td class="table-cell-name table-cell-name--lg">
                     {{ role.name }}
                 </td>
                 
-                <td style="text-align: center;">
-                    <span style="background: #e2e8f0; color: #475569; padding: 4px 10px; border-radius: 20px; font-weight: 600; font-size: 1.2rem;">
+                <td class="u-text-center">
+                    <span class="pill pill--gray">
                         {{ role.num_users }} usuário(s)
                     </span>
                 </td>
                 
-                <td style="text-align: center; display: flex; justify-content: center; gap: 10px;">
+                <td class="table-actions-cell">
     
                     <a href="{% url 'rhcontrol:role_update' role.id %}" class="action-btn edit-btn" title="Editar">
                         <i class="fas fa-edit"></i>
@@ -47,8 +47,8 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="3" style="text-align: center; padding: 30px; color: #64748b; font-size: 1.4rem;">
-                    <i class="fas fa-users-slash" style="font-size: 2rem; display: block; margin-bottom: 10px; color: #cbd5e1;"></i>
+                <td colspan="3" class="table-empty">
+                    <i class="fas fa-users-slash table-empty__icon"></i>
                     Nenhum perfil de acesso cadastrado.
                 </td>
             </tr>

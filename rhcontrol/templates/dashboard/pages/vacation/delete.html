@@ -3,27 +3,27 @@
 {% block title %} Excluir Férias | {% endblock title %}
 
 {% block content %}
-<div class="form-container" style="max-width: 600px; text-align: center; padding: 40px;">
-    <h2 style="color: #dc3545;">Tem certeza?</h2>
+<div class="form-container confirm-delete">
+    <h2 class="confirm-delete__title">Tem certeza?</h2>
     
-    <p style="font-size: 2rem; margin: 20px 0;">
+    <p class="confirm-delete__text">
         Você está prestes a excluir as férias de: <br>
         <strong>{{ vacation.employee.name }}</strong> (CPF: {{ vacation.employee.cpf }})
     </p>
 
-    <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+    <div class="confirm-delete__warning">
         ⚠️ Esta ação é irreversível.
     </div>
 
     <form method="POST">
         {% csrf_token %}
         
-        <div style="display: flex; gap: 15px; justify-content: center;">
-            <a href="{% url 'rhcontrol:vacation_list' %}" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px;">
+        <div class="confirm-delete__actions">
+            <a href="{% url 'rhcontrol:vacation_list' %}" class="confirm-delete__cancel">
                 Cancelar
             </a>
 
-            <button type="submit" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            <button type="submit" class="confirm-delete__confirm">
                 Confirmar Exclusão
             </button>
         </div>

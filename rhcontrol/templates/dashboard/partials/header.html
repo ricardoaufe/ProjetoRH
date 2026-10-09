@@ -72,7 +72,7 @@
         </div>
         
         <div class="menu-item">
-            <form action="{% url 'rhcontrol:logout' %}" method="POST" style="margin: 0;"> 
+            <form action="{% url 'rhcontrol:logout' %}" method="POST" class="u-m-0"> 
                 {% csrf_token %}
                 <button class="plaintext-button menu-link" type="submit">Logout</button>
             </form>

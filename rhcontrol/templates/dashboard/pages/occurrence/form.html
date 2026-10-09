@@ -5,7 +5,7 @@
 {% block content %}
   <div class="form-container">
     <h2>{{ title|default:"Ocorrência" }}</h2>
-    <p style="color: #6c757d; font-size: 1.4rem; margin-top: -0.5rem">
+    <p class="form-subtitle">
       Funcionário: <strong>{{ employee.name }}</strong>
     </p>
 
@@ -19,19 +19,19 @@
         {% include 'partials/form_field.html' with field=form.occurrence_date label="Data da Ocorrência / Início" %}
         
 
-        <div style="grid-column: 1 / -1; background: #fff3cd; border: 1px solid #ffeeba; border-left: 5px solid #ffc107; padding: 15px 20px; border-radius: 6px; margin: 15px 0;">
-            <label style="font-weight: 600; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; cursor: pointer; color: #856404; margin: 0;">
+        <div class="callout callout--warning grid-full">
+            <label class="callout__label">
                 {{ form.is_absence }}
                 Registrar como Afastamento?
             </label>
         </div>
 
-        <div id="div_end_date" style="display: none; grid-column: 1 / -1; margin-bottom: 15px;">
+        <div id="div_end_date" class="occurrence-end-date" style="display: none;">
             {% include 'partials/form_field.html' with field=form.end_date label="Data de Fim (Deixe em branco se não houver previsão de retorno)" %}
         </div>
       </div>
 
-      <div class="form-actions" style="margin-top: 20px;">
+      <div class="form-actions form-actions--tight">
         <a href="{% url 'rhcontrol:occurrence_list' employee_id=employee.pk %}" class="btn btn-secondary">
           Cancelar
         </a>
