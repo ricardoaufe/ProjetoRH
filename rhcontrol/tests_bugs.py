@@ -78,3 +78,32 @@ class AbsenceDurationTests(TestCase):
             is_absence=True, occurrence_date=start, end_date=start + timedelta(days=2),
         )
         self.assertEqual(occurrence.absence_duration, 3)
+
+
+class EmployeeSalaryChangeTests(TestCase):
+    """Editar o salário gera histórico sem erro, inclusive quando ainda não havia salário."""
+
+    def setUp(self):
+        self.client.force_login(make_user('rh', 'rhcontrol.change_employee'))
+
+    def _post_salary(self, employee, salary):
+        url = reverse('rhcontrol:employee_update', kwargs={'pk': employee.pk})
+        prefix = self.client.get(url).context['dependent_formset'].prefix
+        return self.client.post(url, {
+            'name': employee.name, 'cpf': employee.cpf, 'birth_date': '1988-07-10',
+            'department': employee.department_id, 'job_title': employee.job_title_id,
+            'current_salary': salary,
+            f'{prefix}-TOTAL_FORMS': '0', f'{prefix}-INITIAL_FORMS': '0',
+            f'{prefix}-MIN_NUM_FORMS': '0', f'{prefix}-MAX_NUM_FORMS': '1000',
+        })
+
+    def test_setting_salary_for_the_first_time(self):
+        employee = make_employee()
+        response = self._post_salary(employee, '3000.00')
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(employee.history.get().reason, 'Definição de Salário')
+
+    def test_raise_is_merit(self):
+        employee = make_employee(current_salary=2000)
+        self._post_salary(employee, '3000.00')
+        self.assertEqual(employee.history.get().reason, 'Mérito')

@@ -154,7 +154,11 @@ def employee_update(request, pk):
             elif has_job_change:
                 auto_reason = "Promoção"
             elif has_salary_change:
-                if new_employee.current_salary > old_salary:
+                # Um dos lados pode ser None (salário definido/removido agora):
+                # comparar None com Decimal lança TypeError.
+                if old_salary is None:
+                    auto_reason = "Definição de Salário"
+                elif new_employee.current_salary is not None and new_employee.current_salary > old_salary:
                     auto_reason = "Mérito"
                 else:
                     auto_reason = "Reajuste"
