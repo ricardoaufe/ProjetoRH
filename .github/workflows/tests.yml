@@ -1,0 +1,42 @@
+name: Testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      SECRET_KEY: ci-only-secret-key-not-used-in-production
+      DEBUG: "0"
+      DATABASE_ENGINE: django.db.backends.sqlite3
+      DATABASE_NAME: ci.sqlite3
+      EMAIL_BACKEND: django.core.mail.backends.locmem.EmailBackend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      # O WeasyPrint (PDFs) precisa do Pango instalado no sistema.
+      - name: Instalar dependências do sistema
+        run: sudo apt-get update && sudo apt-get install -y libpango-1.0-0 libpangoft2-1.0-0
+
+      - name: Instalar dependências Python
+        run: pip install -r requirements.txt
+
+      - name: Checagens do Django
+        run: python manage.py check
+
+      # Falha se algum model mudou sem a migration correspondente.
+      - name: Migrations em dia
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Testes
+        run: pytest -q
