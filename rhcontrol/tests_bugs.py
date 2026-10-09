@@ -194,7 +194,7 @@ class DismissalCancelsCareerPlanEmailTests(TestCase):
 class UpcomingPromotionFilterTests(TestCase):
     """Filtrar os próximos eventos por funcionário não pode esconder a promoção."""
 
-    def test_promocao_aparece_com_filtro_de_funcionario(self):
+    def test_promotion_shown_when_filtering_by_employee_or_department(self):
         from rhcontrol.models import CareerPlan
         from rhcontrol.services import get_upcoming_events
 

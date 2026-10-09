@@ -113,9 +113,9 @@ class SystemUserUpdateForm(forms.ModelForm):
     def __init__(self, *args, request_user=None, **kwargs):
         super().__init__(*args, **kwargs)
         if self.instance and self.instance.pk:
-            grupo_atual = self.instance.groups.first()
-            if grupo_atual:
-                self.fields["role"].initial = grupo_atual
+            current_group = self.instance.groups.first()
+            if current_group:
+                self.fields["role"].initial = current_group
 
             # Ninguém altera o próprio perfil de acesso (evita autopromoção).
             # Campo desabilitado: o Django ignora o valor do POST e usa o initial.
@@ -183,8 +183,8 @@ class SystemUserUpdateForm(forms.ModelForm):
                     if not recipient:
                         recipient = NotificationRecipient(email=email)
 
-                    nome_completo = f"{user.first_name} {user.last_name}".strip()
-                    recipient.name = nome_completo if nome_completo else user.username
+                    full_name = f"{user.first_name} {user.last_name}".strip()
+                    recipient.name = full_name if full_name else user.username
                     recipient.email = email
                     recipient.receive_all_events = receive_all
                     recipient.is_active = True

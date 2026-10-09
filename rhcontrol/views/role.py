@@ -49,11 +49,11 @@ def role_update_view(request, pk):
     if request.method == 'POST':
         form = RoleGroupForm(request.POST, instance=group)
         if form.is_valid():
-            grupo_salvo = form.save()
+            saved_group = form.save()
             # set() com lista vazia remove tudo se desmarcar tudo
-            grupo_salvo.permissions.set(get_matrix_permissions(request.POST.getlist('permissions')))
+            saved_group.permissions.set(get_matrix_permissions(request.POST.getlist('permissions')))
                 
-            messages.success(request, f"Perfil '{grupo_salvo.name}' atualizado com sucesso!")
+            messages.success(request, f"Perfil '{saved_group.name}' atualizado com sucesso!")
             return redirect('rhcontrol:role_list')
         else:
             messages.error(request, "Erro ao atualizar. Verifique os campos.")

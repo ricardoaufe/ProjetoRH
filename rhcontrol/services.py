@@ -187,7 +187,7 @@ def send_notification_for_event(event: dict, dry_run: bool = False) -> None:
         logger.info(f"Ignorado: Sem destinatários ativos para a regra [{rule.get_event_type_display()}].")
         return
 
-    snapshot_ordenado = sorted(recipients_list)
+    sorted_snapshot = sorted(recipients_list)
 
     content_type = ContentType.objects.get_for_model(related_object, for_concrete_model=True)
     object_id = related_object.pk
@@ -216,7 +216,7 @@ def send_notification_for_event(event: dict, dry_run: bool = False) -> None:
         if already_sent:
             logger.debug(f"[DRY-RUN] Já enviado anteriormente para [{employee.name}] - Ano {reference_year}, ignorado.")
         else:
-            logger.info(f"[DRY-RUN] Simulação: Enviaria [{event_name_display}] para {len(snapshot_ordenado)} e-mail(s): {snapshot_ordenado}")
+            logger.info(f"[DRY-RUN] Simulação: Enviaria [{event_name_display}] para {len(sorted_snapshot)} e-mail(s): {sorted_snapshot}")
         
         return
 
@@ -228,14 +228,14 @@ def send_notification_for_event(event: dict, dry_run: bool = False) -> None:
                 content_type=content_type,
                 object_id=object_id,
                 reference_year=reference_year,
-                recipients_snapshot=snapshot_ordenado
+                recipients_snapshot=sorted_snapshot
             )
             
             send_mail(
                 subject=subject,
                 message=body,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=snapshot_ordenado,
+                recipient_list=sorted_snapshot,
                 fail_silently=False, 
             )
             
@@ -246,7 +246,7 @@ def send_notification_for_event(event: dict, dry_run: bool = False) -> None:
     except Exception:
         raise
 
-    logger.info(f"Sucesso: Notificação de [{event_name_display}] enviada e registrada para {len(snapshot_ordenado)} e-mail(s) sobre [{employee.name}].")
+    logger.info(f"Sucesso: Notificação de [{event_name_display}] enviada e registrada para {len(sorted_snapshot)} e-mail(s) sobre [{employee.name}].")
 
 
 def notify_career_plan_event(plan: CareerPlan, event_type: str, dry_run: bool = False) -> None:
@@ -355,12 +355,12 @@ def process_career_plans(dry_run: bool = False) -> None:
             plan.save(update_fields=['status', 'cancellation_reason', 'updated_at'])
             notify_career_plan_event(plan, EventTypes.CAREER_PLAN_CANCELLED)
 
-    dia_d_plans = CareerPlan.objects.filter(
+    due_today_plans = CareerPlan.objects.filter(
         status=CareerPlan.PlanStatus.CONFIRMED,
         promotion_date__lte=today,
         effective_applied_at__isnull=True
     )
-    for plan in dia_d_plans:
+    for plan in due_today_plans:
         employee = plan.employee
 
         if plan.proposed_job.department != employee.department:
@@ -778,20 +778,20 @@ def _ue_generate_trial(start: date, end: date, filters: dict) -> list[dict]:
             if not emp.hire_date:
                 continue
                 
-            fim_do_contrato = emp.hire_date + timedelta(days=(days - 1))
-            warning_date = fim_do_contrato - timedelta(days=WARNING_OFFSET)
+            contract_end = emp.hire_date + timedelta(days=(days - 1))
+            warning_date = contract_end - timedelta(days=WARNING_OFFSET)
             
             # O filtro CONTINUA usando a data de aviso (para o Cron e Dashboard acharem no dia certo)
             if not _ue_in_range(warning_date, start, end):
                 continue
             
-            data_fim_formatada = fim_do_contrato.strftime('%d/%m/%Y')
+            formatted_end_date = contract_end.strftime('%d/%m/%Y')
                 
             _ue_append(
                 events,
-                date=fim_do_contrato, # CORREÇÃO: Passamos a data real para o HTML imprimir em negrito!
+                date=contract_end, # CORREÇÃO: Passamos a data real para o HTML imprimir em negrito!
                 category=category,
-                title=title_tpl.format(name=emp.name, data_fim=data_fim_formatada),
+                title=title_tpl.format(name=emp.name, data_fim=formatted_end_date),
                 object_type="employee", object_id=emp.pk,
                 employee_id=emp.pk, employee_name=emp.name,
                 department_name=emp.department.name if emp.department_id else None,

@@ -257,7 +257,7 @@ def employee_career_plan_pdf(request, pk):
     is_adm = False
     if employee.department:
         dept_name = employee.department.name.upper().strip()
-        is_adm = any(palavra in dept_name for palavra in ADMINISTRATIVE_KEYWORDS)
+        is_adm = any(keyword in dept_name for keyword in ADMINISTRATIVE_KEYWORDS)
 
     table_data = []
 
@@ -267,17 +267,17 @@ def employee_career_plan_pdf(request, pk):
     ).order_by('date_changed')
 
     for h in history_records:
-        salario_base = float(h.new_salary or h.old_salary or employee.current_salary or 0)
-        cargo_linha = h.new_job_title or h.old_job_title or employee.job_title.name
-        insalub_str, total_str = _insalubrity_columns(salario_base, h.date_changed.year, is_adm)
+        base_salary = float(h.new_salary or h.old_salary or employee.current_salary or 0)
+        row_job_title = h.new_job_title or h.old_job_title or employee.job_title.name
+        insalubrity_str, total_str = _insalubrity_columns(base_salary, h.date_changed.year, is_adm)
 
         table_data.append({
-            'ano': h.date_changed.year,
-            'data': h.date_changed,
-            'salario': salario_base,
-            'insalub': insalub_str,
-            'v_total': total_str,
-            'funcao': cargo_linha,
+            'year': h.date_changed.year,
+            'date': h.date_changed,
+            'salary': base_salary,
+            'insalubrity': insalubrity_str,
+            'total': total_str,
+            'job_title': row_job_title,
             'is_future': False
         })
 
@@ -286,16 +286,16 @@ def employee_career_plan_pdf(request, pk):
     ).select_related('proposed_job').order_by('promotion_date')
 
     for plan in active_plans:
-        salario_base = float(plan.proposed_salary or 0)
-        insalub_str, total_str = _insalubrity_columns(salario_base, plan.promotion_date.year, is_adm)
+        base_salary = float(plan.proposed_salary or 0)
+        insalubrity_str, total_str = _insalubrity_columns(base_salary, plan.promotion_date.year, is_adm)
 
         table_data.append({
-            'ano': plan.promotion_date.year,
-            'data': plan.promotion_date,
-            'salario': salario_base,
-            'insalub': insalub_str,
-            'v_total': total_str,
-            'funcao': plan.proposed_job.name,
+            'year': plan.promotion_date.year,
+            'date': plan.promotion_date,
+            'salary': base_salary,
+            'insalubrity': insalubrity_str,
+            'total': total_str,
+            'job_title': plan.proposed_job.name,
             'is_future': True
         })
 

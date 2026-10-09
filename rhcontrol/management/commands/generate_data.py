@@ -9,26 +9,26 @@ class Command(BaseCommand):
     help = 'Gera setores, cargos e funcionários fictícios e relacionados para testes.'
 
     def add_arguments(self, parser):
-        parser.add_argument('quantidade', type=int, help='Número de funcionários a serem criados')
+        parser.add_argument('count', type=int, help='Número de funcionários a serem criados')
 
     def handle(self, *args, **options):
         from faker import Faker
-        quantidade = options['quantidade']
+        count = options['count']
         fake = Faker('pt_BR')
         
         self.stdout.write(self.style.NOTICE('=== INICIANDO GERAÇÃO DE DADOS ==='))
         self.stdout.write('Gerando Setores...')
-        nomes_setores = [
+        department_names = [
             'Tecnologia da Informação', 'Recursos Humanos', 
             'Financeiro', 'Produção', 'Logística'
         ]
-        setores_criados = []
+        created_departments = []
         
-        for nome in nomes_setores:
-            setor, created = Department.objects.get_or_create(name=nome)
-            setores_criados.append(setor)
+        for name in department_names:
+            department, created = Department.objects.get_or_create(name=name)
+            created_departments.append(department)
             
-        self.stdout.write(self.style.SUCCESS(f'{len(setores_criados)} Setores garantidos no banco.'))
+        self.stdout.write(self.style.SUCCESS(f'{len(created_departments)} Setores garantidos no banco.'))
 
         # ==========================================
         # 2. CRIAÇÃO DE CARGOS (JobTitles)
@@ -36,7 +36,7 @@ class Command(BaseCommand):
         self.stdout.write('Gerando Cargos amarrados aos Setores...')
         
         # Dicionário mapeando os Setores aos seus respectivos Cargos possíveis
-        cargos_por_setor = {
+        jobs_by_department = {
             'Tecnologia da Informação': ['Desenvolvedor Júnior', 'Desenvolvedor Pleno', 'Desenvolvedor Sênior', 'Gerente de TI', 'Suporte Técnico'],
             'Recursos Humanos': ['Analista de RH', 'Assistente de Departamento Pessoal', 'Gerente de RH', 'Recrutador'],
             'Financeiro': ['Analista Financeiro', 'Assistente Administrativo', 'Diretor Financeiro', 'Contador'],
@@ -44,14 +44,14 @@ class Command(BaseCommand):
             'Logística': ['Estoquista', 'Analista de Logística', 'Motorista', 'Coordenador de Frota']
         }
 
-        for setor in setores_criados:
-            cargos_do_setor = cargos_por_setor.get(setor.name, ['Auxiliar Geral'])
-            for nome_cargo in cargos_do_setor:
-                salario_aleatorio = round(random.uniform(1500.0, 12000.0), 2)
+        for department in created_departments:
+            department_jobs = jobs_by_department.get(department.name, ['Auxiliar Geral'])
+            for job_name in department_jobs:
+                random_salary = round(random.uniform(1500.0, 12000.0), 2)
                 JobTitle.objects.get_or_create(
-                    name=nome_cargo,
-                    department=setor,
-                    defaults={'base_salary': salario_aleatorio, 'description': f'Descrição padrão para {nome_cargo}'}
+                    name=job_name,
+                    department=department,
+                    defaults={'base_salary': random_salary, 'description': f'Descrição padrão para {job_name}'}
                 )
                 
         self.stdout.write(self.style.SUCCESS('Cargos criados e vinculados aos setores com sucesso.'))
@@ -59,60 +59,60 @@ class Command(BaseCommand):
         # ==========================================
         # 3. CRIAÇÃO DE FUNCIONÁRIOS
         # ==========================================
-        self.stdout.write(f'Gerando {quantidade} Funcionários com dados obrigatórios...')
-        funcionarios_criados = []
-        cpfs_gerados = set() # Controle local para evitar repetição de CPF no sorteio do Faker
+        self.stdout.write(f'Gerando {count} Funcionários com dados obrigatórios...')
+        created_employees = []
+        used_cpfs = set() # Controle local para evitar repetição de CPF no sorteio do Faker
 
-        for _ in range(quantidade):
+        for _ in range(count):
             # Garante que o Faker não gere um CPF repetido nesta mesma rodada
-            cpf_valido = fake.cpf()
-            while cpf_valido in cpfs_gerados:
-                cpf_valido = fake.cpf()
-            cpfs_gerados.add(cpf_valido)
+            cpf = fake.cpf()
+            while cpf in used_cpfs:
+                cpf = fake.cpf()
+            used_cpfs.add(cpf)
             
             # Sorteia um setor
-            setor_sorteado = random.choice(setores_criados)
+            random_department = random.choice(created_departments)
             
             # Pega todos os cargos que pertencem ÚNICA E EXCLUSIVAMENTE ao setor sorteado
             # (Utiliza o related_name 'job_titles' definido no seu models.py)
-            cargos_validos_do_setor = list(setor_sorteado.job_titles.all())
-            cargo_sorteado = random.choice(cargos_validos_do_setor)
+            valid_jobs = list(random_department.job_titles.all())
+            random_job = random.choice(valid_jobs)
             
             try:
                 emp = Employee.objects.create(
                     name=fake.name(),
-                    cpf=cpf_valido,
+                    cpf=cpf,
                     birth_date=fake.date_of_birth(minimum_age=18, maximum_age=65),
-                    current_salary=cargo_sorteado.base_salary,
-                    department=setor_sorteado,
-                    job_title=cargo_sorteado
+                    current_salary=random_job.base_salary,
+                    department=random_department,
+                    job_title=random_job
                 )
-                funcionarios_criados.append(emp)
+                created_employees.append(emp)
                 
             except Exception as e:
                 self.stdout.write(self.style.ERROR(f'Erro ao criar funcionário: {e}'))
 
-        self.stdout.write(self.style.SUCCESS(f'{len(funcionarios_criados)} Funcionários criados com sucesso!'))
+        self.stdout.write(self.style.SUCCESS(f'{len(created_employees)} Funcionários criados com sucesso!'))
         self.stdout.write(self.style.NOTICE('=== GERAÇÃO FINALIZADA ==='))
 
         self.stdout.write('Gerando histórico de Férias...')
-        ferias_criadas = 0
+        created_vacations = 0
 
-        for emp in funcionarios_criados:
+        for emp in created_employees:
 
             if random.random() < 0.40:
-                data_inicio = fake.date_between(start_date='-1y', end_date='+1y')
-                duracao = random.choice([10, 15, 20, 30])
+                start_date = fake.date_between(start_date='-1y', end_date='+1y')
+                duration = random.choice([10, 15, 20, 30])
                 
                 try:
                     Vacation.objects.create(
                         employee=emp,
-                        start_date=data_inicio,
-                        vacation_duration=duracao
+                        start_date=start_date,
+                        vacation_duration=duration
                     )
-                    ferias_criadas += 1
+                    created_vacations += 1
                 except Exception as e:
                     self.stdout.write(self.style.ERROR(f'Erro ao criar férias para {emp.name}: {e}'))
 
-        self.stdout.write(self.style.SUCCESS(f'{ferias_criadas} registros de Férias criados com sucesso!'))
+        self.stdout.write(self.style.SUCCESS(f'{created_vacations} registros de Férias criados com sucesso!'))
         self.stdout.write(self.style.NOTICE('=== GERAÇÃO FINALIZADA ==='))

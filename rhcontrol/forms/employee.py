@@ -287,7 +287,7 @@ class EmployeeHistoryForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        campos_dinamicos = [
+        dynamic_fields = [
             "old_job_title",
             "new_job_title",
             "old_salary",
@@ -296,9 +296,9 @@ class EmployeeHistoryForm(forms.ModelForm):
             "new_cipa_role",
         ]
 
-        for campo in campos_dinamicos:
-            if campo in self.fields:
-                self.fields[campo].required = False
+        for field_name in dynamic_fields:
+            if field_name in self.fields:
+                self.fields[field_name].required = False
 
 class DependentForm(forms.ModelForm):
     class Meta:

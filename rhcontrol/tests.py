@@ -423,7 +423,7 @@ class AjaxTests(TestCase):
         self.assertFalse(data['success'])
         self.assertEqual(data['jobs'], [])
 
-class CipaStabilityTestes(TestCase):
+class CipaStabilityTests(TestCase):
     def setUp(self):
 
         self.dept = Department.objects.create(name="Setor de Testes")
@@ -1052,60 +1052,60 @@ class ContractEndEventTests(TestCase):
         entra na janela de hoje, exibe a data real do fim do contrato e está
         marcado para enviar e-mail.
         """
-        hoje = timezone.localdate()
-        data_fim_contrato = hoje + timedelta(days=15)
+        today = timezone.localdate()
+        contract_end = today + timedelta(days=15)
         
         # Cria o funcionário (Preencha outros campos obrigatórios do seu model se o banco reclamar)
         emp = Employee.objects.create(
             name="João Aprendiz Teste",
             cpf="111.111.111-11",
-            birth_date=hoje - timedelta(days=365*18),
+            birth_date=today - timedelta(days=365*18),
             department=self.dept,
             job_title=self.job,
-            hire_date=hoje - timedelta(days=300),
-            contract_end_date=data_fim_contrato,
+            hire_date=today - timedelta(days=300),
+            contract_end_date=contract_end,
             termination_date=None # Funcionário ativo
         )
 
         # Chama o serviço escaneando o mês atual
-        eventos = get_upcoming_events(start_date=hoje, end_date=hoje + timedelta(days=30))
+        events = get_upcoming_events(start_date=today, end_date=today + timedelta(days=30))
         
         # Filtra os eventos para encontrar o nosso aviso de fim de contrato
-        eventos_fim_contrato = [e for e in eventos if e['category'] == 'CONTRACT_END_WARNING' and e['employee_id'] == emp.pk]
+        contract_end_events = [e for e in events if e['category'] == 'CONTRACT_END_WARNING' and e['employee_id'] == emp.pk]
 
         # 1. Verifica se o evento foi gerado (A lista não pode estar vazia)
-        self.assertEqual(len(eventos_fim_contrato), 1, "O evento de fim de contrato deveria ter sido gerado.")
+        self.assertEqual(len(contract_end_events), 1, "O evento de fim de contrato deveria ter sido gerado.")
         
-        evento = eventos_fim_contrato[0]
+        event = contract_end_events[0]
         
         # 2. O evento exibe a data real do fim do contrato (o aviso só decide
         #    QUANDO ele entra na lista: 15 dias antes).
-        self.assertEqual(evento['date'], data_fim_contrato, "O evento deve mostrar a data real do fim do contrato.")
+        self.assertEqual(event['date'], contract_end, "O evento deve mostrar a data real do fim do contrato.")
         
         # 3. Verifica se a flag de enviar e-mail está ativada para o worker/celery pegar depois
-        self.assertTrue(evento['email_event'], "A flag 'email_event' deve ser True para o disparo de email ocorrer.")
+        self.assertTrue(event['email_event'], "A flag 'email_event' deve ser True para o disparo de email ocorrer.")
 
     def test_contract_end_warning_not_generated_if_employee_terminated(self):
         """
         Testa a 'Segurança': Se o Aprendiz já foi demitido antes do prazo, 
         o sistema NÃO DEVE mandar e-mail avisando do fim do contrato.
         """
-        hoje = timezone.localdate()
-        data_fim_contrato = hoje + timedelta(days=15)
+        today = timezone.localdate()
+        contract_end = today + timedelta(days=15)
         
         # Cria o funcionário já demitido
         emp = Employee.objects.create(
             name="Maria Aprendiz Demitida",
             cpf="222.222.222-22",
-            birth_date=hoje - timedelta(days=365*18),
+            birth_date=today - timedelta(days=365*18),
             department=self.dept,
             job_title=self.job,
-            contract_end_date=data_fim_contrato,
-            termination_date=hoje - timedelta(days=5) # Foi demitida há 5 dias!
+            contract_end_date=contract_end,
+            termination_date=today - timedelta(days=5) # Foi demitida há 5 dias!
         )
 
-        eventos = get_upcoming_events(start_date=hoje, end_date=hoje + timedelta(days=30))
-        eventos_fim_contrato = [e for e in eventos if e['category'] == 'CONTRACT_END_WARNING' and e['employee_id'] == emp.pk]
+        events = get_upcoming_events(start_date=today, end_date=today + timedelta(days=30))
+        contract_end_events = [e for e in events if e['category'] == 'CONTRACT_END_WARNING' and e['employee_id'] == emp.pk]
 
         # A lista de eventos para essa funcionária deve estar vazia
-        self.assertEqual(len(eventos_fim_contrato), 0, "Nenhum evento deve ser gerado se o funcionário já foi desligado.")
+        self.assertEqual(len(contract_end_events), 0, "Nenhum evento deve ser gerado se o funcionário já foi desligado.")
