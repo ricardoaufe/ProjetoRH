@@ -215,3 +215,32 @@ class UpcomingPromotionFilterTests(TestCase):
                 )
                 categories = [e['category'] for e in events]
                 self.assertIn('CAREER_PLAN_PROMOTION_DATE', categories)
+
+
+class LocalDateTests(TestCase):
+    """
+    "Hoje" é a data de Brasília, não a de Greenwich (UTC).
+
+    Às 22h de Brasília já é o dia seguinte em UTC. Com timezone.now().date(),
+    um plano de carreira para "amanhã" era recusado como se fosse para hoje.
+    """
+
+    def test_tomorrow_promotion_accepted_late_at_night(self):
+        from datetime import datetime
+        from datetime import timezone as dt_timezone
+        from unittest import mock
+
+        employee = make_employee()
+        senior = JobTitle.objects.create(
+            name='Operador Sênior', department=employee.department, base_salary=3500
+        )
+        # 9/out 22h em Brasília = 10/out 01h em UTC
+        late_night = datetime(2026, 10, 10, 1, 0, tzinfo=dt_timezone.utc)
+
+        with mock.patch('django.utils.timezone.now', return_value=late_night):
+            plan = CareerPlan.objects.create(
+                employee=employee, proposed_job=senior, proposed_salary=3500,
+                promotion_date=date(2026, 10, 10),
+            )
+
+        self.assertIsNotNone(plan.pk)

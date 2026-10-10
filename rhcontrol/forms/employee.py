@@ -1,7 +1,7 @@
-from datetime import date
 from decimal import Decimal, InvalidOperation
 
 from django import forms
+from django.utils import timezone
 
 from rhcontrol.models import Dependent, Employee, EmployeeHistory, JobTitle, Training
 
@@ -133,7 +133,7 @@ class EmployeeForm(forms.ModelForm):
         birth_date = self.cleaned_data.get("birth_date")
 
         if birth_date:
-            today = date.today()
+            today = timezone.localdate()
             age = (
                 today.year
                 - birth_date.year

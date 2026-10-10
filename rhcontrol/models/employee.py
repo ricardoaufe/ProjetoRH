@@ -211,7 +211,7 @@ class Employee(models.Model):
         if not self.is_cipa_member or not self.cipa_mandate_end_date:
             return
 
-        today = timezone.now().date()
+        today = timezone.localdate()
         stability_end_date = self.cipa_mandate_end_date + timedelta(days=365)
         
         if today > stability_end_date:
@@ -230,7 +230,7 @@ class Employee(models.Model):
         if not self.is_cipa_member or not self.cipa_mandate_end_date:
             return None
         
-        today = timezone.now().date()
+        today = timezone.localdate()
         
         start_date = self.cipa_mandate_start_date or self.cipa_mandate_end_date - timedelta(days=365)
         
@@ -278,7 +278,7 @@ class Employee(models.Model):
         if not self.hire_date:
             return "-"
         
-        today = timezone.now().date()
+        today = timezone.localdate()
         
         if self.hire_date > today:
             return "Não possui tempo de empresa ainda"

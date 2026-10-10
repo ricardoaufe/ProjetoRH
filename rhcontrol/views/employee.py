@@ -16,7 +16,7 @@ from rhcontrol.models import Employee, EmployeeHistory, JobTitle
 @login_required
 @permission_required('rhcontrol.view_employee', raise_exception=True)
 def employee_view(request):
-    limit_date = timezone.now().date() - timedelta(days=366)
+    limit_date = timezone.localdate() - timedelta(days=366)
     
     expired_employees = Employee.objects.filter(
         is_cipa_member=True,
@@ -50,7 +50,7 @@ def employee_create(request):
             formset.instance = employee
             formset.save()
             
-            admission_date = employee.hire_date if employee.hire_date else timezone.now().date()
+            admission_date = employee.hire_date if employee.hire_date else timezone.localdate()
             EmployeeHistory.objects.create(
                 employee=employee,
                 date_changed=admission_date,
