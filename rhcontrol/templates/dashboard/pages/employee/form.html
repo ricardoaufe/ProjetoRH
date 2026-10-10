@@ -8,19 +8,19 @@
 
 <div class="form-container">
   
-  <div class="form-header" style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid #eaeaea; padding-bottom: 1.5rem; margin-bottom: 2rem;">
+  <div class="form-header title-bar">
 
-    <div style="flex: 1; display: flex; justify-content: flex-start;">
+    <div class="header-slot header-slot--start">
       <a href="{% url 'rhcontrol:employee_list' %}" class="btn-back" title="Voltar">
           <i class="fa fa-chevron-left"></i>
       </a>
     </div>
 
-    <div style="flex: 2; text-align: center;">
-      <h2 style="margin: 0; color: #333;">{{ title|default:"Cadastrar Funcionário" }}</h2>
+    <div class="header-title-slot">
+      <h2 class="title-bar__title">{{ title|default:"Cadastrar Funcionário" }}</h2>
     </div>
 
-    <div style="flex: 1; display: flex; justify-content: flex-end; gap: 0.5rem; align-items: center;">
+    <div class="header-slot header-slot--end header-slot--actions">
       {% if form.instance.pk %}
       <div class="dropdown">
         <button type="button" class="btn-dropdown-trigger">
@@ -30,47 +30,47 @@
         <div class="dropdown-content">
           <a href="{% url 'rhcontrol:employee_registration_pdf' pk=form.instance.pk %}" target="_blank">
             <i class="fa fa-id-text-o"></i> Ficha Cadastral
-            <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+            <i class="fa fa-external-link external-link-icon"></i>
           </a>
           <a href="{% url 'rhcontrol:confidenciality_term_pdf' pk=form.instance.pk %}" target="_blank">
             <i class="fa fa-file-text-o"></i> Confidencialidade
-            <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+            <i class="fa fa-external-link external-link-icon"></i>
           </a>
           <a href="{% url 'rhcontrol:bank_presentation_pdf' pk=form.instance.pk %}" target="_blank">
             <i class="fa fa-file-text-o"></i> Conta Bancária
-            <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+            <i class="fa fa-external-link external-link-icon"></i>
           </a>
           <a href="{% url 'rhcontrol:personal_data_consent_pdf' pk=form.instance.pk %}" target="_blank">
             <i class="fa fa-file-text-o"></i> Uso de Dados Pessoais
-            <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+            <i class="fa fa-external-link external-link-icon"></i>
           </a>
           <a href="{% url 'rhcontrol:term_of_commitment_pdf' pk=form.instance.pk %}" target="_blank">
             <i class="fa fa-file-text-o"></i> Compromisso
-            <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+            <i class="fa fa-external-link external-link-icon"></i>
           </a>
           <a href="{% url 'rhcontrol:term_of_consent_pdf' pk=form.instance.pk %}" target="_blank">
             <i class="fa fa-file-text-o"></i> Uso de Imagem
-            <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+            <i class="fa fa-external-link external-link-icon"></i>
           </a>
           <a href="{% url 'rhcontrol:benefits_acquisition_pdf' pk=form.instance.pk %}" target="_blank">
             <i class="fa fa-file-text-o"></i> Aquisição de Benefícios
-            <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+            <i class="fa fa-external-link external-link-icon"></i>
           </a>
           <a href="{% url 'rhcontrol:internal_regulation_pdf' pk=form.instance.pk %}" target="_blank">
             <i class="fa fa-file-text-o"></i> Regulamento Interno
-            <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+            <i class="fa fa-external-link external-link-icon"></i>
           </a>
           <a href="{% url 'rhcontrol:responsible_term_pdf' pk=form.instance.pk %}" target="_blank">
             <i class="fa fa-file-text-o"></i> Termo de Responsabilidade
-            <i class="fa fa-external-link" style="font-size: 0.75rem; margin-left: 3px"></i>
+            <i class="fa fa-external-link external-link-icon"></i>
           </a>
         </div>
       </div>
       {% endif %} 
 
       {% if form.instance.pk and perms.rhcontrol.view_occurrence %}
-      <a href="{% url 'rhcontrol:occurrence_list' employee_id=form.instance.pk %}" class="btn-dropdown-trigger" title="Ver todas as ocorrências" style = "decoration: none;">
-        <i class="fa fa-exclamation-circle" style= "decoration: none;"></i> Ocorrências
+      <a href="{% url 'rhcontrol:occurrence_list' employee_id=form.instance.pk %}" class="btn-dropdown-trigger" title="Ver todas as ocorrências">
+        <i class="fa fa-exclamation-circle"></i> Ocorrências
       </a>
       {% endif %}
     </div>
@@ -96,14 +96,14 @@
 
 <dialog id="deleteModal" class="delete-dialog">
   <div class="dialog-content">
-    <i class="fa fa-exclamation-circle" style="font-size: 3rem; color: #dc3545; margin-bottom: 10px"></i>
+    <i class="fa fa-exclamation-circle dialog-content__icon"></i>
     <h3>Excluir Registro?</h3>
     <p>Essa ação não poderá ser desfeita.</p>
     <div class="dialog-actions">
       <button onclick="closeDeleteModal()" class="btn-cancel-modal">Cancelar</button>
-      <form id="deleteForm" method="POST" action="" style="display: contents;">
+      <form id="deleteForm" method="POST" action="" class="u-display-contents">
         {% csrf_token %}
-        <button type="submit" class="btn-confirm-modal" style="font-family: inherit;">Sim, Excluir</button>
+        <button type="submit" class="btn-confirm-modal u-font-inherit">Sim, Excluir</button>
       </form>
     </div>
   </div>

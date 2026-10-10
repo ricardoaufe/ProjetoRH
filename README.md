@@ -97,7 +97,14 @@ http://127.0.0.1:8000 #Use o login e senha criados no passo 6.
 pytest
 ```
 
-Os testes também rodam automaticamente no GitHub Actions a cada push na `main` e em todo Pull Request (`.github/workflows/tests.yml`).
+### Lint
+
+```bash
+ruff check .        # aponta problemas (imports sem uso, except genérico...)
+ruff check . --fix  # corrige automaticamente o que for seguro
+```
+
+As regras ficam em `ruff.toml`. Testes e lint rodam automaticamente no GitHub Actions a cada push na `main` e em todo Pull Request (`.github/workflows/tests.yml`).
 
 ## 💡 Aprendizados e Desafios
 

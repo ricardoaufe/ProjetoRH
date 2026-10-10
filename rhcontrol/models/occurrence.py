@@ -99,8 +99,8 @@ class Occurrence(models.Model):
         super().save(*args, **kwargs)
 
     def __str__(self):
-        tipo = "Afastamento" if self.is_absence else "Ocorrência"
-        return f'{tipo}: {self.title} — {self.employee.name} ({self.occurrence_date})'
+        kind = "Afastamento" if self.is_absence else "Ocorrência"
+        return f'{kind}: {self.title} — {self.employee.name} ({self.occurrence_date})'
 
 
     

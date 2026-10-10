@@ -189,3 +189,29 @@ class DismissalCancelsCareerPlanEmailTests(TestCase):
         from rhcontrol.services import notify_career_plan_event
         notify_career_plan_event(self.plan, EventTypes.CAREER_PLAN_REMINDER)
         self.assertEqual(len(mail.outbox), 0)
+
+
+class UpcomingPromotionFilterTests(TestCase):
+    """Filtrar os próximos eventos por funcionário não pode esconder a promoção."""
+
+    def test_promotion_shown_when_filtering_by_employee_or_department(self):
+        from rhcontrol.models import CareerPlan
+        from rhcontrol.services import get_upcoming_events
+
+        employee = make_employee()
+        senior = JobTitle.objects.create(
+            name='Operador Sênior', department=employee.department, base_salary=3500
+        )
+        today = timezone.localdate()
+        CareerPlan.objects.create(
+            employee=employee, proposed_job=senior, proposed_salary=3500,
+            promotion_date=today + timedelta(days=10),
+        )
+
+        for filters in ({}, {'employee_id': employee.pk}, {'department_id': employee.department_id}):
+            with self.subTest(filters=filters):
+                events = get_upcoming_events(
+                    start_date=today, end_date=today + timedelta(days=30), **filters
+                )
+                categories = [e['category'] for e in events]
+                self.assertIn('CAREER_PLAN_PROMOTION_DATE', categories)

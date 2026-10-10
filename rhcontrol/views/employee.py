@@ -50,10 +50,10 @@ def employee_create(request):
             formset.instance = employee
             formset.save()
             
-            data_admissao = employee.hire_date if employee.hire_date else timezone.now().date()
+            admission_date = employee.hire_date if employee.hire_date else timezone.now().date()
             EmployeeHistory.objects.create(
                 employee=employee,
-                date_changed=data_admissao,
+                date_changed=admission_date,
                 old_job_title=None,    
                 new_job_title=str(employee.job_title),
                 old_salary=None,       
@@ -215,10 +215,10 @@ def history_create_view(request, employee_id):
         form = EmployeeHistoryForm(request.POST)
         
         # Trava: Não permite datas no futuro
-        data_input = request.POST.get('date_changed')
-        if data_input:
+        raw_date = request.POST.get('date_changed')
+        if raw_date:
             try:
-                parsed_date = date.fromisoformat(data_input)
+                parsed_date = date.fromisoformat(raw_date)
                 if parsed_date > timezone.localdate():
                     messages.error(request, 'Não é possível registrar históricos no futuro.')
                     return redirect('rhcontrol:employee_update', pk=employee_id)
@@ -245,10 +245,10 @@ def history_edit_view(request, pk):
     employee_id = history.employee.id
     if request.method == 'POST':
         
-        data_input = request.POST.get('date_changed')
-        if data_input:
+        raw_date = request.POST.get('date_changed')
+        if raw_date:
             try:
-                parsed_date = date.fromisoformat(data_input)
+                parsed_date = date.fromisoformat(raw_date)
                 if parsed_date > timezone.localdate():
                     messages.error(request, 'A data do histórico não pode ser no futuro.')
                     return redirect('rhcontrol:employee_update', pk=employee_id)

@@ -3,27 +3,27 @@
 {% block title %} Excluir Funcionário | {% endblock title %}
 
 {% block content %}
-<div class="form-container" style="max-width: 600px; text-align: center; padding: 2.5rem;">
-    <h2 style="color: #dc3545;">Tem certeza?</h2>
+<div class="form-container confirm-delete confirm-delete--compact">
+    <h2 class="confirm-delete__title">Tem certeza?</h2>
     
-    <p style="font-size: 2rem; margin: 1.25rem 0;">
+    <p class="confirm-delete__text">
         Você está prestes a excluir o funcionário: <br>
         <strong>{{ employee.name }}</strong> (CPF: {{ employee.cpf }})
     </p>
 
-    <div style="font-size: 1.4rem; background: #fff3cd; color: #856404; padding: 0.9375rem; border-radius: 5px; margin-bottom: 1.25rem;">
+    <div class="confirm-delete__warning">
         ⚠️ Esta ação é irreversível.
     </div>
 
     <form method="POST">
         {% csrf_token %}
         
-        <div style="display: flex; gap: 15px; justify-content: center;">
-            <a href="{% url 'rhcontrol:employee_list' %}" style="padding: 0.625rem 1.25rem; background: #6c757d; color: white; text-decoration: none; border-radius: 5px;">
+        <div class="confirm-delete__actions">
+            <a href="{% url 'rhcontrol:employee_list' %}" class="confirm-delete__cancel">
                 Cancelar
             </a>
 
-            <button type="submit" style="padding: 0.625rem 1.25rem; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
+            <button type="submit" class="confirm-delete__confirm">
                 Confirmar Exclusão
             </button>
         </div>

@@ -117,24 +117,24 @@
     <tbody>
         {% for row in table_data %}
         <tr>
-            <td><strong>{{ row.data|date:"Y" }}</strong></td>
-            <td>{{ row.data|date:"d/b/Y" }}</td>
+            <td><strong>{{ row.date|date:"Y" }}</strong></td>
+            <td>{{ row.date|date:"d/b/Y" }}</td>
             
             <td>
-                R$ {{ row.salario|floatformat:2 }}
+                R$ {{ row.salary|floatformat:2 }}
             </td>
 
             {% if not is_administrative %}
                 <td>
-                    {% if row.insalub %}R$ {{ row.insalub }}{% endif %}
+                    {% if row.insalubrity %}R$ {{ row.insalubrity }}{% endif %}
                 </td>
                 
                 <td>
-                    {% if row.v_total %}R$ {{ row.v_total }}{% endif %}
+                    {% if row.total %}R$ {{ row.total }}{% endif %}
                 </td>
             {% endif %}
             
-            <td>{{ row.funcao|title }}</td>
+            <td>{{ row.job_title|title }}</td>
         </tr>
         {% empty %}
         <tr>

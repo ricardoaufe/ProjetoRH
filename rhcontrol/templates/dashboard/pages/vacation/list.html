@@ -1,48 +1,16 @@
 {% extends 'global/base.html' %}
+{% load static %}
 
 {% block title %} Férias | {% endblock title %}
 
 {% block content %}
-<style>
-
-    .search-form input[type="text"],
-    .search-form input[type="date"] {
-        width: 100%;
-        padding: 6px 12px;
-        border: 1px solid #ced4da;
-        border-radius: 4px;
-        font-size: 1.4rem;
-        height: 38px;
-    }
-
-    .name-group {
-        flex: 1.5; 
-        min-width: 200px;
-    }
-
-    .date-group {
-        display: flex;
-        align-items: center; 
-        gap: 8px; 
-        flex: 1;
-        min-width: 160px;
-    }
-
-    .date-group label {
-        margin: 0; 
-        font-weight: bold;
-        color: #555;
-        font-size: 1.2rem;
-        white-space: nowrap; 
-    }
-
-</style>
+<link rel="stylesheet" href="{% static 'global/css/pages/vacation-list.css' %}?v=1" />
 <body>
 <div class= "list-container">
 
-    <div class= "page-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+    <div class="page-header page-header--toolbar">
         <h1>Lista de Férias</h1>
-        <div class="header-actions" style="display: flex; gap: 0.625rem;">
+        <div class="header-actions header-actions--row">
            <a href="{% url 'rhcontrol:create_vacation_list_pdf' %}?status={{ status|default:'ativas' }}&search={{ search_query }}&date_from={{ date_from }}&date_to={{ date_to }}" 
             target="_blank" 
             class="btn btn-primary">
@@ -97,28 +65,28 @@
         <thead>
             <tr>
                 <th>
-                    <a href="?sort=employee__name&search={{ search_query }}&status={{ status }}" style="color: inherit; text-decoration: none;">
-                        <span>Nome <i class="fa fa-sort" style="color: #aaa; margin-left: 5px;"></i></span>
+                    <a href="?sort=employee__name&search={{ search_query }}&status={{ status }}" class="sort-link">
+                        <span>Nome <i class="fa fa-sort sort-icon"></i></span>
                     </a>
                 </th>
                 <th>
-                    <a href="?sort=start_date&search={{ search_query }}&status={{ status }}" style="color: inherit; text-decoration: none;">
-                        <span>Data de Início <i class="fa fa-sort" style="color: #aaa; margin-left: 5px;"></i></span>
+                    <a href="?sort=start_date&search={{ search_query }}&status={{ status }}" class="sort-link">
+                        <span>Data de Início <i class="fa fa-sort sort-icon"></i></span>
                     </a>
                 </th>
                 <th>
-                    <a href="?sort=end_date&search={{ search_query }}&status={{ status }}" style="color: inherit; text-decoration: none;">
-                        <span>Data de Término <i class="fa fa-sort" style="color: #aaa; margin-left: 5px;"></i></span>
+                    <a href="?sort=end_date&search={{ search_query }}&status={{ status }}" class="sort-link">
+                        <span>Data de Término <i class="fa fa-sort sort-icon"></i></span>
                     </a>
                 </th>
                 <th>
-                    <a href="?sort=return_date&search={{ search_query }}&status={{ status }}" style="color: inherit; text-decoration: none;">
-                        <span>Data de Retorno <i class="fa fa-sort" style="color: #aaa; margin-left: 5px;"></i></span>
+                    <a href="?sort=return_date&search={{ search_query }}&status={{ status }}" class="sort-link">
+                        <span>Data de Retorno <i class="fa fa-sort sort-icon"></i></span>
                     </a>
                 </th>
                 <th>
-                    <a href="?sort=vacation_duration&search={{ search_query }}&status={{ status }}" style="color: inherit; text-decoration: none;">
-                        <span>Duração (dias) <i class="fa fa-sort" style="color: #aaa; margin-left: 5px;"></i></span>
+                    <a href="?sort=vacation_duration&search={{ search_query }}&status={{ status }}" class="sort-link">
+                        <span>Duração (dias) <i class="fa fa-sort sort-icon"></i></span>
                     </a>
                 </th>
             </tr>
@@ -135,7 +103,7 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="5" style="text-align: center;" >Nenhum registro de férias encontrado nesta categoria.</td>
+                <td colspan="5" class="u-text-center" >Nenhum registro de férias encontrado nesta categoria.</td>
             </tr>
             {% endfor %}
         </tbody>

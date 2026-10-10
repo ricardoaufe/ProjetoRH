@@ -6,6 +6,7 @@ das telas e dos PDFs, para garantir que a refatoração não muda nada que o
 usuário vê.
 """
 from datetime import date, timedelta
+from unittest import mock
 
 from django.contrib.auth.models import User
 from django.test import TestCase
@@ -184,7 +185,7 @@ class VacationFormTests(TestCase):
             department=department, job_title=job,
         )
 
-    def test_create_pula_feriado_no_retorno(self):
+    def test_create_skips_holiday_on_return_date(self):
         # Fim em 24/12/2026: 25/12 é Natal (sexta), então o retorno é 28/12 (segunda).
         response = self.client.post(reverse('rhcontrol:vacation_create'), {
             'employee': self.employee.pk, 'start_date': '2026-12-15', 'vacation_duration': 10,
@@ -194,14 +195,14 @@ class VacationFormTests(TestCase):
         self.assertEqual(vacation.end_date, date(2026, 12, 24))
         self.assertEqual(vacation.return_date, date(2026, 12, 28))
 
-    def test_create_recusa_duracao_zero(self):
+    def test_create_rejects_zero_duration(self):
         response = self.client.post(reverse('rhcontrol:vacation_create'), {
             'employee': self.employee.pk, 'start_date': '2026-12-15', 'vacation_duration': 0,
         })
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Vacation.objects.exists())
 
-    def test_update_recusa_duracao_negativa(self):
+    def test_update_rejects_negative_duration(self):
         vacation = Vacation.objects.create(
             employee=self.employee, start_date=date(2026, 12, 15), vacation_duration=10
         )
@@ -214,7 +215,7 @@ class VacationFormTests(TestCase):
 
 
 class DashboardTests(TestCase):
-    def test_card_e_grafico_contam_so_ativos(self):
+    def test_card_and_chart_count_only_active(self):
         self.client.force_login(
             User.objects.create_superuser('admin', 'admin@empresa.com', 'senha-forte-123')
         )
@@ -239,3 +240,41 @@ class DashboardTests(TestCase):
         response = self.client.get(reverse('rhcontrol:dashboard'))
         self.assertEqual(response.context['active_employees_count'], 3)
         self.assertEqual(response.context['chart_data'], [1, 1, 0, 0, 0, 1])
+
+
+class CareerPlanPdfContentTests(TestCase):
+    """
+    O template do plano de carreira lê as chaves de cada linha (row.salary,
+    row.job_title...). Se a view e o template divergirem, o Django imprime
+    vazio sem dar erro, então o teste confere o HTML gerado.
+    """
+
+    def test_rows_show_salary_insalubrity_and_job(self):
+        self.client.force_login(
+            User.objects.create_superuser('admin', 'admin@empresa.com', 'senha-forte-123')
+        )
+        department = Department.objects.create(name='Produção')
+        job = JobTitle.objects.create(name='operador', department=department, base_salary=2500)
+        senior = JobTitle.objects.create(name='operador sênior', department=department, base_salary=3500)
+        employee = Employee.objects.create(
+            name='José da Silva', cpf='67134509206', birth_date=date(1988, 7, 10),
+            department=department, job_title=job, current_salary=2500, hire_date=date(2020, 1, 6),
+        )
+        EmployeeHistory.objects.create(
+            employee=employee, date_changed=date(2020, 1, 6), new_job_title='operador',
+            new_salary=2500, reason='Admissão',
+        )
+        CareerPlan.objects.create(
+            employee=employee, proposed_job=senior, proposed_salary=3500, promotion_date=date(2030, 3, 1),
+        )
+
+        with mock.patch('rhcontrol.views.pdf.HTML') as html:
+            html.return_value.write_pdf.return_value = b'%PDF'
+            self.client.get(reverse('rhcontrol:employee_career_plan_pdf', args=[employee.pk]))
+        rendered = html.call_args.kwargs['string']
+
+        self.assertIn('06/jan/2020', rendered)
+        self.assertIn('R$ 2.500,00', rendered)
+        self.assertIn('R$ 209,00', rendered)      # 20% do salário mínimo de 2020 (R$ 1.045)
+        self.assertIn('R$ 2.709,00', rendered)
+        self.assertIn('Operador Sênior', rendered)
