@@ -333,13 +333,13 @@ def employee_career_plan_pdf(request, pk):
         insalubrity_str, total_str = _insalubrity_columns(base_salary, h.date_changed.year, is_adm)
 
         table_data.append({
-            'ano': h.date_changed.year,
-            'data': h.date_changed,
-            'salario': salario_base,
-            'insalub': insalub_str,
-            'v_total': total_str,
-            'funcao': cargo_linha,
-            'is_future': False
+            "year": h.date_changed.year,
+            "date": h.date_changed,
+            "salary": base_salary,
+            "insalubrity": insalubrity_str,
+            "total": total_str,
+            "job_title": row_job_title,
+            "is_future": False,
         })
 
     active_plans = (
@@ -351,17 +351,17 @@ def employee_career_plan_pdf(request, pk):
     )
 
     for plan in active_plans:
-        salario_base = float(plan.proposed_salary or 0)
-        insalub_str, total_str = _insalubrity_columns(salario_base, plan.promotion_date.year, is_adm)
+        base_salary = float(plan.proposed_salary or 0)
+        insalubrity_str, total_str = _insalubrity_columns(base_salary, plan.promotion_date.year, is_adm)
 
         table_data.append({
-            'ano': plan.promotion_date.year,
-            'data': plan.promotion_date,
-            'salario': salario_base,
-            'insalub': insalub_str,
-            'v_total': total_str,
-            'funcao': plan.proposed_job.name,
-            'is_future': True
+            "year": plan.promotion_date.year,
+            "date": plan.promotion_date,
+            "salary": base_salary,
+            "insalubrity": insalubrity_str,
+            "total": total_str,
+            "job_title": plan.proposed_job.name,
+            "is_future": True,
         })
 
     return render_pdf(
