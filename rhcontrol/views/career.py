@@ -6,6 +6,7 @@ from django.views.decorators.http import require_POST
 
 from rhcontrol.forms import CareerPlanForm
 from rhcontrol.models import CareerPlan
+from rhcontrol.pagination import paginate
 
 
 @login_required
@@ -45,8 +46,11 @@ def career_plan_list(request):
     }
     plans = plans.order_by(valid_sorts.get(sort_by, '-created_at'))
 
+    page_obj = paginate(request, plans)
+
     context = {
-        'plans': plans,
+        'plans': page_obj,
+        'page_obj': page_obj,
         'search_query': search_query,
         'date_from': date_from,
         'date_to': date_to,

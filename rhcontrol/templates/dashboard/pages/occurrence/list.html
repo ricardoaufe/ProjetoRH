@@ -140,19 +140,7 @@
   </div>
   {% endif %} 
   
-  {% if is_paginated %}
-  <div class="pagination-bar">
-    {% if page_obj.has_previous %}
-    <a href="?page={{ page_obj.previous_page_number }}&search={{ search_query }}&date_from={{ date_from }}&date_to={{ date_to }}&sort={{ sort_by }}" class="btn btn-sm btn-outline-secondary">&laquo; Anterior</a>
-    {% endif %}
-    <span class="pagination-bar__info">
-      Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-    </span>
-    {% if page_obj.has_next %}
-    <a href="?page={{ page_obj.next_page_number }}&search={{ search_query }}&date_from={{ date_from }}&date_to={{ date_to }}&sort={{ sort_by }}" class="btn btn-sm btn-outline-secondary">Próxima &raquo;</a>
-    {% endif %}
-  </div>
-  {% endif %}
+  {% include 'partials/pagination.html' %}
 </div>
 
 <script>

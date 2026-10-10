@@ -1,0 +1,22 @@
+{% comment %}
+Rodapé de paginação padrão. Espera "page_obj" no contexto (rhcontrol/pagination.py).
+O {% querystring %} troca só o ?page= e mantém busca, filtros e ordenação.
+{% endcomment %}
+{% if page_obj.paginator.num_pages > 1 %}
+<nav class="pagination-bar" aria-label="Paginação">
+    {% if page_obj.has_previous %}
+        <a href="{% querystring page=1 %}" class="btn" title="Primeira página">&laquo;</a>
+        <a href="{% querystring page=page_obj.previous_page_number %}" class="btn">&lsaquo; Anterior</a>
+    {% endif %}
+
+    <span class="pagination-bar__info">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        ({{ page_obj.paginator.count }} registros)
+    </span>
+
+    {% if page_obj.has_next %}
+        <a href="{% querystring page=page_obj.next_page_number %}" class="btn">Próxima &rsaquo;</a>
+        <a href="{% querystring page=page_obj.paginator.num_pages %}" class="btn" title="Última página">&raquo;</a>
+    {% endif %}
+</nav>
+{% endif %}

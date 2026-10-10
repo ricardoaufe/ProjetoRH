@@ -23,6 +23,7 @@ from django.views.generic import CreateView, DeleteView, ListView, UpdateView, V
 from rhcontrol.filters import filter_occurrences
 from rhcontrol.forms import OccurrenceForm
 from rhcontrol.models import CID, Employee, Occurrence
+from rhcontrol.pagination import LIST_PAGE_SIZE
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -40,13 +41,13 @@ class OccurrenceListView(PermissionRequiredMixin, ListView):
     """
     GET  employees/<employee_id>/occurrences/
     Shows all occurrences for the given employee, most recent first.
-    Paginated at 20 per page.
+    Paginated with the standard LIST_PAGE_SIZE.
     """
 
     permission_required = 'rhcontrol.view_occurrence'
     template_name = 'dashboard/pages/occurrence/list.html'
     context_object_name = 'occurrences'
-    paginate_by = 20
+    paginate_by = LIST_PAGE_SIZE
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)

@@ -5,6 +5,7 @@ from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 
 from rhcontrol.forms import RoleGroupForm
+from rhcontrol.pagination import paginate
 from rhcontrol.utils import RH_PERMISSION_MATRIX, get_matrix_permissions
 
 
@@ -34,9 +35,11 @@ def role_create_view(request):
 def role_list_view(request):
 
     roles = Group.objects.annotate(num_users=Count('user')).order_by('name')
-    
+    page_obj = paginate(request, roles)
+
     context = {
-        'roles': roles
+        'roles': page_obj,
+        'page_obj': page_obj,
     }
     return render(request, 'dashboard/pages/roles/list.html', context)
 

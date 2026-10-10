@@ -329,9 +329,16 @@
     border-radius: 6px;
 }
 
+
+/* ================================================================
+ * Paginação de todas as listas (partials/pagination.html)
+ * ================================================================ */
+
 .pagination-bar {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
+    align-items: center;
     margin-top: 1.5rem;
     gap: 0.5rem;
 }

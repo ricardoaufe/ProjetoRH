@@ -2,7 +2,6 @@ from datetime import date, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
-from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -11,6 +10,7 @@ from django.views.decorators.http import require_POST
 from rhcontrol.filters import filter_employees
 from rhcontrol.forms import DependentFormSet, EmployeeForm, EmployeeHistoryForm
 from rhcontrol.models import Employee, EmployeeHistory, JobTitle
+from rhcontrol.pagination import paginate
 
 
 @login_required
@@ -28,12 +28,10 @@ def employee_view(request):
 
     employee_list = filter_employees(Employee.objects.select_related('department'), request.GET)
 
-    paginator = Paginator(employee_list, 40)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
+    page_obj = paginate(request, employee_list)
     context = {
         'object_list': page_obj,
+        'page_obj': page_obj,
     }
     return render(request, 'dashboard/pages/employee/list.html', context)
 
