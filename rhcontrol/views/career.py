@@ -14,7 +14,9 @@ from rhcontrol.pagination import paginate
 def career_plan_list(request):
     """ View para listar todos os planos com filtros de busca, data, status e ordenação """
 
-    plans = CareerPlan.objects.select_related('employee', 'proposed_job', 'employee__department')
+    plans = CareerPlan.objects.select_related(
+        'employee', 'current_department', 'current_job', 'proposed_job'
+    )
 
     # ── Filters ──────────────────────────────────────────
     search_query = request.GET.get('search', '').strip()

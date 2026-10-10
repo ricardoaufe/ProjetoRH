@@ -3,6 +3,8 @@ Etapa 6 (desempenho e paginação).
 
 - Todas as listas usam o mesmo paginador e o mesmo rodapé, que mantém
   busca, filtros e ordenação ao trocar de página.
+- O número de consultas de uma lista não cresce com o número de linhas
+  (sem consultas N+1).
 """
 from datetime import date, timedelta
 from unittest import mock
@@ -114,3 +116,44 @@ class ListPaginationTests(TestCase):
         response = self.client.get(reverse('rhcontrol:department_list'))
         self.assertNotContains(response, 'aria-label="Paginação"')
 
+
+class NoNPlusOneTests(TestCase):
+    """Uma lista com 5 linhas faz as mesmas consultas que uma com 1 linha."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.admin = User.objects.create_superuser('admin', 'admin@empresa.com', 'senha-forte-123')
+
+    def setUp(self):
+        self.client.force_login(self.admin)
+
+    def count_queries(self, url):
+        from django.db import connection
+        from django.test.utils import CaptureQueriesContext
+
+        with CaptureQueriesContext(connection) as ctx:
+            response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        return len(ctx.captured_queries)
+
+    def test_query_count_does_not_grow_with_rows(self):
+        urls = [
+            reverse('rhcontrol:employee_list'),
+            reverse('rhcontrol:career_plan_list'),
+            reverse('rhcontrol:user_list'),
+            reverse('rhcontrol:employee_list_pdf'),
+        ]
+        create_rows(0)
+        with_one = {url: self.count_queries(url) for url in urls}
+
+        for index in range(1, 5):
+            create_rows(index)
+        for url in urls:
+            with self.subTest(url=url):
+                self.assertEqual(self.count_queries(url), with_one[url])
+
+    def test_leave_badge_still_shows(self):
+        employee = create_rows(0)
+        response = self.client.get(reverse('rhcontrol:employee_list'))
+        self.assertContains(response, 'Afastado(a)')
+        self.assertTrue(employee.is_on_leave)

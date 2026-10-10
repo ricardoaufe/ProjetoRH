@@ -2,6 +2,7 @@ from datetime import date, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
+from django.db.models import Exists, OuterRef
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -9,7 +10,7 @@ from django.views.decorators.http import require_POST
 
 from rhcontrol.filters import filter_employees
 from rhcontrol.forms import DependentFormSet, EmployeeForm, EmployeeHistoryForm
-from rhcontrol.models import Employee, EmployeeHistory, JobTitle
+from rhcontrol.models import Employee, EmployeeHistory, JobTitle, Occurrence
 from rhcontrol.pagination import paginate
 
 
@@ -26,7 +27,15 @@ def employee_view(request):
     for emp in expired_employees:
         emp.check_cipa_expiration()
 
-    employee_list = filter_employees(Employee.objects.select_related('department'), request.GET)
+    # O selo "Afastado(a)" vem anotado na própria consulta da lista,
+    # em vez de uma consulta extra por funcionário (problema N+1).
+    active_leave = Occurrence.objects.filter(
+        Employee.active_leave_q(timezone.localdate()), employee=OuterRef('pk')
+    )
+    employee_list = filter_employees(
+        Employee.objects.select_related('department').annotate(has_active_leave=Exists(active_leave)),
+        request.GET,
+    )
 
     page_obj = paginate(request, employee_list)
     context = {

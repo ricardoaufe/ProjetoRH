@@ -180,7 +180,7 @@ def create_employee_list_pdf(request):
         "dashboard/pages/employee/pdf/list.html",
         {
             "employees": filter_employees(
-                Employee.objects.select_related("department"), request.GET
+                Employee.objects.select_related("department", "job_title"), request.GET
             ),
             "status_filter": request.GET.get("status", "todos"),
             "query": request.GET.get("search", ""),
