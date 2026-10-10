@@ -1,12 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
-from django.core.paginator import Paginator
 from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 
 from rhcontrol.filters import filter_trainings
 from rhcontrol.forms import TrainingForm
 from rhcontrol.models import Employee, Training
+from rhcontrol.pagination import paginate
 
 
 @login_required
@@ -22,12 +22,11 @@ def training_view(request):
     date_to = request.GET.get('date_to', '')
     status = request.GET.get('status', '')
 
-    paginator = Paginator(training_list, 15)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
+    page_obj = paginate(request, training_list)
 
     context = {
         'object_list': page_obj,
+        'page_obj': page_obj,
         'search_query': search_query,
         'date_from': date_from,
         'date_to': date_to,

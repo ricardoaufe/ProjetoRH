@@ -443,7 +443,7 @@ class CipaStabilityTests(TestCase):
         )
 
     def test_cipa_active_mandate(self):
-        today = timezone.now().date()
+        today = timezone.localdate()
         
         self.employee.is_cipa_member = True
         self.employee.cipa_role = 'Titular'
@@ -455,7 +455,7 @@ class CipaStabilityTests(TestCase):
 
     def test_cipa_stability_period(self):
         """Testa se o status é 'stability' logo após o fim do mandato"""
-        today = timezone.now().date()
+        today = timezone.localdate()
         
         self.employee.is_cipa_member = True
         self.employee.cipa_role = 'Titular'
@@ -466,7 +466,7 @@ class CipaStabilityTests(TestCase):
         self.assertEqual(self.employee.cipa_status, 'stability')
 
     def test_cipa_stability_expired(self):
-        today = timezone.now().date()
+        today = timezone.localdate()
         
         self.employee.is_cipa_member = True
         self.employee.cipa_role = 'Titular'
@@ -485,7 +485,7 @@ class CipaStabilityTests(TestCase):
         Test if the fields (is_cipa_member, cipa_role, cipa_mandate_start_date, cipa_mandate_end_date) are cleared 
         after the total end of the period (mandate + stability).
         """
-        today = timezone.now().date()
+        today = timezone.localdate()
         
         self.employee.is_cipa_member = True
         self.employee.cipa_role = 'Titular'

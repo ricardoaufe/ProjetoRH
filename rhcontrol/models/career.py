@@ -120,7 +120,7 @@ class CareerPlan(models.Model):
         if (
             not self.pk
             and self.promotion_date
-            and self.promotion_date <= timezone.now().date()
+            and self.promotion_date <= timezone.localdate()
         ):
             raise ValidationError(
                 {

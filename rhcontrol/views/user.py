@@ -6,6 +6,7 @@ from django.db.models import Count
 from django.shortcuts import get_object_or_404, redirect, render
 
 from rhcontrol.forms import SystemUserForm, SystemUserUpdateForm
+from rhcontrol.pagination import paginate
 
 
 @login_required
@@ -27,10 +28,18 @@ def user_create_view(request):
 @login_required
 @permission_required('auth.view_user', raise_exception=True)
 def user_list_view(request):
-    users = User.objects.annotate(num_groups=Count('groups')).order_by('username')
-    
+    # prefetch_related busca os perfis de todos os usuários da página em uma
+    # consulta só, em vez de uma por usuário (problema N+1).
+    users = (
+        User.objects.annotate(num_groups=Count('groups'))
+        .prefetch_related('groups')
+        .order_by('username')
+    )
+    page_obj = paginate(request, users)
+
     context = {
-        'users': users
+        'users': page_obj,
+        'page_obj': page_obj,
     }
     return render(request, 'dashboard/pages/user/list.html', context)
 

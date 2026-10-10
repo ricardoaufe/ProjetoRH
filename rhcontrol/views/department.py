@@ -6,6 +6,7 @@ from django.shortcuts import get_object_or_404, redirect, render
 
 from rhcontrol.forms import DepartmentForm, JobTitleFormSet
 from rhcontrol.models import Department, JobTitle
+from rhcontrol.pagination import paginate
 
 
 @login_required
@@ -21,8 +22,11 @@ def department_list(request):
             Q(description__icontains=search_query)
         )
     
+    page_obj = paginate(request, departments)
+
     context = {
-        'object_list': departments, 
+        'object_list': page_obj,
+        'page_obj': page_obj,
         'title': 'Lista de Setores'
     }
     

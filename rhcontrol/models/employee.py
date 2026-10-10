@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from django.db import models
+from django.db.models import Q
 from django.utils import timezone
 
 from .organization import Department, JobTitle
@@ -211,7 +212,7 @@ class Employee(models.Model):
         if not self.is_cipa_member or not self.cipa_mandate_end_date:
             return
 
-        today = timezone.now().date()
+        today = timezone.localdate()
         stability_end_date = self.cipa_mandate_end_date + timedelta(days=365)
         
         if today > stability_end_date:
@@ -230,7 +231,7 @@ class Employee(models.Model):
         if not self.is_cipa_member or not self.cipa_mandate_end_date:
             return None
         
-        today = timezone.now().date()
+        today = timezone.localdate()
         
         start_date = self.cipa_mandate_start_date or self.cipa_mandate_end_date - timedelta(days=365)
         
@@ -278,7 +279,7 @@ class Employee(models.Model):
         if not self.hire_date:
             return "-"
         
-        today = timezone.now().date()
+        today = timezone.localdate()
         
         if self.hire_date > today:
             return "Não possui tempo de empresa ainda"
@@ -301,19 +302,16 @@ class Employee(models.Model):
             
         return " e ".join(result) if result else "Menos de 1 mês"
     
+    @staticmethod
+    def active_leave_q(today):
+        """Filtro de ocorrência que é um afastamento em andamento na data."""
+        return Q(is_absence=True, occurrence_date__lte=today) & (
+            Q(end_date__isnull=True) | Q(end_date__gte=today)
+        )
+
     @property
     def is_on_leave(self):
-        from django.db.models import Q
-        from django.utils import timezone
-        
-        today = timezone.localdate()
-
-        return self.occurrences.filter(
-            is_absence=True,
-            occurrence_date__lte=today
-        ).filter(
-            Q(end_date__isnull=True) | Q(end_date__gte=today)
-        ).exists()
+        return self.occurrences.filter(self.active_leave_q(timezone.localdate())).exists()
 
     def __str__(self):
         return self.name

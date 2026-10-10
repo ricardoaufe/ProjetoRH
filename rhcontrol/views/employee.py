@@ -2,7 +2,7 @@ from datetime import date, timedelta
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
-from django.core.paginator import Paginator
+from django.db.models import Exists, OuterRef
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
@@ -10,13 +10,14 @@ from django.views.decorators.http import require_POST
 
 from rhcontrol.filters import filter_employees
 from rhcontrol.forms import DependentFormSet, EmployeeForm, EmployeeHistoryForm
-from rhcontrol.models import Employee, EmployeeHistory, JobTitle
+from rhcontrol.models import Employee, EmployeeHistory, JobTitle, Occurrence
+from rhcontrol.pagination import paginate
 
 
 @login_required
 @permission_required('rhcontrol.view_employee', raise_exception=True)
 def employee_view(request):
-    limit_date = timezone.now().date() - timedelta(days=366)
+    limit_date = timezone.localdate() - timedelta(days=366)
     
     expired_employees = Employee.objects.filter(
         is_cipa_member=True,
@@ -26,14 +27,20 @@ def employee_view(request):
     for emp in expired_employees:
         emp.check_cipa_expiration()
 
-    employee_list = filter_employees(Employee.objects.select_related('department'), request.GET)
+    # O selo "Afastado(a)" vem anotado na própria consulta da lista,
+    # em vez de uma consulta extra por funcionário (problema N+1).
+    active_leave = Occurrence.objects.filter(
+        Employee.active_leave_q(timezone.localdate()), employee=OuterRef('pk')
+    )
+    employee_list = filter_employees(
+        Employee.objects.select_related('department').annotate(has_active_leave=Exists(active_leave)),
+        request.GET,
+    )
 
-    paginator = Paginator(employee_list, 40)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-
+    page_obj = paginate(request, employee_list)
     context = {
         'object_list': page_obj,
+        'page_obj': page_obj,
     }
     return render(request, 'dashboard/pages/employee/list.html', context)
 
@@ -50,7 +57,7 @@ def employee_create(request):
             formset.instance = employee
             formset.save()
             
-            admission_date = employee.hire_date if employee.hire_date else timezone.now().date()
+            admission_date = employee.hire_date if employee.hire_date else timezone.localdate()
             EmployeeHistory.objects.create(
                 employee=employee,
                 date_changed=admission_date,
