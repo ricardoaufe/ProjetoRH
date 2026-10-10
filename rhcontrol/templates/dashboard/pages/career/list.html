@@ -1,4 +1,5 @@
 {% extends 'global/base.html' %} 
+{% load static %}
 {% block title %} Plano de Carreira {% endblock title %} 
 
 {% block content %}
@@ -23,7 +24,7 @@
 
     {# ── Barra de Busca e Data ── #}
     <div class="filter-bar">
-      <form method="GET" action="{% url 'rhcontrol:career_plan_list' %}" class="search-form" style="display: flex; flex-wrap: wrap; align-items: center; gap: 12px; width: 100%;">
+      <form method="GET" action="{% url 'rhcontrol:career_plan_list' %}" class="search-form career-filters">
         {% if status_filter %}
           <input type="hidden" name="status" value="{{ status_filter }}" />
         {% endif %} 
@@ -31,21 +32,21 @@
           <input type="hidden" name="sort" value="{{ current_sort }}" />
         {% endif %}
 
-        <div style="flex: 2; min-width: 180px">
-          <input type="text" name="search" placeholder="Buscar por funcionário..." value="{{ search_query }}" style="padding: 0.5rem 0.75rem; border: 1px solid #ced4da; border-radius: 5px; font-size: 1.4rem; width: 100%; height: 38px;" />
+        <div class="career-filters__search">
+          <input type="text" name="search" placeholder="Buscar por funcionário..." value="{{ search_query }}" class="career-filters__search-input" />
         </div>
 
-        <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 140px;">
-          <label style="white-space: nowrap; font-size: 1.3rem; font-weight: 600; margin: 0;">De:</label>
-          <input type="date" name="date_from" value="{{ date_from }}" style="padding: 0.4rem 0.6rem; border: 1px solid #ced4da; border-radius: 5px; font-size: 1.3rem; height: 38px; width: 100%;" />
+        <div class="career-filters__date">
+          <label class="career-filters__date-label">De:</label>
+          <input type="date" name="date_from" value="{{ date_from }}" class="career-filters__date-input" />
         </div>
 
-        <div style="display: flex; align-items: center; gap: 6px; flex: 1; min-width: 140px;">
-          <label style="white-space: nowrap; font-size: 1.3rem; font-weight: 600; margin: 0;">Até:</label>
-          <input type="date" name="date_to" value="{{ date_to }}" style="padding: 0.4rem 0.6rem; border: 1px solid #ced4da; border-radius: 5px; font-size: 1.3rem; height: 38px; width: 100%;" />
+        <div class="career-filters__date">
+          <label class="career-filters__date-label">Até:</label>
+          <input type="date" name="date_to" value="{{ date_to }}" class="career-filters__date-input" />
         </div>
 
-        <div style="display: flex; gap: 6px; height: 38px">
+        <div class="career-filters__actions">
           <button type="submit" class="btn-filter" title="Filtrar">
             <i class="fas fa-search"></i> Buscar
           </button>
@@ -64,16 +65,16 @@
           {# Sortable: Funcionário #}
           <th>
             {% if current_sort == 'employee__name' %}
-            <a href="?sort=-employee__name{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" style="color: inherit; text-decoration: none">
-              Funcionário <i class="fas fa-sort-alpha-down" style="color: #3498db; margin-left: 4px"></i>
+            <a href="?sort=-employee__name{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="sort-link">
+              Funcionário <i class="fas fa-sort-alpha-down sort-icon sort-icon--tight sort-icon--active"></i>
             </a>
             {% elif current_sort == '-employee__name' %}
-            <a href="?sort=employee__name{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" style="color: inherit; text-decoration: none">
-              Funcionário <i class="fas fa-sort-alpha-up-alt" style="color: #3498db; margin-left: 4px"></i>
+            <a href="?sort=employee__name{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="sort-link">
+              Funcionário <i class="fas fa-sort-alpha-up-alt sort-icon sort-icon--tight sort-icon--active"></i>
             </a>
             {% else %}
-            <a href="?sort=employee__name{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" style="color: inherit; text-decoration: none">
-              Funcionário <i class="fas fa-sort" style="color: #aaa; margin-left: 4px"></i>
+            <a href="?sort=employee__name{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="sort-link">
+              Funcionário <i class="fas fa-sort sort-icon sort-icon--tight"></i>
             </a>
             {% endif %}
           </th>
@@ -84,16 +85,16 @@
           {# Sortable: Data de Promoção #}
           <th>
             {% if current_sort == '-promotion_date' %}
-            <a href="?sort=promotion_date{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" style="color: inherit; text-decoration: none">
-              Data <i class="fas fa-sort-numeric-down" style="color: #3498db; margin-left: 4px"></i>
+            <a href="?sort=promotion_date{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="sort-link">
+              Data <i class="fas fa-sort-numeric-down sort-icon sort-icon--tight sort-icon--active"></i>
             </a>
             {% elif current_sort == 'promotion_date' %}
-            <a href="?sort=-promotion_date{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" style="color: inherit; text-decoration: none">
-              Data <i class="fas fa-sort-numeric-up-alt" style="color: #3498db; margin-left: 4px"></i>
+            <a href="?sort=-promotion_date{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="sort-link">
+              Data <i class="fas fa-sort-numeric-up-alt sort-icon sort-icon--tight sort-icon--active"></i>
             </a>
             {% else %}
-            <a href="?sort=-promotion_date{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" style="color: inherit; text-decoration: none">
-              Data <i class="fas fa-sort" style="color: #aaa; margin-left: 4px"></i>
+            <a href="?sort=-promotion_date{% if search_query %}&search={{ search_query }}{% endif %}{% if status_filter %}&status={{ status_filter }}{% endif %}{% if date_from %}&date_from={{ date_from }}{% endif %}{% if date_to %}&date_to={{ date_to }}{% endif %}" class="sort-link">
+              Data <i class="fas fa-sort sort-icon sort-icon--tight"></i>
             </a>
             {% endif %}
           </th>
@@ -111,7 +112,7 @@
             <div class="job-transition">
               <span class="job-old">
                 {{ plan.current_job.name|default:"-" }}
-                <i class="fas fa-arrow-down text-muted" style="font-size: 0.7em"></i>
+                <i class="fas fa-arrow-down text-muted job-old__arrow"></i>
               </span>
               <span class="job-new">{{ plan.proposed_job.name }}</span>
             </div>
@@ -139,20 +140,20 @@
           <td class="text-center">
             {# ===== Hidden forms (triggered by the kebab menu) ===== #} 
             {% if plan.status == 'AWAITING_CONFIRMATION' or plan.status == 'CONFIRMED' %}
-            <form id="confirm-form-{{ plan.id }}" method="post" action="{% url 'rhcontrol:career_plan_confirm' plan.id %}" style="display: none">
+            <form id="confirm-form-{{ plan.id }}" method="post" action="{% url 'rhcontrol:career_plan_confirm' plan.id %}" style="display: none;">
               {% csrf_token %}
             </form>
             {% endif %} 
             
             {% if plan.status == 'SCHEDULED' or plan.status == 'AWAITING_CONFIRMATION' or plan.status == 'CONFIRMED' %}
-            <form id="cancel-form-{{ plan.id }}" method="post" action="{% url 'rhcontrol:career_plan_cancel' plan.id %}" style="display: none">
+            <form id="cancel-form-{{ plan.id }}" method="post" action="{% url 'rhcontrol:career_plan_cancel' plan.id %}" style="display: none;">
               {% csrf_token %}
               <input type="hidden" name="cancellation_reason" id="cancel-reason-input-{{ plan.id }}" />
             </form>
             {% endif %} 
             
             {% if plan.status == 'SCHEDULED' or plan.status == 'AWAITING_CONFIRMATION' or plan.status == 'CANCELLED' %}
-            <form id="delete-form-{{ plan.id }}" method="post" action="{% url 'rhcontrol:career_plan_delete' plan.id %}" style="display: none">
+            <form id="delete-form-{{ plan.id }}" method="post" action="{% url 'rhcontrol:career_plan_delete' plan.id %}" style="display: none;">
               {% csrf_token %}
             </form>
             {% endif %} 
@@ -244,21 +245,21 @@
 {# ========== MODAL: CANCELAR PLANO ========== #}
 <div id="cancel-modal-overlay" class="career-modal-overlay" onclick="closeCancelModal(event)">
   <div class="career-modal">
-    <div class="career-modal-icon" style="color: var(--danger, #e74c3c)">
+    <div class="career-modal-icon career-modal-icon--danger">
       <i class="fas fa-ban"></i>
     </div>
     <h3>Cancelar Plano de Carreira</h3>
     <p>Você está prestes a cancelar o plano de carreira de <strong id="cancel-modal-employee"></strong>.</p>
     <p>Esta ação não pode ser desfeita.</p>
     <div class="career-modal-info">
-      <label for="cancel-reason-field" style="font-weight: 600; margin-bottom: 0.3rem; display: block; font-size: 1.1rem;">Motivo do cancelamento (opcional):</label>
-      <textarea id="cancel-reason-field" rows="3" placeholder="Ex.: Mudança de estratégia, funcionário desistiu, etc." style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid #ccc; font-size: 1.2rem; resize: vertical;"></textarea>
+      <label for="cancel-reason-field" class="career-modal__label">Motivo do cancelamento (opcional):</label>
+      <textarea id="cancel-reason-field" rows="3" placeholder="Ex.: Mudança de estratégia, funcionário desistiu, etc." class="career-modal__textarea"></textarea>
     </div>
     <div class="career-modal-actions">
       <button type="button" class="btn-cancel" onclick="closeCancelModal()">
         <i class="fas fa-arrow-left"></i> Voltar
       </button>
-      <button type="button" class="btn-confirm" style="background: var(--danger, #e74c3c)" onclick="submitCancelModal()">
+      <button type="button" class="btn-confirm btn-confirm--danger" onclick="submitCancelModal()">
         <i class="fas fa-ban"></i> Confirmar Cancelamento
       </button>
     </div>
@@ -268,104 +269,24 @@
 {# ========== MODAL: EXCLUIR PLANO ========== #}
 <div id="delete-modal-overlay" class="career-modal-overlay" onclick="closeDeleteModal(event)">
   <div class="career-modal">
-    <div class="career-modal-icon" style="color: #c0392b">
+    <div class="career-modal-icon career-modal-icon--destroy">
       <i class="fas fa-trash-alt"></i>
     </div>
     <h3>Excluir Plano Permanentemente</h3>
     <p>Você está prestes a excluir <strong>permanentemente</strong> o plano de carreira de <strong id="delete-modal-employee"></strong>.</p>
-    <p style="color: #c0392b; font-weight: 600"><i class="fas fa-exclamation-triangle"></i> Esta ação não pode ser desfeita. O registro será removido do banco de dados.</p>
+    <p class="career-modal__warning"><i class="fas fa-exclamation-triangle"></i> Esta ação não pode ser desfeita. O registro será removido do banco de dados.</p>
     <div class="career-modal-actions">
       <button type="button" class="btn-cancel" onclick="closeDeleteModal()">
         <i class="fas fa-arrow-left"></i> Voltar
       </button>
-      <button type="button" class="btn-confirm" style="background: #c0392b" onclick="submitDeleteModal()">
+      <button type="button" class="btn-confirm btn-confirm--destroy" onclick="submitDeleteModal()">
         <i class="fas fa-trash-alt"></i> Excluir Permanentemente
       </button>
     </div>
   </div>
 </div>
 
-<style>
-  /* ===== Kebab menu ===== */
-  .kebab-wrapper {
-    position: relative;
-    display: inline-block;
-  }
-  .kebab-btn {
-    background: none;
-    border: 1px solid transparent;
-    border-radius: 6px;
-    padding: 0.4rem 0.8rem;
-    cursor: pointer;
-    color: var(--text-muted, #6c757d);
-    font-size: 1.4rem;
-    transition: background 0.15s, border-color 0.15s;
-  }
-  .kebab-btn:hover {
-    background: var(--surface-alt, #f0f0f0);
-    border-color: var(--border, #dee2e6);
-    color: var(--text, #333);
-  }
-  .kebab-dropdown {
-    display: none;
-    position: absolute;
-    right: 0;
-    top: calc(100% + 4px);
-    background: var(--surface, #fff);
-    border: 1px solid var(--border, #dee2e6);
-    border-radius: 10px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    min-width: 200px;
-    z-index: 999;
-    overflow: hidden;
-    animation: kebab-appear 0.12s ease;
-  }
-  .kebab-dropdown.open {
-    display: block;
-  }
-  @keyframes kebab-appear {
-    from {
-      opacity: 0;
-      transform: translateY(-6px) scale(0.97);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0) scale(1);
-    }
-  }
-  .kebab-item {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    width: 100%;
-    padding: 0.75rem 1.2rem;
-    background: none;
-    border: none;
-    text-decoration: none;
-    font-size: 1.05rem;
-    color: var(--text, #333);
-    cursor: pointer;
-    transition: background 0.12s;
-    text-align: left;
-  }
-  .kebab-item:hover {
-    background: var(--surface-alt, #f5f5f5);
-  }
-  .kebab-item i {
-    width: 18px;
-    font-size: 1.1rem;
-    text-align: center;
-  }
-  .kebab-item--success { color: #27ae60; }
-  .kebab-item--success:hover { background: #eafaf1; }
-  .kebab-item--warning { color: #e67e22; }
-  .kebab-item--warning:hover { background: #fef5ec; }
-  .kebab-item--danger { color: #c0392b; }
-  .kebab-item--danger:hover { background: #fdedec; }
-  .kebab-item--disabled { color: var(--text-muted, #aaa); cursor: default; font-size: 0.95rem; }
-  .kebab-item--disabled:hover { background: none; }
-  .kebab-divider { height: 1px; background: var(--border, #dee2e6); margin: 0.35rem 0; }
-</style>
+<link rel="stylesheet" href="{% static 'global/css/pages/career-list.css' %}?v=1" />
 
 <script>
   // ===== KEBAB MENU =====

@@ -46,8 +46,8 @@ class Command(BaseCommand):
             
         try:
             # Descobre se o arquivo usa vírgula ou ponto-e-vírgula
-            primeira_linha = data_lines[0]
-            delimiter = ';' if ';' in primeira_linha else ','
+            first_line = data_lines[0]
+            delimiter = ';' if ';' in first_line else ','
             
             reader = csv.reader(data_lines, delimiter=delimiter)
             header = next(reader)
@@ -64,11 +64,11 @@ class Command(BaseCommand):
             cids_to_create = []
             for row in reader:
                 if len(row) > max(col_code, col_desc):
-                    codigo = row[col_code].strip()
-                    descricao = row[col_desc].strip()
+                    code = row[col_code].strip()
+                    description = row[col_desc].strip()
                     
-                    if codigo and descricao:
-                        cids_to_create.append(CID(code=codigo, description=descricao))
+                    if code and description:
+                        cids_to_create.append(CID(code=code, description=description))
             
             # Limpa e popula o banco
             CID.objects.all().delete()

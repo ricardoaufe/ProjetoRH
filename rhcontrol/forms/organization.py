@@ -81,7 +81,7 @@ class JobTitleForm(forms.ModelForm):
             return Decimal(salary_str)
 
         except Exception:
-            raise forms.ValidationError("Valor inválido")
+            raise forms.ValidationError("Valor inválido") from None
 
 
 JobTitleFormSet = forms.inlineformset_factory(

@@ -1,15 +1,9 @@
-<style>
-    #historyModal::backdrop {
-        background-color: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(2px); /* Dá um efeito leve de desfoque no fundo */
-    }
-</style>
 <div class="history-container">
         
-    <div class="history-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 class="section-title" style="margin: 0;">Histórico do Colaborador</h3>
+    <div class="history-header history-header--toolbar">
+        <h3 class="section-title u-m-0">Histórico do Colaborador</h3>
         
-        <a href="{% url 'rhcontrol:employee_career_plan_pdf' pk=form.instance.pk %}" target="_blank" style="background-color: #0d6efd; color: white; padding: 8px 15px; border-radius: 4px; text-decoration: none; font-weight: bold; font-size: 1.2rem; display: inline-flex; align-items: center; gap: 8px;">
+        <a href="{% url 'rhcontrol:employee_career_plan_pdf' pk=form.instance.pk %}" target="_blank" class="history-pdf-button">
             <i class="fa fa-print"></i> Gerar Plano de Carreira
         </a>
     </div>
@@ -22,28 +16,28 @@
                 <ul class="history-list">
                     {% for t in trainings %}
                         <li class="history-item">
-                            <div style="margin-bottom: 0.25rem;">
+                            <div class="history-item__line">
                                 {% if t.is_integration %}
-                                    <strong style="color: #444;" title="Treinamento de Integração">{{ form.instance.hire_date|date:"d/m/Y" }}</strong>  
-                                    <span style="font-size: 0.8em; color: #198754; margin-left: 5px;"><i class="fas fa-check-circle"></i> Integração</span>
+                                    <strong class="history-item__date" title="Treinamento de Integração">{{ form.instance.hire_date|date:"d/m/Y" }}</strong>  
+                                    <span class="history-item__integration"><i class="fas fa-check-circle"></i> Integração</span>
                                 {% else %}
                                     {% if t.end_date %}
-                                        <strong style="color: #444;">{{ t.start_date|date:"d/m/Y" }} - {{ t.end_date|date:"d/m/Y" }}</strong>
+                                        <strong class="history-item__date">{{ t.start_date|date:"d/m/Y" }} - {{ t.end_date|date:"d/m/Y" }}</strong>
                                     {% else %}
-                                        <strong style="color: #444;">{{ t.start_date|date:"d/m/Y" }}</strong>
+                                        <strong class="history-item__date">{{ t.start_date|date:"d/m/Y" }}</strong>
                                     {% endif %}
                                 {% endif %}
                             </div>
                                                                                 
-                            <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
-                                <span style="font-size: 0.95em; color: #555;">{{ t.training_name }}</span>
-                                <span style="display:inline-block; background:#eef2ff; color:#4f46e5; padding:0.2rem 0.5rem; border-radius:0.25rem; font-size:0.85em; font-weight:bold; white-space: nowrap;">
+                            <div class="history-item__row">
+                                <span class="history-item__name">{{ t.training_name }}</span>
+                                <span class="hours-badge">
                                     {{ t.training_total_hours }}h
                                 </span>
                             </div>
                         </li>
                     {% empty %}
-                        <li class="history-empty" style="padding: 1.25rem; text-align: center; color: #999;">
+                        <li class="history-empty history-empty--centered">
                             Nenhum treinamento realizado.
                         </li>
                     {% endfor %}
@@ -52,9 +46,9 @@
         </div>
 
         <div class="history-col">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                <h4 style="margin: 0;">💼 Evolução Profissional</h4>
-                <button type="button" onclick="openHistoryModal()" style="border: none; background: #198754; color: white; border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 1.2rem;" title="Adicionar Registro Antigo">
+            <div class="history-col__header">
+                <h4 class="u-m-0">💼 Evolução Profissional</h4>
+                <button type="button" onclick="openHistoryModal()" class="history-add-button" title="Adicionar Registro Antigo">
                     <i class="fa fa-plus"></i>
                 </button>
             </div>
@@ -62,9 +56,9 @@
             <div class="history-scroll">
                 <ul class="history-list">
                     {% for h in history_log %}
-                        <li class="history-item" style="position: relative;">
+                        <li class="history-item history-item--with-actions">
                             
-                            <div style="position: absolute; top: 0.625rem; right: 0.625rem; display: flex; gap: 8px;">
+                            <div class="history-item__actions">
                                 <button type="button" 
                                         onclick="openHistoryModal('{% url 'rhcontrol:history_edit' pk=h.pk %}', {
                                             date: '{{ h.date_changed|date:'Y-m-d' }}',
@@ -76,65 +70,65 @@
                                             old_cipa: '{{ h.old_cipa_role|default_if_none:''|escapejs }}',
                                             new_cipa: '{{ h.new_cipa_role|default_if_none:''|escapejs }}'
                                         })"
-                                        style="border: none; background: none; color: #6c757d; cursor: pointer; font-size: 1.2rem;" title="Editar">
+                                        class="history-item__action history-item__action--edit" title="Editar">
                                     <i class="fa fa-cog"></i>
                                 </button>
 
                                 <button type="button" 
                                         onclick="openDeleteModal('{% url 'rhcontrol:history_delete' pk=h.pk %}')"
-                                        style="border: none; background: none; color: #dc3545; cursor: pointer; font-size: 1.2rem;" title="Excluir">
+                                        class="history-item__action history-item__action--delete" title="Excluir">
                                     <i class="fa fa-times"></i>
                                 </button>
                             </div>
 
-                            <div style="font-size: 1.4rem; font-weight: 800; color: #6c757d; margin-bottom: 0.5rem; letter-spacing: 0.5px;">
+                            <div class="history-item__date-heading">
                                 {{ h.date_changed|date:"d F Y"|upper }}
                             </div>
 
                             {% if h.reason %}
-                                <div style="margin-bottom: 0.75rem;">
-                                    <span style="display:inline-block; background:#e9ecef; color: #495057; padding: 0.375rem 0.75rem; border-radius: 0.375rem; font-size: 1.2rem; font-weight: 700;">
+                                <div class="history-item__reason">
+                                    <span class="reason-badge">
                                         {{ h.reason }}
                                     </span>
                                 </div>
                             {% endif %}
 
                             {% if h.new_job_title %}
-                                <div style="margin-bottom: 0.375rem; font-size: 1rem;">
+                                <div class="history-item__change history-item__change--spaced">
                                     Cargo: 
                                     {% if h.old_job_title and h.old_job_title != "None" and h.old_job_title != "" %}
-                                        <span style="color:#666;">{{ h.old_job_title }}</span> 
-                                        <i class="fa fa-arrow-right" style="font-size: 0.8em; margin: 0 0.3125rem; color: #adb5bd;"></i>
+                                        <span class="history-item__old">{{ h.old_job_title }}</span> 
+                                        <i class="fa fa-arrow-right history-item__arrow"></i>
                                     {% endif %}
-                                    <strong style="color: #0d6efd;">{{ h.new_job_title }}</strong>
+                                    <strong class="history-item__new-job">{{ h.new_job_title }}</strong>
                                 </div>
                             {% endif %}
 
                             {% if h.new_salary %}
-                                <div style="font-size: 1rem;">
+                                <div class="history-item__change">
                                     Salário: 
                                     {% if h.old_salary and h.old_salary != "None" %}
-                                        <span style="color:#666;">R$ {{ h.old_salary|floatformat:2 }}</span> 
-                                        <i class="fa fa-arrow-right" style="font-size: 0.8em; margin: 0 0.3125rem; color: #adb5bd;"></i>
+                                        <span class="history-item__old">R$ {{ h.old_salary|floatformat:2 }}</span> 
+                                        <i class="fa fa-arrow-right history-item__arrow"></i>
                                     {% endif %}
-                                    <strong style="color:#198754;">R$ {{ h.new_salary|floatformat:2 }}</strong>
+                                    <strong class="history-item__new-salary">R$ {{ h.new_salary|floatformat:2 }}</strong>
                                 </div>
                             {% endif %}
                             
                             {% if h.new_cipa_role %}
-                                <div style="margin-top: 0.375rem; font-size: 1.4rem; background-color: #f8f9fa; padding: 0.3125rem; border-radius: 0.25rem;">
+                                <div class="history-item__cipa">
                                     CIPA: 
                                     {% if h.old_cipa_role %}
-                                        <span style="color:#666;">{{ h.old_cipa_role }}</span> 
-                                        <i class="fa fa-arrow-right" style="font-size: 0.8em; margin: 0 0.3125rem; color: #adb5bd;"></i>
+                                        <span class="history-item__old">{{ h.old_cipa_role }}</span> 
+                                        <i class="fa fa-arrow-right history-item__arrow"></i>
                                     {% endif %}
-                                    <strong style="color:#fd7e14;">{{ h.new_cipa_role }}</strong>
+                                    <strong class="history-item__new-cipa">{{ h.new_cipa_role }}</strong>
                                 </div>
                             {% endif %}
 
                         </li>
                     {% empty %}
-                        <li class="history-empty" style="padding: 1.25rem; text-align: center; color: #999;">
+                        <li class="history-empty history-empty--centered">
                             Nenhuma alteração registrada.
                         </li>
                     {% endfor %}
@@ -147,33 +141,33 @@
             <div class="history-scroll">
                 <ul class="history-list">
                     {% for item in leaves_history %}
-                        <li class="history-item" style="border-left: 4px solid {{ item.border_color }}; padding-left: 10px; margin-bottom: 12px;">
+                        <li class="history-item history-item--leave" style="border-left-color: {{ item.border_color }};">
                             
-                            <div style="font-size: 1.2rem; font-weight: 700; color: #495057; margin-bottom: 4px;">
+                            <div class="history-item__leave-title">
                                 {{ item.icon }} {{ item.type }}
                                 {% if item.title %}
-                                    <span style="font-weight: 400; color: #6c757d; font-size: 1.1rem;"> - {{ item.title }}</span>
+                                    <span class="history-item__leave-subtitle"> - {{ item.title }}</span>
                                 {% endif %}
                             </div>
                             
-                            <div style="font-size: 1.1rem; margin-bottom: 4px;">
-                                <strong style="color: #444;">{{ item.start_date|date:"d/m/Y" }}</strong> até 
+                            <div class="history-item__leave-dates">
+                                <strong class="history-item__date">{{ item.start_date|date:"d/m/Y" }}</strong> até 
                                 {% if item.end_date %}
-                                    <strong style="color: #444;">{{ item.end_date|date:"d/m/Y" }}</strong>
+                                    <strong class="history-item__date">{{ item.end_date|date:"d/m/Y" }}</strong>
                                 {% else %}
-                                    <span style="color: #d97706; font-weight: bold; font-style: italic; background: #fef3c7; padding: 2px 6px; border-radius: 4px; font-size: 0.9em;">
+                                    <span class="history-item__ongoing">
                                         Em andamento
                                     </span>
                                 {% endif %}
                             </div>
                             
-                            <div style="color: #6c757d; font-size: 0.95em;">
+                            <div class="history-item__duration">
                                 Duração: {{ item.duration }} dia{{ item.duration|pluralize }}
                             </div>
 
                         </li>
                     {% empty %}
-                        <li class="history-empty" style="padding: 1.25rem; text-align: center; color: #999;">
+                        <li class="history-empty history-empty--centered">
                             Nenhum registro de férias ou afastamento.
                         </li>
                     {% endfor %}
@@ -184,24 +178,24 @@
     </div>
 </div>
 
-<dialog id="historyModal" style="margin: auto; padding: 25px; border-radius: 8px; border: none; width: 90%; max-width: 550px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); font-family: sans-serif;">
+<dialog id="historyModal" class="history-modal">
     
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h3 id="historyModalTitle" style="margin: 0; color: #333;">Adicionar Registro Histórico</h3>
-        <button type="button" onclick="closeHistoryModal()" style="border: none; background: none; font-size: 1.5rem; cursor: pointer; color: #999;">&times;</button>
+    <div class="history-modal__header">
+        <h3 id="historyModalTitle" class="history-modal__title">Adicionar Registro Histórico</h3>
+        <button type="button" onclick="closeHistoryModal()" class="history-modal__close">&times;</button>
     </div>
     
     <form id="historyForm" method="POST" action="{% url 'rhcontrol:history_create' employee_id=form.instance.pk %}">
         {% csrf_token %}
         
-        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
-            <div style="flex: 1;">
-                <label style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Data <span style="color: red;">*</span></label>
-                <input type="date" name="date_changed" id="hist_date" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" required>
+        <div class="history-modal__row">
+            <div class="u-flex-1">
+                <label class="history-modal__label">Data <span class="u-text-red">*</span></label>
+                <input type="date" name="date_changed" id="hist_date" class="history-modal__input" required>
             </div>
-            <div style="flex: 1;">
-                <label style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Motivo da Alteração <span style="color: red;">*</span></label>
-                <select name="reason" id="hist_reason" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;" required onchange="toggleFormFields()">
+            <div class="u-flex-1">
+                <label class="history-modal__label">Motivo da Alteração <span class="u-text-red">*</span></label>
+                <select name="reason" id="hist_reason" class="history-modal__input" required onchange="toggleFormFields()">
                     <option value="">Selecione...</option>
                     <option value="Admissão">Admissão</option>
                     <option value="Promoção">Promoção</option>
@@ -213,21 +207,21 @@
             </div>
         </div>
         
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 15px 0;">
+        <hr class="history-modal__divider">
 
-        <div id="row_cargos" style="display: flex; gap: 15px; margin-bottom: 15px;">
-            <div id="col_old_job" style="flex: 1;">
-                <label style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Cargo Anterior</label>
-                <select name="old_job_title" id="hist_old_job" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        <div id="row_cargos" class="history-modal__row">
+            <div id="col_old_job" class="u-flex-1">
+                <label class="history-modal__label">Cargo Anterior</label>
+                <select name="old_job_title" id="hist_old_job" class="history-modal__input">
                     <option value="">---------</option>
                     {% for job in job_titles %}
                         <option value="{{ job.name }}" data-salary="{{ job.base_salary|stringformat:'f' }}">{{ job.name }}</option>
                     {% endfor %}
                 </select>
             </div>
-            <div id="col_new_job" style="flex: 1;">
-                <label id="lbl_new_job" style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Novo Cargo</label>
-                <select name="new_job_title" id="hist_new_job" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            <div id="col_new_job" class="u-flex-1">
+                <label id="lbl_new_job" class="history-modal__label">Novo Cargo</label>
+                <select name="new_job_title" id="hist_new_job" class="history-modal__input">
                     <option value="">---------</option>
                     {% for job in job_titles %}
                         <option value="{{ job.name }}" data-salary="{{ job.base_salary|stringformat:'f' }}">{{ job.name }}</option>
@@ -236,29 +230,29 @@
             </div>
         </div>
 
-        <div id="row_salarios" style="display: flex; gap: 15px; margin-bottom: 15px;">
-            <div id="col_old_sal" style="flex: 1;">
-                <label style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Salário Anterior (R$)</label>
-                <input type="number" step="0.01" name="old_salary" id="hist_old_sal" placeholder="0.00" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        <div id="row_salarios" class="history-modal__row">
+            <div id="col_old_sal" class="u-flex-1">
+                <label class="history-modal__label">Salário Anterior (R$)</label>
+                <input type="number" step="0.01" name="old_salary" id="hist_old_sal" placeholder="0.00" class="history-modal__input">
             </div>
-            <div id="col_new_sal" style="flex: 1;">
-                <label id="lbl_new_sal" style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">Novo Salário (R$)</label>
-                <input type="number" step="0.01" name="new_salary" id="hist_new_sal" placeholder="0.00" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            <div id="col_new_sal" class="u-flex-1">
+                <label id="lbl_new_sal" class="history-modal__label">Novo Salário (R$)</label>
+                <input type="number" step="0.01" name="new_salary" id="hist_new_sal" placeholder="0.00" class="history-modal__input">
             </div>
         </div>
 
-        <div id="row_cipa" style="display: flex; gap: 15px; margin-bottom: 20px;">
-            <div id="col_old_cipa" style="flex: 1;">
-                <label style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">CIPA Anterior</label>
-                <select name="old_cipa_role" id="hist_old_cipa" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+        <div id="row_cipa" class="history-modal__row history-modal__row--last">
+            <div id="col_old_cipa" class="u-flex-1">
+                <label class="history-modal__label">CIPA Anterior</label>
+                <select name="old_cipa_role" id="hist_old_cipa" class="history-modal__input">
                     <option value="">---------</option>
                     <option value="Titular">Titular</option>
                     <option value="Suplente">Suplente</option>
                 </select>
             </div>
-            <div id="col_new_cipa" style="flex: 1;">
-                <label style="font-size: 1.1rem; font-weight: bold; color: #555; display: block; margin-bottom: 5px;">CIPA Nova</label>
-                <select name="new_cipa_role" id="hist_new_cipa" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+            <div id="col_new_cipa" class="u-flex-1">
+                <label class="history-modal__label">CIPA Nova</label>
+                <select name="new_cipa_role" id="hist_new_cipa" class="history-modal__input">
                     <option value="">---------</option>
                     <option value="Titular">Titular</option>
                     <option value="Suplente">Suplente</option>
@@ -266,19 +260,12 @@
             </div>
         </div>
 
-        <div style="display: flex; justify-content: flex-end; gap: 10px;">
-            <button type="button" onclick="closeHistoryModal()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 4px; cursor: pointer;">Cancelar</button>
-            <button type="submit" style="padding: 8px 16px; background: #0d6efd; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">Salvar Histórico</button>
+        <div class="history-modal__actions">
+            <button type="button" onclick="closeHistoryModal()" class="history-modal__cancel">Cancelar</button>
+            <button type="submit" class="history-modal__save">Salvar Histórico</button>
         </div>
     </form>
 </dialog>
-
-<style>
-    #historyModal::backdrop {
-        background-color: rgba(0, 0, 0, 0.6);
-        backdrop-filter: blur(2px);
-    }
-</style>
 
 <script>
     const histModal = document.getElementById('historyModal');

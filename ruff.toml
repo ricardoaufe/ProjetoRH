@@ -1,0 +1,29 @@
+# Configuração do ruff (lint e ordenação de imports).
+# Rodar localmente:  ruff check .        (mostra problemas)
+#                    ruff check . --fix  (corrige o que for automático)
+target-version = "py311"
+line-length = 120
+extend-exclude = ["*/migrations/*"]
+
+[lint]
+select = [
+    "E4", "E7", "E9",  # erros de sintaxe/estilo que costumam ser bugs
+    "F",               # pyflakes: imports e variáveis sem uso, nomes indefinidos
+    "I",               # ordem dos imports
+    "B",               # bugbear: armadilhas comuns de Python
+    "DJ",              # boas práticas de Django
+]
+ignore = [
+    # null=True em CharField: o certo seria null=False com default "", mas
+    # mudar exige migration que reescreve dados do banco de produção.
+    "DJ001",
+    # Ordem de métodos dentro dos models: só estética, geraria diff grande.
+    "DJ012",
+    # fields = "__all__" nos ModelForms de funcionário e treinamento: listar
+    # os campos à mão é mais seguro, mas fica para quando os forms mudarem.
+    "DJ007",
+]
+
+[lint.per-file-ignores]
+# O pacote views reexporta todas as views para o urls.py.
+"rhcontrol/views/__init__.py" = ["F401"]

@@ -1,18 +1,18 @@
 {% if field.field.widget.input_type == 'checkbox' %}
-    <div class="checkbox-container {{ grid_class|default:'col-span-1' }}" style="display: flex; flex-direction: row; align-items: center; gap: 10px; height: 100%; padding-top: 28px;">
+    <div class="checkbox-container {{ grid_class|default:'col-span-1' }} form-field-checkbox">
         {{ field }}
-        <label for="{{ field.id_for_label }}" style="margin: 0; cursor: pointer; font-weight: 600; color: #495057;">{{ field.label }}</label>
+        <label for="{{ field.id_for_label }}" class="form-field-checkbox__label">{{ field.label }}</label>
     </div>
 
 {% else %}
-    <div class="form-group {{ grid_class|default:'col-span-4' }}" style="margin-bottom: 15px;">
-        <label class="form-label" for="{{ field.id_for_label }}" style="display: block; margin-bottom: 5px; font-weight: 600; color: #495057;">
+    <div class="form-group {{ grid_class|default:'col-span-4' }} form-field">
+        <label class="form-label form-field__label" for="{{ field.id_for_label }}">
             {{ label|default:field.label }}
         </label>
         
         {% if is_money %}
-            <div class="input-group-custom" style="position: relative; display: flex; align-items: center;">
-                <span class="currency-symbol" style="position: absolute; left: 10px; color: #6c757d;">R$</span>
+            <div class="input-group-custom form-field__money">
+                <span class="currency-symbol form-field__currency">R$</span>
                 {{ field }} 
             </div>
         {% else %}
@@ -21,17 +21,17 @@
 
         {% if field.errors %}
             {% for error in field.errors %}
-                <div style="color: #dc3545; font-size: 1.1rem; font-weight: 600; margin-top: 6px; display: flex; align-items: center; gap: 5px;">
+                <div class="form-field__error">
                     <i class="fa fa-exclamation-circle"></i> {{ error }}
                 </div>
             {% endfor %}
         {% endif %}
 
-        <div class="js-error-msg" style="color: #dc3545; font-size: 1.1rem; font-weight: 600; margin-top: 6px; display: none; align-items: center; gap: 5px;">
+        <div class="js-error-msg form-field__error" style="display: none;">
         </div>
 
         {% if field.help_text %}
-            <small class="form-text text-muted" style="display: block; margin-top: 4px; color: #6c757d;">{{ field.help_text }}</small>
+            <small class="form-text text-muted form-field__help">{{ field.help_text }}</small>
         {% endif %}
     </div>
 {% endif %}

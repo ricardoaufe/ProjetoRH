@@ -3,37 +3,37 @@
 {% block title %} Excluir Ocorrência | {{ employee.name }} | {% endblock title %}
 
 {% block content %}
-<div class="form-container" style="max-width: 600px; text-align: center; padding: 40px; margin: 0 auto;">
-  <h2 style="color: #dc3545">Tem certeza?</h2>
+<div class="form-container confirm-delete confirm-delete--centered">
+  <h2 class="confirm-delete__title">Tem certeza?</h2>
 
-  <p style="font-size: 2rem; margin: 20px 0">
+  <p class="confirm-delete__text">
     Você está prestes a excluir a ocorrência de: <br />
     <strong>{{ employee.name }}</strong>
   </p>
 
-  <div style="background: #f8d7da; border: 1px solid #f5c2c7; border-radius: 6px; padding: 16px; margin-bottom: 20px; text-align: left;">
-    <p style="margin: 0; font-size: 1.5rem">
+  <div class="confirm-delete__details">
+    <p class="confirm-delete__details-title">
       <strong>Título:</strong> {{ object.title }}
     </p>
-    <p style="margin: 0.5rem 0 0; font-size: 1.4rem">
+    <p class="confirm-delete__details-line">
       <strong>Data:</strong> {{ object.occurrence_date|date:"d/m/Y" }}
     </p>
-    <p style="margin: 0.5rem 0 0; font-size: 1.4rem; color: #6c757d">
+    <p class="confirm-delete__details-line confirm-delete__details-line--muted">
       {{ object.description|truncatechars:200 }}
     </p>
   </div>
 
-  <div style="background: #fff3cd; color: #856404; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+  <div class="confirm-delete__warning">
     ⚠️ Esta ação é irreversível.
   </div>
 
   <form method="POST">
     {% csrf_token %}
-    <div style="display: flex; gap: 15px; justify-content: center">
-      <a href="{% url 'rhcontrol:occurrence_list' employee_id=employee.pk %}" style="padding: 10px 20px; background: #6c757d; color: white; text-decoration: none; border-radius: 5px;">
+    <div class="confirm-delete__actions">
+      <a href="{% url 'rhcontrol:occurrence_list' employee_id=employee.pk %}" class="confirm-delete__cancel">
         Cancelar
       </a>
-      <button type="submit" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer;">
+      <button type="submit" class="confirm-delete__confirm">
         Confirmar Exclusão
       </button>
     </div>

@@ -115,7 +115,7 @@ class Employee(models.Model):
 
     is_pcd = models.BooleanField(default=False, verbose_name="Pessoa com Deficiência (PCD)")    
 
-    TIPO_DEFICIENCIA_CHOICES = [
+    DISABILITY_TYPE_CHOICES = [
         ('Física', 'Física'),
         ('Visual', 'Visual'),
         ('Auditiva', 'Auditiva'),
@@ -123,7 +123,7 @@ class Employee(models.Model):
         ('Intelectual', 'Intelectual'),
         ('Múltipla', 'Múltipla'),
     ]
-    disability_type = models.CharField(max_length=50, choices=TIPO_DEFICIENCIA_CHOICES, blank=True, null=True, verbose_name="Tipo de Deficiência") 
+    disability_type = models.CharField(max_length=50, choices=DISABILITY_TYPE_CHOICES, blank=True, null=True, verbose_name="Tipo de Deficiência") 
     has_dependents = models.BooleanField(default=False, verbose_name="Possui Dependentes")
 
     # DADOS DE CONTATO
@@ -144,13 +144,13 @@ class Employee(models.Model):
     account_num = models.CharField(max_length=50, blank=True, null=True, verbose_name="Número da Conta") 
     bank_agency_code = models.CharField(max_length=20, blank=True, null=True, verbose_name="Agência") 
 
-    TIPO_CONTA_CHOICES = [
+    ACCOUNT_TYPE_CHOICES = [
         ('Corrente', 'Corrente'),
         ('Poupança', 'Poupança'),
         ('Salário', 'Salário'),
         ('Conta Conjunta', 'Conta Conjunta'),
     ]
-    account_type = models.CharField(max_length=25, choices=TIPO_CONTA_CHOICES, blank=True, null=True, verbose_name="Tipo de Conta") 
+    account_type = models.CharField(max_length=25, choices=ACCOUNT_TYPE_CHOICES, blank=True, null=True, verbose_name="Tipo de Conta") 
 
     # DADOS DO CONTRATO
     department = models.ForeignKey(Department, on_delete=models.PROTECT, verbose_name='Setor', related_name='funcionarios_setor') 
@@ -248,10 +248,10 @@ class Employee(models.Model):
     def full_address(self):
         parts = []
         if self.address:
-            endereco = f"{self.address}"
+            street = f"{self.address}"
             if self.address_num:
-                endereco += f", {self.address_num}"
-            parts.append(endereco)
+                street += f", {self.address_num}"
+            parts.append(street)
             
         if self.complement:
             parts.append(self.complement)
@@ -259,14 +259,14 @@ class Employee(models.Model):
         if self.neighborhood:
             parts.append(self.neighborhood)
             
-        cidade_estado = ""
+        city_state = ""
         if self.city:
-            cidade_estado += self.city
+            city_state += self.city
         if self.state_code:
-            cidade_estado += f"/{self.state_code}"
+            city_state += f"/{self.state_code}"
             
-        if cidade_estado:
-            parts.append(cidade_estado)
+        if city_state:
+            parts.append(city_state)
             
         if self.zip_code:
             parts.append(f"{self.zip_code}")
@@ -306,13 +306,13 @@ class Employee(models.Model):
         from django.db.models import Q
         from django.utils import timezone
         
-        hoje = timezone.localdate()
+        today = timezone.localdate()
 
         return self.occurrences.filter(
             is_absence=True,
-            occurrence_date__lte=hoje
+            occurrence_date__lte=today
         ).filter(
-            Q(end_date__isnull=True) | Q(end_date__gte=hoje)
+            Q(end_date__isnull=True) | Q(end_date__gte=today)
         ).exists()
 
     def __str__(self):

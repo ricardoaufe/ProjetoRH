@@ -18,14 +18,14 @@
                 <th>Nome Completo</th>
                 <th>Login</th>
                 <th>E-mail</th>
-                <th style="text-align: center;">Perfil de Acesso</th>
-                <th style="text-align: center;">Ações</th>
+                <th class="u-text-center">Perfil de Acesso</th>
+                <th class="u-text-center">Ações</th>
             </tr>
         </thead>
         <tbody>
             {% for user in users %}
             <tr>
-                <td style="font-weight: 500;">
+                <td class="table-cell-name">
                     {{ user.first_name }} {{ user.last_name }}
                 </td>
                 
@@ -33,19 +33,19 @@
                 
                 <td>{{ user.email }}</td>
                 
-                <td style="text-align: center;">
+                <td class="u-text-center">
                     {% if user.groups.all %}
                         {% for group in user.groups.all %}
-                            <span style="background: #e0f2fe; color: #0369a1; padding: 4px 10px; border-radius: 20px; font-weight: 600; font-size: 1.2rem;">
+                            <span class="pill pill--blue">
                                 {{ group.name }}
                             </span>
                         {% endfor %}
                     {% else %}
-                        <span style="color: #94a3b8; font-style: italic;">Sem perfil definido</span>
+                        <span class="text-placeholder">Sem perfil definido</span>
                     {% endif %}
                 </td>
                 
-                <td style="text-align: center; display: flex; justify-content: center; gap: 10px;">
+                <td class="table-actions-cell">
     
                     <a href="{% url 'rhcontrol:user_update' user.id %}" class="action-btn edit-btn" title="Editar">
                         <i class="fas fa-edit"></i>
@@ -59,8 +59,8 @@
             </tr>
             {% empty %}
             <tr>
-                <td colspan="5" style="text-align: center; padding: 30px; color: #64748b; font-size: 1.4rem;">
-                    <i class="fas fa-users" style="font-size: 2rem; display: block; margin-bottom: 10px; color: #cbd5e1;"></i>
+                <td colspan="5" class="table-empty">
+                    <i class="fas fa-users table-empty__icon"></i>
                     Nenhum usuário cadastrado.
                 </td>
             </tr>
