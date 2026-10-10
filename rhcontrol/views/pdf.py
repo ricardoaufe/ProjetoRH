@@ -7,7 +7,12 @@ from django.utils import timezone
 from django.utils.http import content_disposition_header
 from weasyprint import HTML
 
-from rhcontrol.filters import filter_employees, filter_occurrences, filter_trainings, filter_vacations
+from rhcontrol.filters import (
+    filter_employees,
+    filter_occurrences,
+    filter_trainings,
+    filter_vacations,
+)
 from rhcontrol.models import (
     Department,
     Employee,
@@ -23,6 +28,7 @@ from rhcontrol.services import get_historical_minimum_wage
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def render_pdf(request, template_name, context, filename):
     """
     Renderiza um template HTML como PDF (WeasyPrint) e devolve a resposta.
@@ -33,15 +39,17 @@ def render_pdf(request, template_name, context, filename):
       caracteres especiais no nome do arquivo.
     """
     context = {
-        'user': request.user,
-        'generated_at': timezone.now(),
+        "user": request.user,
+        "generated_at": timezone.now(),
         **context,
     }
     html_string = render_to_string(template_name, context, request=request)
     pdf = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
 
-    response = HttpResponse(pdf, content_type='application/pdf')
-    response['Content-Disposition'] = content_disposition_header(as_attachment=False, filename=filename)
+    response = HttpResponse(pdf, content_type="application/pdf")
+    response["Content-Disposition"] = content_disposition_header(
+        as_attachment=False, filename=filename
+    )
     return response
 
 
@@ -54,15 +62,15 @@ def _employee_document_pdf(request, pk, template_name, filename_prefix):
     employee = get_object_or_404(Employee, pk=pk)
     return render_pdf(
         request,
-        f'dashboard/pages/employee/pdf/{template_name}',
-        {'employee': employee},
+        f"dashboard/pages/employee/pdf/{template_name}",
+        {"employee": employee},
         _employee_filename(filename_prefix, employee),
     )
 
 
 def _format_brl(value):
     """1234.5 -> '1.234,50'"""
-    return f"{value:,.2f}".replace('.', 'X').replace(',', '.').replace('X', ',')
+    return f"{value:,.2f}".replace(".", "X").replace(",", ".").replace("X", ",")
 
 
 def _insalubrity_columns(base_salary, year, is_administrative):
@@ -80,149 +88,197 @@ def _insalubrity_columns(base_salary, year, is_administrative):
 # Documentos do funcionário
 # ---------------------------------------------------------------------------
 
+
 @login_required
-@permission_required('rhcontrol.view_employee', raise_exception=True)
+@permission_required("rhcontrol.view_employee", raise_exception=True)
 def create_employee_registration_pdf(request, pk):
-    return _employee_document_pdf(request, pk, 'registration_form.html', 'ficha_cadastral')
+    return _employee_document_pdf(
+        request, pk, "registration_form.html", "ficha_cadastral"
+    )
 
 
 @login_required
-@permission_required('rhcontrol.view_employee', raise_exception=True)
+@permission_required("rhcontrol.view_employee", raise_exception=True)
 def create_confidenciality_pdf(request, pk):
-    return _employee_document_pdf(request, pk, 'confidentiality_term.html', 'termo_de_confidencialidade')
+    return _employee_document_pdf(
+        request, pk, "confidentiality_term.html", "termo_de_confidencialidade"
+    )
 
 
 @login_required
-@permission_required('rhcontrol.view_employee', raise_exception=True)
+@permission_required("rhcontrol.view_employee", raise_exception=True)
 def create_bank_presentation_pdf(request, pk):
-    return _employee_document_pdf(request, pk, 'bank_presentation.html', 'apresentacao_bancaria')
+    return _employee_document_pdf(
+        request, pk, "bank_presentation.html", "apresentacao_bancaria"
+    )
 
 
 @login_required
-@permission_required('rhcontrol.view_employee', raise_exception=True)
+@permission_required("rhcontrol.view_employee", raise_exception=True)
 def create_personal_data_consent_pdf(request, pk):
     return _employee_document_pdf(
-        request, pk, 'personal_data_consent.html', 'termo_de_consentimento_dados_pessoais'
+        request,
+        pk,
+        "personal_data_consent.html",
+        "termo_de_consentimento_dados_pessoais",
     )
 
 
 @login_required
-@permission_required('rhcontrol.view_employee', raise_exception=True)
+@permission_required("rhcontrol.view_employee", raise_exception=True)
 def create_commitment_term_pdf(request, pk):
-    return _employee_document_pdf(request, pk, 'commitment_term.html', 'termo_de_compromisso')
+    return _employee_document_pdf(
+        request, pk, "commitment_term.html", "termo_de_compromisso"
+    )
 
 
 @login_required
-@permission_required('rhcontrol.view_employee', raise_exception=True)
+@permission_required("rhcontrol.view_employee", raise_exception=True)
 def create_responsible_term_pdf(request, pk):
     return _employee_document_pdf(
-        request, pk, 'responsability_term.html', 'termo_de_ciencia_e_responsabilidade_ti'
+        request,
+        pk,
+        "responsability_term.html",
+        "termo_de_ciencia_e_responsabilidade_ti",
     )
 
 
 @login_required
-@permission_required('rhcontrol.view_employee', raise_exception=True)
+@permission_required("rhcontrol.view_employee", raise_exception=True)
 def create_image_consent_pdf(request, pk):
     return _employee_document_pdf(
-        request, pk, 'image_consent.html', 'termo_de_consentimento_uso_imagem'
+        request, pk, "image_consent.html", "termo_de_consentimento_uso_imagem"
     )
 
 
 @login_required
-@permission_required('rhcontrol.view_employee', raise_exception=True)
+@permission_required("rhcontrol.view_employee", raise_exception=True)
 def create_benefits_acquisition_pdf(request, pk):
     return _employee_document_pdf(
-        request, pk, 'benefits_acquisition.html', 'termo_de_aquisicao_beneficios'
+        request, pk, "benefits_acquisition.html", "termo_de_aquisicao_beneficios"
     )
 
 
 @login_required
-@permission_required('rhcontrol.view_employee', raise_exception=True)
+@permission_required("rhcontrol.view_employee", raise_exception=True)
 def create_internal_regulation_pdf(request, pk):
-    return _employee_document_pdf(request, pk, 'internal_regulation.html', 'regimento_interno')
+    return _employee_document_pdf(
+        request, pk, "internal_regulation.html", "regimento_interno"
+    )
 
 
 # ---------------------------------------------------------------------------
 # Relatórios (listas)
 # ---------------------------------------------------------------------------
 
+
 @login_required
-@permission_required('rhcontrol.view_employee', raise_exception=True)
+@permission_required("rhcontrol.view_employee", raise_exception=True)
 def create_employee_list_pdf(request):
-    return render_pdf(request, 'dashboard/pages/employee/pdf/list.html', {
-        'employees': filter_employees(Employee.objects.select_related('department'), request.GET),
-        'status_filter': request.GET.get('status', 'todos'),
-        'query': request.GET.get('search', ''),
-    }, 'lista_de_funcionarios.pdf')
+    return render_pdf(
+        request,
+        "dashboard/pages/employee/pdf/list.html",
+        {
+            "employees": filter_employees(
+                Employee.objects.select_related("department"), request.GET
+            ),
+            "status_filter": request.GET.get("status", "todos"),
+            "query": request.GET.get("search", ""),
+        },
+        "lista_de_funcionarios.pdf",
+    )
 
 
 @login_required
-@permission_required('rhcontrol.view_department', raise_exception=True)
+@permission_required("rhcontrol.view_department", raise_exception=True)
 def create_department_and_jobtitle_pdf(request):
-    ordened_jobtitles = JobTitle.objects.order_by('base_salary')
+    ordened_jobtitles = JobTitle.objects.order_by("base_salary")
     departments = Department.objects.prefetch_related(
-        Prefetch('job_titles', queryset=ordened_jobtitles)
-    ).order_by('name')
+        Prefetch("job_titles", queryset=ordened_jobtitles)
+    ).order_by("name")
 
-    return render_pdf(request, 'dashboard/pages/departments/pdf/department_and_jobtitle.html', {
-        'object_list': departments,
-        'title': 'Lista de Setores e Cargos',
-    }, 'setores_e_cargos.pdf')
+    return render_pdf(
+        request,
+        "dashboard/pages/departments/pdf/department_and_jobtitle.html",
+        {
+            "object_list": departments,
+            "title": "Lista de Setores e Cargos",
+        },
+        "setores_e_cargos.pdf",
+    )
 
 
 @login_required
-@permission_required('rhcontrol.view_employee', raise_exception=True)
+@permission_required("rhcontrol.view_employee", raise_exception=True)
 def create_employees_department_pdf(request):
-    ordened_employees = Employee.objects.select_related('job_title').order_by('job_title__base_salary', 'name')
+    ordened_employees = Employee.objects.select_related("job_title").order_by(
+        "job_title__base_salary", "name"
+    )
 
-    departments = Department.objects.filter(
-        funcionarios_setor__isnull=False
-    ).distinct().prefetch_related(
-        Prefetch('funcionarios_setor', queryset=ordened_employees)
-    ).order_by('name')
+    departments = (
+        Department.objects.filter(funcionarios_setor__isnull=False)
+        .distinct()
+        .prefetch_related(Prefetch("funcionarios_setor", queryset=ordened_employees))
+        .order_by("name")
+    )
 
-    return render_pdf(request, 'dashboard/pages/departments/pdf/employees_department.html', {
-        'object_list': departments,
-        'total_employees': Employee.objects.count(),
-    }, 'funcionarios_por_setor.pdf')
+    return render_pdf(
+        request,
+        "dashboard/pages/departments/pdf/employees_department.html",
+        {
+            "object_list": departments,
+            "total_employees": Employee.objects.count(),
+        },
+        "funcionarios_por_setor.pdf",
+    )
 
 
 @login_required
-@permission_required('rhcontrol.view_vacation', raise_exception=True)
+@permission_required("rhcontrol.view_vacation", raise_exception=True)
 def create_vacation_list_pdf(request):
     vacation_list = filter_vacations(
-        Vacation.objects.select_related('employee').order_by('start_date'), request.GET
+        Vacation.objects.select_related("employee").order_by("start_date"), request.GET
     )
-    return render_pdf(request, 'dashboard/pages/vacation/pdf/vacation_list.html', {
-        'vacation': vacation_list,
-        'search_query': request.GET.get('search', ''),
-        'date_from': request.GET.get('date_from', ''),
-        'date_to': request.GET.get('date_to', ''),
-        'status_filter': request.GET.get('status', 'ativas'),
-    }, 'lista_de_ferias.pdf')
+    return render_pdf(
+        request,
+        "dashboard/pages/vacation/pdf/vacation_list.html",
+        {
+            "vacation": vacation_list,
+            "search_query": request.GET.get("search", ""),
+            "date_from": request.GET.get("date_from", ""),
+            "date_to": request.GET.get("date_to", ""),
+            "status_filter": request.GET.get("status", "ativas"),
+        },
+        "lista_de_ferias.pdf",
+    )
 
 
 @login_required
-@permission_required('rhcontrol.view_training', raise_exception=True)
+@permission_required("rhcontrol.view_training", raise_exception=True)
 def create_training_list_pdf(request):
     training_list = filter_trainings(
         Training.objects.annotate(
-            num_attended=Count('attended_employees', distinct=True),
-            num_scheduled=Count('scheduled_employees', distinct=True),
+            num_attended=Count("attended_employees", distinct=True),
+            num_scheduled=Count("scheduled_employees", distinct=True),
         ),
         request.GET,
     )
-    return render_pdf(request, 'dashboard/pages/training/pdf/training_list_pdf.html', {
-        'trainings': training_list,
-        'status_filter': request.GET.get('status') or 'todos',
-        'query': request.GET.get('search', ''),
-        'date_from': request.GET.get('date_from', ''),
-        'date_to': request.GET.get('date_to', ''),
-    }, 'lista_de_treinamentos.pdf')
+    return render_pdf(
+        request,
+        "dashboard/pages/training/pdf/training_list_pdf.html",
+        {
+            "trainings": training_list,
+            "status_filter": request.GET.get("status") or "todos",
+            "query": request.GET.get("search", ""),
+            "date_from": request.GET.get("date_from", ""),
+            "date_to": request.GET.get("date_to", ""),
+        },
+        "lista_de_treinamentos.pdf",
+    )
 
 
 @login_required
-@permission_required('rhcontrol.view_occurrence', raise_exception=True)
+@permission_required("rhcontrol.view_occurrence", raise_exception=True)
 def create_occurrence_list_pdf(request, employee_id):
     """
     GET employees/<employee_id>/occurrences/pdf/
@@ -231,15 +287,21 @@ def create_occurrence_list_pdf(request, employee_id):
     """
     employee = get_object_or_404(Employee, pk=employee_id)
     occurrences = filter_occurrences(
-        Occurrence.objects.filter(employee=employee).select_related('created_by'), request.GET
+        Occurrence.objects.filter(employee=employee).select_related("created_by"),
+        request.GET,
     )
-    return render_pdf(request, 'dashboard/pages/occurrence/pdf/occurrence_list_pdf.html', {
-        'occurrences': occurrences,
-        'employee': employee,
-        'search_query': request.GET.get('search', '').strip(),
-        'date_from': request.GET.get('date_from'),
-        'date_to': request.GET.get('date_to'),
-    }, f"Ocorrencias_{employee.name.replace(' ', '_')}.pdf")
+    return render_pdf(
+        request,
+        "dashboard/pages/occurrence/pdf/occurrence_list_pdf.html",
+        {
+            "occurrences": occurrences,
+            "employee": employee,
+            "search_query": request.GET.get("search", "").strip(),
+            "date_from": request.GET.get("date_from"),
+            "date_to": request.GET.get("date_to"),
+        },
+        f"Ocorrencias_{employee.name.replace(' ', '_')}.pdf",
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -250,7 +312,7 @@ ADMINISTRATIVE_KEYWORDS = ["ADMINISTRATIVO", "ADMINISTRAÇÃO", "ADM", "ADMINIST
 
 
 @login_required
-@permission_required('rhcontrol.view_careerplan', raise_exception=True)
+@permission_required("rhcontrol.view_careerplan", raise_exception=True)
 def employee_career_plan_pdf(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
 
@@ -262,45 +324,63 @@ def employee_career_plan_pdf(request, pk):
     table_data = []
 
     history_records = EmployeeHistory.objects.filter(
-        employee=employee,
-        reason__in=['Admissão', 'Promoção', 'Mérito', 'Dissídio']
-    ).order_by('date_changed')
+        employee=employee, reason__in=["Admissão", "Promoção", "Mérito", "Dissídio"]
+    ).order_by("date_changed")
 
     for h in history_records:
-        salario_base = float(h.new_salary or h.old_salary or employee.current_salary or 0)
+        salario_base = float(
+            h.new_salary or h.old_salary or employee.current_salary or 0
+        )
         cargo_linha = h.new_job_title or h.old_job_title or employee.job_title.name
-        insalub_str, total_str = _insalubrity_columns(salario_base, h.date_changed.year, is_adm)
+        insalub_str, total_str = _insalubrity_columns(
+            salario_base, h.date_changed.year, is_adm
+        )
 
-        table_data.append({
-            'ano': h.date_changed.year,
-            'data': h.date_changed,
-            'salario': salario_base,
-            'insalub': insalub_str,
-            'v_total': total_str,
-            'funcao': cargo_linha,
-            'is_future': False
-        })
+        table_data.append(
+            {
+                "ano": h.date_changed.year,
+                "data": h.date_changed,
+                "salario": salario_base,
+                "insalub": insalub_str,
+                "v_total": total_str,
+                "funcao": cargo_linha,
+                "is_future": False,
+            }
+        )
 
-    active_plans = employee.career_plans.filter(
-        status__in=['SCHEDULED', 'AWAITING_CONFIRMATION', 'CONFIRMED']
-    ).select_related('proposed_job').order_by('promotion_date')
+    active_plans = (
+        employee.career_plans.filter(
+            status__in=["SCHEDULED", "AWAITING_CONFIRMATION", "CONFIRMED"]
+        )
+        .select_related("proposed_job")
+        .order_by("promotion_date")
+    )
 
     for plan in active_plans:
         salario_base = float(plan.proposed_salary or 0)
-        insalub_str, total_str = _insalubrity_columns(salario_base, plan.promotion_date.year, is_adm)
+        insalub_str, total_str = _insalubrity_columns(
+            salario_base, plan.promotion_date.year, is_adm
+        )
 
-        table_data.append({
-            'ano': plan.promotion_date.year,
-            'data': plan.promotion_date,
-            'salario': salario_base,
-            'insalub': insalub_str,
-            'v_total': total_str,
-            'funcao': plan.proposed_job.name,
-            'is_future': True
-        })
+        table_data.append(
+            {
+                "ano": plan.promotion_date.year,
+                "data": plan.promotion_date,
+                "salario": salario_base,
+                "insalub": insalub_str,
+                "v_total": total_str,
+                "funcao": plan.proposed_job.name,
+                "is_future": True,
+            }
+        )
 
-    return render_pdf(request, 'dashboard/pages/career/pdf/career_plan_pdf.html', {
-        'employee': employee,
-        'table_data': table_data,
-        'is_administrative': is_adm,
-    }, f"Plano_Carreira_{employee.name.replace(' ', '_')}.pdf")
+    return render_pdf(
+        request,
+        "dashboard/pages/career/pdf/career_plan_pdf.html",
+        {
+            "employee": employee,
+            "table_data": table_data,
+            "is_administrative": is_adm,
+        },
+        f"Plano_Carreira_{employee.name.replace(' ', '_')}.pdf",
+    )
