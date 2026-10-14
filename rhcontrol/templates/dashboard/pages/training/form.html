@@ -4,8 +4,6 @@
 {% block title %} Registrar Treinamento | {% endblock title %}
 
 {% block content %}
-<link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
-
 <link rel="stylesheet" href="{% static 'global/css/pages/training-form.css' %}?v=1" />
 
 <div class="form-container">
@@ -110,28 +108,12 @@
     </form>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+{% include 'partials/employee_select.html' %}
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         
-        // 1. INICIALIZA O TOM-SELECT
-        function initTomSelect(elementId, placeholderText) {
-            const el = document.getElementById(elementId);
-            if(el) {
-                return new TomSelect(el, {
-                    plugins: ['remove_button'],
-                    create: false,
-                    sortField: { field: "text", direction: "asc" },
-                    placeholder: placeholderText,
-                    maxOptions: null
-                });
-            }
-            return null;
-        }
-
-        const tsScheduled = initTomSelect('id_scheduled_employees', 'Digite o nome do funcionário...');
-        const tsAttended = initTomSelect('id_attended_employees', 'Selecione quem realmente compareceu...');
+        // 1. O Tom Select dos funcionários é iniciado por global/js/employee-select.js
 
         // 2. LÓGICA DO BOTÃO "SELECIONAR TODOS"
         document.querySelectorAll('.btn-select-all').forEach(btn => {

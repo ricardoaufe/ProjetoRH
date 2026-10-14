@@ -1,9 +1,11 @@
 from django import forms
 
+from rhcontrol.forms.fields import EmployeeChoiceField, employee_choices
 from rhcontrol.models import CareerPlan, Department, JobTitle
 
 
 class CareerPlanForm(forms.ModelForm):
+    employee = EmployeeChoiceField()
     proposed_department = forms.ModelChoiceField(
         queryset=Department.objects.all(), label="Novo Setor", required=True
     )
@@ -33,6 +35,8 @@ class CareerPlanForm(forms.ModelForm):
                 field.widget.attrs["class"] += " form-control"
             else:
                 field.widget.attrs["class"] = "form-control"
+
+        self.fields["employee"].queryset = employee_choices(keep=[self.instance.employee_id])
 
         if self.instance and self.instance.pk:
             self.fields["employee"].disabled = True

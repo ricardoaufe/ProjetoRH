@@ -1,6 +1,7 @@
 from django import forms
 
-from rhcontrol.models import Employee, Training
+from rhcontrol.forms.fields import EmployeeMultipleChoiceField, employee_choices
+from rhcontrol.models import Training
 
 
 class TrainingForm(forms.ModelForm):
@@ -8,6 +9,14 @@ class TrainingForm(forms.ModelForm):
         required=False,
         label="Todos os Setores",
         widget=forms.CheckboxInput(attrs={"class": "form-check-input"}),
+    )
+    scheduled_employees = EmployeeMultipleChoiceField(label="Funcionários Previstos")
+    attended_employees = EmployeeMultipleChoiceField(
+        label="Funcionários Que Compareceram",
+        widget=forms.SelectMultiple(attrs={
+            "class": "form-control js-employee-select",
+            "data-placeholder": "Selecione quem realmente compareceu...",
+        }),
     )
 
     class Meta:
@@ -30,16 +39,6 @@ class TrainingForm(forms.ModelForm):
             "target_department": forms.Select(
                 attrs={"class": "form-control", "id": "id_target_department"}
             ),
-            "scheduled_employees": forms.SelectMultiple(
-                attrs={
-                    "class": "form-control",
-                    "size": "10",
-                    "id": "id_scheduled_employees",
-                }
-            ),
-            "attended_employees": forms.SelectMultiple(
-                attrs={"class": "form-control", "size": "10"}
-            ),
         }
 
     def clean(self):
@@ -57,10 +56,8 @@ class TrainingForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        active_employees = Employee.objects.filter(
-            termination_date__isnull=True
-        ).order_by("name")
-        if "scheduled_employees" in self.fields:
-            self.fields["scheduled_employees"].queryset = active_employees
-        if "attended_employees" in self.fields:
-            self.fields["attended_employees"].queryset = active_employees
+        # Quem já está no treinamento continua na lista mesmo se desligado,
+        # senão salvar a edição o removeria sem aviso.
+        for name in ("scheduled_employees", "attended_employees"):
+            current = self.instance.pk and getattr(self.instance, name).values_list("pk", flat=True)
+            self.fields[name].queryset = employee_choices(keep=current or [])
