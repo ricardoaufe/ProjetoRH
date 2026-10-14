@@ -12,7 +12,6 @@ from rhcontrol.filters import filter_employees
 from rhcontrol.forms import DependentFormSet, EmployeeForm, EmployeeHistoryForm
 from rhcontrol.models import Employee, EmployeeHistory, JobTitle, Occurrence
 from rhcontrol.pagination import paginate
-from rhcontrol.services import get_vacation_balance
 
 
 @login_required
@@ -213,7 +212,6 @@ def employee_update(request, pk):
         'total_hours': total_hours,
         'occurrences_top5': occurrences_top5,
         'job_titles': job_titles,
-        'vacation_balance': get_vacation_balance(employee, today),
     })
 
 @login_required

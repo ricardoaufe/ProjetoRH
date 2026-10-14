@@ -25,21 +25,19 @@ VACATION_DAYS_PER_PERIOD = 30
 VACATION_DUE_NOTICE_MONTHS = 4
 
 
-def get_vacation_balance(employee: Employee, today: date | None = None) -> dict | None:
+def get_vacation_deadline(employee: Employee, today: date | None = None) -> dict | None:
     """
-    Saldo de férias do período em concessão, pela CLT (arts. 130 e 134).
+    Vencimento das férias do período em concessão, pela CLT (art. 134).
 
     O n-ésimo período aquisitivo termina na véspera do n-ésimo aniversário de
     admissão, e as férias dele devem ser concedidas nos 12 meses seguintes
-    (a "janela de concessão"). As férias que começam dentro dessa janela
-    abatem o saldo do período, o que também cobre férias fracionadas.
+    (a "janela de concessão"). O aviso sai 4 meses antes do vencimento, a
+    menos que já haja 30 dias de férias cadastrados começando nessa janela
+    (soma as partes, então cobre férias fracionadas).
 
-    Simplificações: sempre 30 dias por período (não considera faltas
-    injustificadas nem abono pecuniário) e só a janela atual é avaliada,
-    então períodos já vencidos não aparecem.
-
-    Retorna None para quem não tem admissão ou já foi desligado. Antes de
-    completar o primeiro ano, retorna apenas 'available_from'.
+    Só a janela atual é avaliada, então períodos já vencidos não geram aviso.
+    Retorna None para quem não tem admissão, já foi desligado ou ainda não
+    completou o primeiro ano.
     """
     if not employee.hire_date or employee.termination_date:
         return None
@@ -48,10 +46,11 @@ def get_vacation_balance(employee: Employee, today: date | None = None) -> dict 
     years_of_service = relativedelta(today, employee.hire_date).years
 
     if years_of_service < 1:
-        return {'available_from': employee.hire_date + relativedelta(years=1)}
+        return None
 
     window_start = employee.hire_date + relativedelta(years=years_of_service)
     deadline = employee.hire_date + relativedelta(years=years_of_service + 1) - timedelta(days=1)
+    notice_date = deadline - relativedelta(months=VACATION_DUE_NOTICE_MONTHS)
 
     # Soma em Python para aproveitar prefetch_related('vacations') no cron.
     used_days = sum(
@@ -59,17 +58,12 @@ def get_vacation_balance(employee: Employee, today: date | None = None) -> dict 
         if window_start <= v.start_date <= deadline
     )
 
-    balance = max(0, VACATION_DAYS_PER_PERIOD - used_days)
-    notice_date = deadline - relativedelta(months=VACATION_DUE_NOTICE_MONTHS)
-
     return {
         'window_start': window_start,
         'deadline': deadline,
         'notice_date': notice_date,
-        'used_days': used_days,
-        'balance': balance,
-        # Dentro dos 4 meses finais e ainda com saldo: é quando sai o aviso.
-        'is_due': balance > 0 and today >= notice_date,
+        # Dentro dos 4 meses finais e sem as férias cadastradas: sai o aviso.
+        'is_due': used_days < VACATION_DAYS_PER_PERIOD and today >= notice_date,
     }
 
 
@@ -144,8 +138,8 @@ def get_events_for_notification() -> list[dict]:
                 hire_date__isnull=False,
             ).select_related('department').prefetch_related('vacations')
             for emp in employees:
-                vacation = get_vacation_balance(emp, today)
-                if not vacation or not vacation.get('is_due'):
+                vacation = get_vacation_deadline(emp, today)
+                if not vacation or not vacation['is_due']:
                     continue
                 deadline = vacation['deadline'].strftime('%d/%m/%Y')
                 events_to_notify.append({
@@ -160,7 +154,6 @@ def get_events_for_notification() -> list[dict]:
                         f"Olá,\n\n"
                         f"O(a) colaborador(a) {emp.name} tem FÉRIAS PARA VENCER em {deadline}.\n\n"
                         f"Prazo para concessão: {vacation['window_start'].strftime('%d/%m/%Y')} a {deadline}\n"
-                        f"Saldo: {vacation['balance']} dia(s)\n"
                         f"Setor: {emp.department or '-'}\n\n"
                         f"Programe as férias antes do vencimento para evitar o pagamento em dobro (CLT, art. 137)."
                     ),

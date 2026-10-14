@@ -1074,22 +1074,6 @@
 }
 .history-item .history-item__duration { color: #6c757d; font-size: 0.95em; }
 
-/* Saldo de férias do período em concessão (acima do histórico de afastamentos) */
-.vacation-balance {
-    background: #f8f9fa;
-    border-left: 4px solid #20c997;
-    border-radius: 4px;
-    padding: 8px 10px;
-    margin-bottom: 12px;
-    font-size: 1.5rem;
-    color: #495057;
-}
-.vacation-balance.vacation-balance--due {
-    background: #fef3c7;
-    border-left-color: #d97706;
-}
-.vacation-balance .vacation-balance__title { font-size: 1.6rem; margin-bottom: 4px; }
-
 /* Modal "Adicionar/Editar registro histórico" */
 dialog.history-modal {
     margin: auto;
