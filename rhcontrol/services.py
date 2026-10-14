@@ -2,6 +2,7 @@ import calendar as _calendar
 import logging
 from datetime import date, timedelta
 
+from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
@@ -19,6 +20,57 @@ from .models import (
     Training,
     Vacation,
 )
+
+VACATION_DAYS_PER_PERIOD = 30
+VACATION_DUE_NOTICE_MONTHS = 4
+
+
+def get_vacation_balance(employee: Employee, today: date | None = None) -> dict | None:
+    """
+    Saldo de férias do período em concessão, pela CLT (arts. 130 e 134).
+
+    O n-ésimo período aquisitivo termina na véspera do n-ésimo aniversário de
+    admissão, e as férias dele devem ser concedidas nos 12 meses seguintes
+    (a "janela de concessão"). As férias que começam dentro dessa janela
+    abatem o saldo do período, o que também cobre férias fracionadas.
+
+    Simplificações: sempre 30 dias por período (não considera faltas
+    injustificadas nem abono pecuniário) e só a janela atual é avaliada,
+    então períodos já vencidos não aparecem.
+
+    Retorna None para quem não tem admissão ou já foi desligado. Antes de
+    completar o primeiro ano, retorna apenas 'available_from'.
+    """
+    if not employee.hire_date or employee.termination_date:
+        return None
+
+    today = today or timezone.localdate()
+    years_of_service = relativedelta(today, employee.hire_date).years
+
+    if years_of_service < 1:
+        return {'available_from': employee.hire_date + relativedelta(years=1)}
+
+    window_start = employee.hire_date + relativedelta(years=years_of_service)
+    deadline = employee.hire_date + relativedelta(years=years_of_service + 1) - timedelta(days=1)
+
+    # Soma em Python para aproveitar prefetch_related('vacations') no cron.
+    used_days = sum(
+        v.vacation_duration for v in employee.vacations.all()
+        if window_start <= v.start_date <= deadline
+    )
+
+    balance = max(0, VACATION_DAYS_PER_PERIOD - used_days)
+    notice_date = deadline - relativedelta(months=VACATION_DUE_NOTICE_MONTHS)
+
+    return {
+        'window_start': window_start,
+        'deadline': deadline,
+        'notice_date': notice_date,
+        'used_days': used_days,
+        'balance': balance,
+        # Dentro dos 4 meses finais e ainda com saldo: é quando sai o aviso.
+        'is_due': balance > 0 and today >= notice_date,
+    }
 
 
 def get_events_for_notification() -> list[dict]:
@@ -80,6 +132,38 @@ def get_events_for_notification() -> list[dict]:
                     'related_object': vacation,
                     'event_date': vacation.start_date,
                     'reference_year': vacation.start_date.year
+                })
+
+        elif rule.event_type == EventTypes.VACATION_DUE:
+            # A antecedência é fixa (4 meses antes do vencimento), não usa
+            # days_in_advance. Avisa a partir da data do aviso até o vencimento,
+            # para não perder o aviso se o cron falhar num dia; o NotificationLog
+            # (ano do vencimento) garante um único e-mail por período.
+            employees = Employee.objects.filter(
+                termination_date__isnull=True,
+                hire_date__isnull=False,
+            ).select_related('department').prefetch_related('vacations')
+            for emp in employees:
+                vacation = get_vacation_balance(emp, today)
+                if not vacation or not vacation.get('is_due'):
+                    continue
+                deadline = vacation['deadline'].strftime('%d/%m/%Y')
+                events_to_notify.append({
+                    'event_type': rule.event_type,
+                    'rule': rule,
+                    'employee': emp,
+                    'related_object': emp,
+                    'event_date': vacation['deadline'],
+                    'reference_year': vacation['deadline'].year,
+                    'custom_subject': f"Aviso RH: FÉRIAS PARA VENCER em {deadline} - {emp.name}",
+                    'custom_body': (
+                        f"Olá,\n\n"
+                        f"O(a) colaborador(a) {emp.name} tem FÉRIAS PARA VENCER em {deadline}.\n\n"
+                        f"Prazo para concessão: {vacation['window_start'].strftime('%d/%m/%Y')} a {deadline}\n"
+                        f"Saldo: {vacation['balance']} dia(s)\n"
+                        f"Setor: {emp.department or '-'}\n\n"
+                        f"Programe as férias antes do vencimento para evitar o pagamento em dobro (CLT, art. 137)."
+                    ),
                 })
 
         elif rule.event_type == EventTypes.CONTRACT_END:

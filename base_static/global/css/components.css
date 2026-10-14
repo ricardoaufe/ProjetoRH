@@ -1056,13 +1056,13 @@
     margin-bottom: 12px;
 }
 .history-item .history-item__leave-title {
-    font-size: 1.2rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: #495057;
     margin-bottom: 4px;
 }
-.history-item .history-item__leave-subtitle { font-weight: 400; color: #6c757d; font-size: 1.1rem; }
-.history-item .history-item__leave-dates { font-size: 1.1rem; margin-bottom: 4px; }
+.history-item .history-item__leave-subtitle { font-weight: 400; color: #6c757d; font-size: 1.5rem; }
+.history-item .history-item__leave-dates { font-size: 1.5rem; margin-bottom: 4px; }
 .history-item .history-item__ongoing {
     color: #d97706;
     font-weight: bold;
@@ -1073,6 +1073,22 @@
     font-size: 0.9em;
 }
 .history-item .history-item__duration { color: #6c757d; font-size: 0.95em; }
+
+/* Saldo de férias do período em concessão (acima do histórico de afastamentos) */
+.vacation-balance {
+    background: #f8f9fa;
+    border-left: 4px solid #20c997;
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    font-size: 1.5rem;
+    color: #495057;
+}
+.vacation-balance.vacation-balance--due {
+    background: #fef3c7;
+    border-left-color: #d97706;
+}
+.vacation-balance .vacation-balance__title { font-size: 1.6rem; margin-bottom: 4px; }
 
 /* Modal "Adicionar/Editar registro histórico" */
 dialog.history-modal {

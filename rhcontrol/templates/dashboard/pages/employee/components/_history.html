@@ -138,6 +138,21 @@
 
         <div class="history-col">
             <h4>🏖️ Férias / Afastamentos</h4>
+            {% if vacation_balance.deadline %}
+                <div class="vacation-balance{% if vacation_balance.is_due %} vacation-balance--due{% endif %}">
+                    <div class="vacation-balance__title">Saldo de férias: <strong>{{ vacation_balance.balance }} dia{{ vacation_balance.balance|pluralize }}</strong></div>
+                    <div class="vacation-balance__dates">
+                        Prazo para tirar: {{ vacation_balance.window_start|date:"d/m/Y" }} a {{ vacation_balance.deadline|date:"d/m/Y" }}
+                        · vence em <strong>{{ vacation_balance.deadline|date:"d/m/Y" }}</strong>
+                    </div>
+                </div>
+            {% elif vacation_balance.available_from %}
+                <div class="vacation-balance">
+                    <div class="vacation-balance__dates">
+                        Primeiras férias disponíveis a partir de <strong>{{ vacation_balance.available_from|date:"d/m/Y" }}</strong>
+                    </div>
+                </div>
+            {% endif %}
             <div class="history-scroll">
                 <ul class="history-list">
                     {% for item in leaves_history %}

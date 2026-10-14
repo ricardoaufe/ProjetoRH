@@ -6,6 +6,7 @@ from django.db import models
 
 class EventTypes(models.TextChoices):
     VACATION_START = 'VACATION', 'Início de Férias'
+    VACATION_DUE = 'VACATION_DUE', 'Férias a Vencer'
     TRAINING_DUE = 'TRAINING', 'Vencimento de Treinamento'
     TRIAL_END = 'TRIAL_END', 'Fim do Contrato de Experiência'
     EXAM_DUE = 'EXAM_DUE', 'Exame Ocupacional a Vencer'
