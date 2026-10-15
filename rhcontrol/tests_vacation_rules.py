@@ -10,6 +10,11 @@ from rhcontrol.models import Department, Employee, JobTitle, Vacation
 from rhcontrol.services import get_vacation_periods
 
 
+# Nestes testes o controle começa antes da admissão, para todo período contar.
+ALL_PERIODS_TRACKED = patch('rhcontrol.services.VACATION_TRACKING_START', date(2000, 1, 1))
+
+
+@ALL_PERIODS_TRACKED
 class VacationRulesTests(TestCase):
     """
     Regras da CLT no cadastro de férias. Admissão em 04/03/2024: o 1º período
@@ -143,6 +148,7 @@ class VacationRulesTests(TestCase):
         self.assertContains(response, 'devem ser pagas em dobro')
 
 
+@ALL_PERIODS_TRACKED
 class VacationBalanceTests(TestCase):
     """Saldo por período: só cai quando as férias começam."""
 
@@ -202,3 +208,30 @@ class VacationBalanceTests(TestCase):
         self.assertContains(response, 'Saldo de férias')
         self.assertContains(response, '04/03/2024 a 03/03/2025: <strong>10 dias</strong>', html=False)
         self.assertContains(response, 'Em aquisição: 22,5 dias (libera em 04/03/2026)')
+
+
+class VacationTrackingStartTests(TestCase):
+    """Períodos iniciados antes de 01/02/2025 já foram resolvidos fora do sistema."""
+
+    def setUp(self):
+        dept = Department.objects.create(name='RH')
+        job = JobTitle.objects.create(name='Analista', department=dept, base_salary=3000)
+        self.employee = Employee.objects.create(
+            name='Fulano', cpf='12345678901', birth_date='1990-01-01',
+            department=dept, job_title=job, hire_date=date(2022, 5, 2),
+        )
+
+    def test_periods_started_before_tracking_are_settled(self):
+        periods = get_vacation_periods(self.employee, date(2026, 6, 1))
+        self.assertTrue(all(p['is_settled'] for p in periods[:3]))
+        self.assertFalse(any(p['expired_days'] for p in periods))
+        self.assertEqual((periods[3]['start'], periods[3]['balance']), (date(2025, 5, 2), 30))
+
+    def test_vacation_of_settled_period_is_history_only(self):
+        form = VacationForm(data={
+            'employee': self.employee.pk, 'start_date': '2025-06-02', 'vacation_duration': 30,
+        })
+        self.assertTrue(form.is_valid(), form.errors)
+        self.assertIsNone(form.period)
+        form.save()
+        self.assertEqual(get_vacation_periods(self.employee, date(2026, 6, 1))[3]['balance'], 30)

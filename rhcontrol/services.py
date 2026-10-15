@@ -30,6 +30,9 @@ VACATION_MIN_PART_DAYS = 5
 VACATION_MIN_MAIN_PART_DAYS = 14
 # Abono pecuniário (CLT art. 143): no máximo 1/3 do período.
 VACATION_MAX_CASH_BONUS_DAYS = VACATION_DAYS_PER_PERIOD // 3
+# Início do controle de férias no sistema: períodos aquisitivos iniciados antes
+# disso já foram resolvidos fora dele.
+VACATION_TRACKING_START = date(2025, 2, 1)
 
 
 def get_vacation_periods(employee: Employee, today: date | None = None, vacations=None) -> list[dict]:
@@ -44,9 +47,11 @@ def get_vacation_periods(employee: Employee, today: date | None = None, vacation
     que ainda tem dias, como o RH faz na prática, e o abono vende o que sobrou
     do período, encerrando-o.
 
-    O histórico anterior ao sistema não é cadastrado: os períodos anteriores
-    ao das primeiras férias cadastradas contam como quitados ('is_settled').
-    Sem nenhuma férias cadastrada, todos ficam em aberto desde a admissão.
+    O histórico anterior ao sistema não é cadastrado, então contam como
+    quitados ('is_settled') os períodos iniciados antes de
+    VACATION_TRACKING_START e os anteriores ao das primeiras férias
+    cadastradas. Férias que começaram antes do primeiro período controlado
+    ficam só no histórico e não abatem saldo.
 
     'balance' só desconta férias que já começaram (as agendadas ainda podem
     mudar); 'free_days' desconta também as agendadas e é o que as validações
@@ -59,6 +64,12 @@ def get_vacation_periods(employee: Employee, today: date | None = None, vacation
     if vacations is None:
         # all() aproveita prefetch_related('vacations') no cron.
         vacations = employee.vacations.all()
+    settled_count = 0
+    while employee.hire_date + relativedelta(years=settled_count) < VACATION_TRACKING_START:
+        settled_count += 1
+    if settled_count:
+        tracked_from = employee.hire_date + relativedelta(years=settled_count + 1)
+        vacations = [v for v in vacations if v.start_date >= tracked_from]
     vacations = sorted(vacations, key=lambda v: (v.start_date, v.pk or 0))
 
     periods = []
@@ -82,8 +93,9 @@ def get_vacation_periods(employee: Employee, today: date | None = None, vacation
     if vacations:
         # Período em concessão quando as primeiras férias começaram.
         first_period = max(1, relativedelta(vacations[0].start_date, employee.hire_date).years)
-        for _ in range(first_period - 1):
-            add_period()['is_settled'] = True
+        settled_count = max(settled_count, first_period - 1)
+    for _ in range(settled_count):
+        add_period()['is_settled'] = True
 
     for vacation in vacations:
         period = next(
@@ -198,7 +210,10 @@ def validate_vacation(vacation: Vacation) -> tuple[dict, dict | None]:
         return {'start_date': f'Não pode começar nos 2 dias antes de domingo ou feriado ({blocker:%d/%m} é {reason}, CLT art. 134 §3º).'}, None
 
     periods = get_vacation_periods(employee, vacations=others + [vacation])
-    period = next(p for p in periods if any(v is vacation for v in p['vacations']))
+    period = next((p for p in periods if any(v is vacation for v in p['vacations'])), None)
+    if period is None:
+        # Férias de período anterior ao controle no sistema: só histórico.
+        return {}, None
     label = f"{period['start']:%d/%m/%Y} a {period['end']:%d/%m/%Y}"
 
     if start < period['window_start']:
