@@ -1,11 +1,16 @@
+from pathlib import Path
+from urllib.parse import unquote, urlsplit
+
+from django.conf import settings
 from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib.staticfiles import finders
 from django.db.models import Count, Prefetch
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.utils.http import content_disposition_header
-from weasyprint import HTML
+from weasyprint import HTML, URLFetcher
 
 from rhcontrol.filters import (
     filter_employees,
@@ -29,6 +34,31 @@ from rhcontrol.services import get_historical_minimum_wage
 # ---------------------------------------------------------------------------
 
 
+class StaticFileFetcher(URLFetcher):
+    """
+    Lê do disco os arquivos de /static/ (fontes e imagens dos PDFs).
+
+    Sem isso o WeasyPrint baixa cada um por HTTP do próprio servidor; nos
+    testes o endereço é "testserver", que não existe, e cada tentativa leva
+    segundos até falhar. Arquivo de /static/ que não está no disco também
+    não existiria por HTTP, então falha na hora (o PDF sai sem ele, como
+    antes). O que não for de /static/ segue pelo HTTP.
+    """
+
+    def fetch(self, url, headers=None):
+        path = unquote(urlsplit(url).path)
+        if not path.startswith(settings.STATIC_URL):
+            return super().fetch(url, headers)
+
+        relative = path[len(settings.STATIC_URL):]
+        if '..' not in relative:
+            # finders acha em dev/testes; STATIC_ROOT é onde o collectstatic copia.
+            file_path = finders.find(relative) or Path(settings.STATIC_ROOT) / relative
+            if Path(file_path).is_file():
+                return super().fetch(Path(file_path).resolve().as_uri())
+        raise FileNotFoundError(f'Arquivo estático não encontrado: {path}')
+
+
 def render_pdf(request, template_name, context, filename):
     """
     Renderiza um template HTML como PDF (WeasyPrint) e devolve a resposta.
@@ -44,7 +74,11 @@ def render_pdf(request, template_name, context, filename):
         **context,
     }
     html_string = render_to_string(template_name, context, request=request)
-    pdf = HTML(string=html_string, base_url=request.build_absolute_uri()).write_pdf()
+    pdf = HTML(
+        string=html_string,
+        base_url=request.build_absolute_uri(),
+        url_fetcher=StaticFileFetcher(),
+    ).write_pdf()
 
     response = HttpResponse(pdf, content_type="application/pdf")
     response["Content-Disposition"] = content_disposition_header(

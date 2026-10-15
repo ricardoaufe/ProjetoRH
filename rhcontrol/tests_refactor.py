@@ -25,6 +25,30 @@ from rhcontrol.models import (
 )
 
 
+class StaticFileFetcherTests(TestCase):
+    """PDFs leem /static/ do disco, sem baixar do próprio servidor por HTTP."""
+
+    def test_static_files_are_read_from_disk(self):
+        from rhcontrol.views.pdf import StaticFileFetcher
+
+        with mock.patch('urllib.request.HTTPHandler.http_open') as http_open:
+            response = StaticFileFetcher().fetch('http://testserver/static/global/fonts/times.ttf')
+            content = response.read()
+            response.close()
+        http_open.assert_not_called()
+        self.assertTrue(response.url.startswith('file:'))
+        self.assertTrue(content)
+
+    def test_missing_or_outside_static_fails_without_network(self):
+        from rhcontrol.views.pdf import StaticFileFetcher
+
+        with mock.patch('urllib.request.HTTPHandler.http_open') as http_open:
+            for url in ('http://testserver/static/nao-existe.png', 'http://testserver/static/../manage.py'):
+                with self.assertRaises(FileNotFoundError):
+                    StaticFileFetcher().fetch(url)
+        http_open.assert_not_called()
+
+
 class PdfEndpointsTests(TestCase):
     """Todos os PDFs continuam sendo gerados, com o nome de arquivo certo."""
 
