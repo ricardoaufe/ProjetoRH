@@ -12,6 +12,7 @@ from rhcontrol.filters import filter_employees
 from rhcontrol.forms import DependentFormSet, EmployeeForm, EmployeeHistoryForm
 from rhcontrol.models import Employee, EmployeeHistory, JobTitle, Occurrence
 from rhcontrol.pagination import paginate
+from rhcontrol.services import get_vacation_periods
 
 
 @login_required
@@ -196,6 +197,13 @@ def employee_update(request, pk):
 
     leaves_history.sort(key=lambda x: x['start_date'], reverse=True)
 
+    # Saldo de férias: períodos já adquiridos com dias a tirar e o próximo a liberar.
+    vacation_periods, next_vacation_period = [], None
+    if not employee.termination_date:
+        periods = get_vacation_periods(employee, today)
+        vacation_periods = [p for p in periods if p['is_acquired'] and (p['balance'] or p['expired_days'])]
+        next_vacation_period = next((p for p in periods if not p['is_acquired']), None)
+
     occurrences_top5 = (
         employee.occurrences
         .order_by('-occurrence_date', '-created_at')[:5]
@@ -212,6 +220,8 @@ def employee_update(request, pk):
         'total_hours': total_hours,
         'occurrences_top5': occurrences_top5,
         'job_titles': job_titles,
+        'vacation_periods': vacation_periods,
+        'next_vacation_period': next_vacation_period,
     })
 
 @login_required

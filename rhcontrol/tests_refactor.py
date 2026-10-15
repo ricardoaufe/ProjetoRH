@@ -182,7 +182,7 @@ class VacationFormTests(TestCase):
         job = JobTitle.objects.create(name='Operador', department=department, base_salary=2500)
         self.employee = Employee.objects.create(
             name='Ana Souza', cpf='67134509206', birth_date=date(1990, 3, 2),
-            department=department, job_title=job,
+            department=department, job_title=job, hire_date=date(2024, 1, 1),
         )
 
     def test_create_skips_holiday_on_return_date(self):

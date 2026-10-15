@@ -138,6 +138,25 @@
 
         <div class="history-col">
             <h4>🏖️ Férias / Afastamentos</h4>
+            {% if vacation_periods or next_vacation_period %}
+                <div class="vacation-balance">
+                    <div class="vacation-balance__title">Saldo de férias</div>
+                    {% for p in vacation_periods %}
+                        <div class="vacation-balance__row{% if p.expired_days %} vacation-balance__row--expired{% elif p.is_due %} vacation-balance__row--due{% endif %}">
+                            {{ p.start|date:"d/m/Y" }} a {{ p.end|date:"d/m/Y" }}: <strong>{{ p.balance }} dia{{ p.balance|pluralize }}</strong>
+                            {% if p.scheduled_days %}({{ p.scheduled_days }} agendado{{ p.scheduled_days|pluralize }}){% endif %}
+                            {% if p.expired_days %}
+                                · vencido em {{ p.deadline|date:"d/m/Y" }}: {{ p.expired_days }} dia{{ p.expired_days|pluralize }} em dobro
+                            {% else %}
+                                · tirar até {{ p.deadline|date:"d/m/Y" }}
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                    {% if next_vacation_period %}
+                        <div class="vacation-balance__row">Em aquisição: {{ next_vacation_period.accrued_days|floatformat:"-1" }} dia{{ next_vacation_period.accrued_days|pluralize }} (libera em {{ next_vacation_period.window_start|date:"d/m/Y" }})</div>
+                    {% endif %}
+                </div>
+            {% endif %}
             <div class="history-scroll">
                 <ul class="history-list">
                     {% for item in leaves_history %}

@@ -8,6 +8,12 @@ from rhcontrol.models import Vacation
 from rhcontrol.pagination import paginate
 
 
+def _warn_if_late(request, form):
+    if form.is_late:
+        deadline = form.period['deadline'].strftime('%d/%m/%Y')
+        messages.warning(request, f'Férias após o prazo de {deadline}: devem ser pagas em dobro (CLT art. 137).')
+
+
 @login_required
 @permission_required('rhcontrol.view_vacation', raise_exception=True)
 def vacation_view(request):
@@ -55,6 +61,7 @@ def vacation_create(request):
             # e era sobrescrito pelo model de qualquer forma).
             form.save()
             messages.success(request, 'Férias cadastradas com sucesso!')
+            _warn_if_late(request, form)
             return redirect('rhcontrol:vacation_list')
         else:
             messages.error(request, 'Erro ao cadastrar. Verifique os campos abaixo.')
@@ -76,6 +83,7 @@ def vacation_update(request, pk):
     if form.is_valid():
         form.save()
         messages.success(request, 'Férias atualizadas com sucesso!')
+        _warn_if_late(request, form)
         return redirect('rhcontrol:vacation_list')
 
     return render(request, 'dashboard/pages/vacation/form.html', {

@@ -542,6 +542,7 @@
     flex-direction: row;
     align-items: center;
     gap: 10px;
+    flex-wrap: wrap;
     height: 100%;
     padding-top: 28px;
 }
@@ -566,7 +567,8 @@
 .form-field .form-field__money { position: relative; display: flex; align-items: center; }
 .form-field .form-field__currency { position: absolute; left: 10px; color: #6c757d; }
 
-.form-field .form-field__error {
+.form-field .form-field__error,
+.form-field-checkbox .form-field__error {
     color: #dc3545;
     font-size: 1.1rem;
     font-weight: 600;
@@ -575,6 +577,8 @@
     align-items: center;
     gap: 5px;
 }
+
+.form-field-checkbox .form-field__error { flex-basis: 100%; }
 
 .form-field .form-field__help { display: block; margin-top: 4px; color: #6c757d; }
 
@@ -1073,6 +1077,21 @@
     font-size: 0.9em;
 }
 .history-item .history-item__duration { color: #6c757d; font-size: 0.95em; }
+
+/* Saldo de férias por período (acima do histórico de afastamentos) */
+.vacation-balance {
+    background: #f8f9fa;
+    border-left: 4px solid #20c997;
+    border-radius: 4px;
+    padding: 8px 10px;
+    margin-bottom: 12px;
+    font-size: 1.5rem;
+    color: #495057;
+}
+.vacation-balance .vacation-balance__title { font-size: 1.6rem; font-weight: 700; margin-bottom: 4px; }
+.vacation-balance .vacation-balance__row { padding: 2px 0; }
+.vacation-balance .vacation-balance__row--due { color: #b45309; }
+.vacation-balance .vacation-balance__row--expired { color: #dc3545; font-weight: 600; }
 
 /* Modal "Adicionar/Editar registro histórico" */
 dialog.history-modal {

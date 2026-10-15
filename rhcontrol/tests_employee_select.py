@@ -16,7 +16,7 @@ class EmployeeSelectTests(TestCase):
         def employee(name, cpf, termination_date=None):
             return Employee.objects.create(
                 name=name, cpf=cpf, birth_date=date(1990, 1, 1), department=self.department,
-                job_title=job, termination_date=termination_date,
+                job_title=job, hire_date=date(2024, 1, 1), termination_date=termination_date,
             )
 
         self.zeca = employee('ZECA LIMA', '11111111111')

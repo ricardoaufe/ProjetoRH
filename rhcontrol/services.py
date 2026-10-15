@@ -2,6 +2,7 @@ import calendar as _calendar
 import logging
 from datetime import date, timedelta
 
+import holidays
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
 from django.contrib.contenttypes.models import ContentType
@@ -23,17 +24,119 @@ from .models import (
 
 VACATION_DAYS_PER_PERIOD = 30
 VACATION_DUE_NOTICE_MONTHS = 4
+# Fracionamento (CLT art. 134 §1º): até 3 partes, uma com 14+ dias e as demais com 5+.
+VACATION_MAX_PARTS = 3
+VACATION_MIN_PART_DAYS = 5
+VACATION_MIN_MAIN_PART_DAYS = 14
+# Abono pecuniário (CLT art. 143): no máximo 1/3 do período.
+VACATION_MAX_CASH_BONUS_DAYS = VACATION_DAYS_PER_PERIOD // 3
+
+
+def get_vacation_periods(employee: Employee, today: date | None = None, vacations=None) -> list[dict]:
+    """
+    Períodos aquisitivos do funcionário e as férias de cada um, pela CLT
+    (arts. 130, 134, 137 e 143). Sempre 30 dias por período (faltas
+    injustificadas ficam fora do sistema).
+
+    O n-ésimo período aquisitivo termina na véspera do n-ésimo aniversário de
+    admissão, e as férias dele devem ser concedidas nos 12 meses seguintes
+    (de 'window_start' a 'deadline'). Cada férias abate do período mais antigo
+    que ainda tem dias, como o RH faz na prática, e o abono vende o que sobrou
+    do período, encerrando-o.
+
+    O histórico anterior ao sistema não é cadastrado: os períodos anteriores
+    ao das primeiras férias cadastradas contam como quitados ('is_settled').
+    Sem nenhuma férias cadastrada, todos ficam em aberto desde a admissão.
+
+    'balance' só desconta férias que já começaram (as agendadas ainda podem
+    mudar); 'free_days' desconta também as agendadas e é o que as validações
+    usam. A lista termina no período que ainda está sendo adquirido.
+    """
+    if not employee.hire_date:
+        return []
+
+    today = today or timezone.localdate()
+    if vacations is None:
+        # all() aproveita prefetch_related('vacations') no cron.
+        vacations = employee.vacations.all()
+    vacations = sorted(vacations, key=lambda v: (v.start_date, v.pk or 0))
+
+    periods = []
+
+    def add_period():
+        n = len(periods)
+        window_start = employee.hire_date + relativedelta(years=n + 1)
+        periods.append({
+            'number': n + 1,
+            'start': employee.hire_date + relativedelta(years=n),
+            'end': window_start - timedelta(days=1),
+            'window_start': window_start,
+            'deadline': employee.hire_date + relativedelta(years=n + 2) - timedelta(days=1),
+            'vacations': [],
+            'days': 0,
+            'has_cash_bonus': False,
+            'is_settled': False,
+        })
+        return periods[-1]
+
+    if vacations:
+        # Período em concessão quando as primeiras férias começaram.
+        first_period = max(1, relativedelta(vacations[0].start_date, employee.hire_date).years)
+        for _ in range(first_period - 1):
+            add_period()['is_settled'] = True
+
+    for vacation in vacations:
+        period = next(
+            (p for p in periods
+             if not p['is_settled'] and not p['has_cash_bonus'] and p['days'] < VACATION_DAYS_PER_PERIOD),
+            None,
+        ) or add_period()
+        period['vacations'].append(vacation)
+        period['days'] += vacation.vacation_duration
+        period['has_cash_bonus'] = period['has_cash_bonus'] or vacation.cash_bonus
+
+    while not periods or periods[-1]['window_start'] <= today:
+        add_period()
+
+    for p in periods:
+        p['is_acquired'] = today >= p['window_start']
+        p['notice_date'] = p['deadline'] - relativedelta(months=VACATION_DUE_NOTICE_MONTHS)
+        # Proporcional do período em andamento: 2,5 dias por mês, contando
+        # como mês a fração de 15 dias ou mais (art. 146). Só informativo.
+        p['accrued_days'] = 0
+        if not p['is_acquired'] and today >= p['start']:
+            elapsed = relativedelta(today, p['start'])
+            months = elapsed.months + (1 if elapsed.days >= 15 else 0)
+            p['accrued_days'] = months * VACATION_DAYS_PER_PERIOD / 12
+        if p['is_settled']:
+            p.update(sold_days=0, balance=0, scheduled_days=0, free_days=0, is_due=False, expired_days=0)
+            continue
+
+        p['sold_days'] = max(0, VACATION_DAYS_PER_PERIOD - p['days']) if p['has_cash_bonus'] else 0
+        started = [v for v in p['vacations'] if v.start_date <= today]
+        used = sum(v.vacation_duration for v in started)
+        if any(v.cash_bonus for v in started):
+            used += p['sold_days']
+        p['balance'] = max(0, VACATION_DAYS_PER_PERIOD - used)
+        p['scheduled_days'] = sum(v.vacation_duration for v in p['vacations'] if v.start_date > today)
+        p['free_days'] = max(0, VACATION_DAYS_PER_PERIOD - p['days'] - p['sold_days'])
+        # Dentro dos 4 meses finais e sem as férias cadastradas: sai o aviso.
+        p['is_due'] = p['free_days'] > 0 and p['notice_date'] <= today <= p['deadline']
+        # Dias não iniciados até o prazo são pagos em dobro (art. 137).
+        in_time = sum(v.vacation_duration for v in p['vacations'] if v.start_date <= p['deadline'])
+        p['expired_days'] = (
+            max(0, VACATION_DAYS_PER_PERIOD - p['sold_days'] - in_time) if today > p['deadline'] else 0
+        )
+
+    return periods
 
 
 def get_vacation_deadline(employee: Employee, today: date | None = None) -> dict | None:
     """
-    Vencimento das férias do período em concessão, pela CLT (art. 134).
-
-    O n-ésimo período aquisitivo termina na véspera do n-ésimo aniversário de
-    admissão, e as férias dele devem ser concedidas nos 12 meses seguintes
-    (a "janela de concessão"). O aviso sai 4 meses antes do vencimento, a
-    menos que já haja 30 dias de férias cadastrados começando nessa janela
-    (soma as partes, então cobre férias fracionadas).
+    Vencimento das férias do período em concessão (CLT art. 134), usado no
+    aviso "Férias a Vencer". O aviso sai 4 meses antes do vencimento, a menos
+    que as férias desse período já estejam todas cadastradas (somando as
+    partes e o abono).
 
     Só a janela atual é avaliada, então períodos já vencidos não geram aviso.
     Retorna None para quem não tem admissão, já foi desligado ou ainda não
@@ -48,23 +151,94 @@ def get_vacation_deadline(employee: Employee, today: date | None = None) -> dict
     if years_of_service < 1:
         return None
 
-    window_start = employee.hire_date + relativedelta(years=years_of_service)
-    deadline = employee.hire_date + relativedelta(years=years_of_service + 1) - timedelta(days=1)
-    notice_date = deadline - relativedelta(months=VACATION_DUE_NOTICE_MONTHS)
-
-    # Soma em Python para aproveitar prefetch_related('vacations') no cron.
-    used_days = sum(
-        v.vacation_duration for v in employee.vacations.all()
-        if window_start <= v.start_date <= deadline
-    )
-
+    period = get_vacation_periods(employee, today)[years_of_service - 1]
     return {
-        'window_start': window_start,
-        'deadline': deadline,
-        'notice_date': notice_date,
-        # Dentro dos 4 meses finais e sem as férias cadastradas: sai o aviso.
-        'is_due': used_days < VACATION_DAYS_PER_PERIOD and today >= notice_date,
+        'window_start': period['window_start'],
+        'deadline': period['deadline'],
+        'notice_date': period['notice_date'],
+        'is_due': period['free_days'] > 0 and today >= period['notice_date'],
     }
+
+
+def _vacation_start_blocker(start: date) -> date | None:
+    """Domingo ou feriado nos 2 dias seguintes ao início (CLT art. 134 §3º)."""
+    br_holidays = holidays.Brazil(years=[start.year, start.year + 1])
+    for day in (start + timedelta(days=1), start + timedelta(days=2)):
+        if day.weekday() == 6 or day in br_holidays:
+            return day
+    return None
+
+
+def validate_vacation(vacation: Vacation) -> tuple[dict, dict | None]:
+    """
+    Regras da CLT para cadastrar ou editar férias (arts. 130, 134 e 143).
+
+    Retorna ({campo: mensagem}, período em que as férias caem). Cada mensagem
+    diz em uma linha o que não pode e por quê.
+    """
+    employee = vacation.employee
+    start, duration = vacation.start_date, vacation.vacation_duration
+    end = start + timedelta(days=duration - 1)
+
+    if not employee.hire_date:
+        return {'employee': 'Cadastre a data de admissão do funcionário para calcular o período de férias.'}, None
+
+    if employee.termination_date and end > employee.termination_date:
+        return {'start_date': f'Funcionário desligado em {employee.termination_date:%d/%m/%Y}: as férias precisam terminar antes.'}, None
+
+    others = [v for v in employee.vacations.all() if vacation.pk is None or v.pk != vacation.pk]
+    for other in others:
+        other_end = other.start_date + timedelta(days=other.vacation_duration - 1)
+        if start <= other_end and other.start_date <= end:
+            return {'start_date': f'Já há férias de {other.start_date:%d/%m/%Y} a {other_end:%d/%m/%Y} nesse intervalo.'}, None
+
+    blocker = _vacation_start_blocker(start)
+    if blocker:
+        reason = 'domingo' if blocker.weekday() == 6 else 'feriado'
+        return {'start_date': f'Não pode começar nos 2 dias antes de domingo ou feriado ({blocker:%d/%m} é {reason}, CLT art. 134 §3º).'}, None
+
+    periods = get_vacation_periods(employee, vacations=others + [vacation])
+    period = next(p for p in periods if any(v is vacation for v in p['vacations']))
+    label = f"{period['start']:%d/%m/%Y} a {period['end']:%d/%m/%Y}"
+
+    if start < period['window_start']:
+        return {'start_date': f"Só a partir de {period['window_start']:%d/%m/%Y}, quando fecha os 12 meses do período {label} (CLT art. 130)."}, period
+
+    free_before = VACATION_DAYS_PER_PERIOD - (period['days'] - duration)
+    if duration > free_before:
+        return {'vacation_duration': f'Restam {free_before} dias no período {label} (máximo de 30 por período).'}, period
+
+    if duration < VACATION_MIN_PART_DAYS:
+        return {'vacation_duration': 'Cada parte precisa ter pelo menos 5 dias (CLT art. 134 §1º).'}, period
+
+    parts = len(period['vacations'])
+    if parts > VACATION_MAX_PARTS:
+        return {'vacation_duration': f'O período {label} já tem 3 partes, o máximo permitido (CLT art. 134 §1º).'}, period
+
+    remaining = free_before - duration
+    bonus_parts = sum(1 for v in period['vacations'] if v.cash_bonus)
+
+    if vacation.cash_bonus:
+        if bonus_parts > 1:
+            return {'cash_bonus': f'O período {label} já tem abono.'}, period
+        if remaining == 0:
+            return {'cash_bonus': 'Não sobra saldo no período para vender.'}, period
+        if remaining > VACATION_MAX_CASH_BONUS_DAYS:
+            return {'cash_bonus': f'Sobrariam {remaining} dias, e só é possível vender até 10 (1/3, CLT art. 143).'}, period
+
+    # Se o período se encerra aqui, alguma parte precisa ter 14 dias ou mais.
+    has_main_part = any(v.vacation_duration >= VACATION_MIN_MAIN_PART_DAYS for v in period['vacations'])
+    if not has_main_part and (bonus_parts or parts == VACATION_MAX_PARTS or remaining < VACATION_MIN_MAIN_PART_DAYS):
+        return {'vacation_duration': 'Uma das partes precisa ter pelo menos 14 dias (CLT art. 134 §1º).'}, period
+
+    # Sobra que não poderia mais ser tirada: só resta vender (abono) ou ajustar.
+    if remaining and not bonus_parts:
+        if parts == VACATION_MAX_PARTS:
+            return {'vacation_duration': f'Sobrariam {remaining} dias após a 3ª parte: ajuste a duração ou marque o abono.'}, period
+        if remaining < VACATION_MIN_PART_DAYS:
+            return {'vacation_duration': f'Sobrariam {remaining} dias, menos que os 5 de uma parte: ajuste a duração ou marque o abono.'}, period
+
+    return {}, period
 
 
 def get_events_for_notification() -> list[dict]:

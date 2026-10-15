@@ -10,6 +10,8 @@ class Vacation(models.Model):
     end_date = models.DateField(blank=True, null=True, verbose_name="Data de Fim")
     return_date = models.DateField(blank=True, null=True, verbose_name="Data de Retorno")
     vacation_duration= models.IntegerField(help_text='Duração em dias', verbose_name="Duração")
+    # Abono pecuniário (CLT art. 143): vende o que sobrar do período depois destas férias.
+    cash_bonus = models.BooleanField(default=False, verbose_name="Vender o restante do saldo (abono pecuniário)")
 
     #Função para verificação de feriados/dias não úteis + cálculo de data de término
     def save(self, *args, **kwargs):
