@@ -84,7 +84,7 @@
         <thead>
             <tr>
                 <th width="35%">Colaborador</th>
-                <th width="15%">CPF</th>
+                <th width="15%">Data de Admissão</th>
                 <th width="20%">Setor</th>
                 <th width="20%">Cargo</th>
                 <th width="10%">Status</th>
@@ -100,7 +100,7 @@
                     {% endif %}
                 </td>
                 
-                <td>{{ employee.cpf }}</td>
+                <td>{{ employee.hire_date|date:"d/m/Y" }}</td>
                 <td>{{ employee.department.name|default:"-" }}</td>
                 <td>{{ employee.job_title.name|default:"-" }}</td>
                 
