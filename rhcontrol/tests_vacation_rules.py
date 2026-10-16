@@ -9,7 +9,6 @@ from rhcontrol.forms import VacationForm
 from rhcontrol.models import Department, Employee, JobTitle, Vacation
 from rhcontrol.services import get_vacation_periods
 
-
 # Nestes testes o controle começa antes da admissão, para todo período contar.
 ALL_PERIODS_TRACKED = patch('rhcontrol.services.VACATION_TRACKING_START', date(2000, 1, 1))
 
