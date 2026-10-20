@@ -1162,3 +1162,49 @@ def get_historical_minimum_wage(year: int) -> float:
     }
 
     return MIN_WAGE_HISTORY.get(year, 1621.00)
+
+
+def get_training_attendance_ranking(today: date | None = None) -> list[dict]:
+    """
+    Horas e presença em treinamentos de cada funcionário ativo.
+
+    - Conta só os treinamentos que já começaram (ou sem data); Fundamentais e
+      de Integração ficam de fora porque a presença neles é automática.
+    - "Podia participar" vem do cadastro de cada treinamento (Previstos); quem
+      consta como presente também conta como previsto.
+    - Ordem: mais horas, maior % de presença, nome. Quem não foi previsto em
+      nenhum treinamento aparece com 0/0 e sem %.
+    """
+    today = today or timezone.localdate()
+    trainings = (
+        Training.objects.filter(is_fundamental=False, is_integration=False)
+        .filter(Q(start_date__isnull=True) | Q(start_date__lte=today))
+        .prefetch_related("scheduled_employees", "attended_employees")
+    )
+
+    scheduled_by_employee: dict[int, set[int]] = {}
+    attended_by_employee: dict[int, set[int]] = {}
+    hours_by_training: dict[int, int] = {}
+    for training in trainings:
+        hours_by_training[training.pk] = training.training_total_hours
+        attended_ids = {e.pk for e in training.attended_employees.all()}
+        for employee_id in {e.pk for e in training.scheduled_employees.all()} | attended_ids:
+            scheduled_by_employee.setdefault(employee_id, set()).add(training.pk)
+        for employee_id in attended_ids:
+            attended_by_employee.setdefault(employee_id, set()).add(training.pk)
+
+    ranking = []
+    employees = Employee.objects.filter(termination_date__isnull=True).select_related("department")
+    for employee in employees:
+        scheduled = len(scheduled_by_employee.get(employee.pk, ()))
+        attended = attended_by_employee.get(employee.pk, set())
+        ranking.append({
+            "employee": employee,
+            "hours": sum(hours_by_training[pk] for pk in attended),
+            "attended": len(attended),
+            "scheduled": scheduled,
+            "rate": round(len(attended) * 100 / scheduled) if scheduled else None,
+        })
+
+    ranking.sort(key=lambda row: (-row["hours"], -(row["rate"] or 0), row["employee"].name))
+    return ranking

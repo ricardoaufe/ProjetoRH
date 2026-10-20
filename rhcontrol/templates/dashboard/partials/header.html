@@ -61,8 +61,15 @@
             </div>
         </div>
 
-        <div class="menu-item">
-            <a href="#" class="menu-link">Relatórios</a>
+        <div class="menu-item dropdown-container">
+            <span class="menu-link"><i class="fa-solid fa-file-pdf"></i> Relatórios <i class="fa-solid fa-caret-down"></i></span>
+            <div class="dropdown">
+                {% if perms.rhcontrol.view_training %}
+                <a href="{% url 'rhcontrol:training_attendance_pdf' %}" target="_blank">Horas em Treinamentos</a>
+                {% else %}
+                <a href="#" class="disabled-link" title="Sem permissão">Horas em Treinamentos</a>
+                {% endif %}
+            </div>
         </div>
 
         <div class="menu-item">

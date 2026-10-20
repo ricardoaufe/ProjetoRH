@@ -27,7 +27,10 @@ from rhcontrol.models import (
     Training,
     Vacation,
 )
-from rhcontrol.services import get_historical_minimum_wage
+from rhcontrol.services import (
+    get_historical_minimum_wage,
+    get_training_attendance_ranking,
+)
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -308,6 +311,17 @@ def create_training_list_pdf(request):
             "date_to": request.GET.get("date_to", ""),
         },
         "lista_de_treinamentos.pdf",
+    )
+
+
+@login_required
+@permission_required("rhcontrol.view_training", raise_exception=True)
+def create_training_attendance_pdf(request):
+    return render_pdf(
+        request,
+        "dashboard/pages/training/pdf/training_attendance_pdf.html",
+        {"ranking": get_training_attendance_ranking()},
+        "horas_em_treinamentos.pdf",
     )
 
 

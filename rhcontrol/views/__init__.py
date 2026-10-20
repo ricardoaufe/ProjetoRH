@@ -45,6 +45,7 @@ from .pdf import (
     create_occurrence_list_pdf,
     create_personal_data_consent_pdf,
     create_responsible_term_pdf,
+    create_training_attendance_pdf,
     create_training_list_pdf,
     create_vacation_list_pdf,
     employee_career_plan_pdf,

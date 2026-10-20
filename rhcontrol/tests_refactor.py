@@ -118,6 +118,7 @@ class PdfEndpointsTests(TestCase):
             reverse('rhcontrol:employees_department_pdf'): 'funcionarios_por_setor',
             reverse('rhcontrol:create_vacation_list_pdf'): 'lista_de_ferias',
             reverse('rhcontrol:training_list_pdf'): 'lista_de_treinamentos',
+            reverse('rhcontrol:training_attendance_pdf'): 'horas_em_treinamentos',
             reverse('rhcontrol:occurrence_list_pdf', kwargs={'employee_id': self.employee.pk}): 'Ocorrencias_',
         }
         for url, filename_part in cases.items():
