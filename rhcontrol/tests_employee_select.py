@@ -61,3 +61,29 @@ class EmployeeSelectTests(TestCase):
         self.assertIn('BRUNO DESLIGADO · Manutenção', self._choices(form, 'attended_employees'))
         # Quem não está neste treinamento continua de fora.
         self.assertNotIn('BRUNO DESLIGADO · Manutenção', self._choices(TrainingForm(), 'scheduled_employees'))
+
+    def test_training_attendance_offers_only_participants(self):
+        training = Training.objects.create(
+            training_name='NR-10', training_location_type='Interno', training_total_hours=8,
+        )
+        training.scheduled_employees.add(self.ana)
+
+        form = TrainingForm(instance=training)
+        self.assertEqual(self._choices(form, 'attended_employees'), ['ANA SOUZA · Manutenção'])
+
+    def test_training_removed_participant_leaves_attendance(self):
+        training = Training.objects.create(
+            training_name='NR-10', training_location_type='Interno', training_total_hours=8,
+        )
+        training.scheduled_employees.add(self.ana, self.zeca)
+        training.attended_employees.add(self.ana, self.zeca)
+
+        # Tira o ZECA dos participantes sem mexer na confirmação.
+        form = TrainingForm(instance=training, data={
+            'training_name': 'NR-10', 'training_location_type': 'Interno', 'training_total_hours': 8,
+            'scheduled_employees': [self.ana.pk],
+            'attended_employees': [self.ana.pk, self.zeca.pk],
+        })
+        self.assertTrue(form.is_valid(), form.errors)
+        form.save()
+        self.assertEqual(list(training.attended_employees.all()), [self.ana])

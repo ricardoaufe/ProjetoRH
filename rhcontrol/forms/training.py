@@ -51,13 +51,22 @@ class TrainingForm(forms.ModelForm):
                 "end_date", "A data de término não pode ser anterior à data de início."
             )
 
+        scheduled = cleaned_data.get("scheduled_employees")
+        attended = cleaned_data.get("attended_employees")
+        if scheduled is not None and attended is not None:
+            cleaned_data["attended_employees"] = attended.filter(pk__in=scheduled)
+
         return cleaned_data
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        # Quem já está no treinamento continua na lista mesmo se desligado,
-        # senão salvar a edição o removeria sem aviso.
         for name in ("scheduled_employees", "attended_employees"):
             current = self.instance.pk and getattr(self.instance, name).values_list("pk", flat=True)
             self.fields[name].queryset = employee_choices(keep=current or [])
+
+        # A confirmação oferece só os participantes salvos ("Destes previstos, quem veio?").
+        if self.instance.pk:
+            self.fields["attended_employees"].queryset = (
+                self.instance.scheduled_employees.select_related("department").order_by("name")
+            )
