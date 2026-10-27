@@ -30,7 +30,6 @@ class DepartmentForm(forms.ModelForm):
 class JobTitleForm(forms.ModelForm):
     base_salary = forms.CharField(
         label="Salário Base",
-        required=False,
         widget=forms.TextInput(
             attrs={"class": "form-control money-input", "placeholder": "0,00"}
         ),
@@ -62,6 +61,8 @@ class JobTitleForm(forms.ModelForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # A descrição do cargo é opcional na tela (o banco grava "" por padrão).
+        self.fields["description"].required = False
         if self.instance and self.instance.pk and self.instance.base_salary:
             self.initial["base_salary"] = f"{self.instance.base_salary:.2f}".replace(
                 ".", ","

@@ -42,7 +42,7 @@
 
                     <div class="job-header job-card__header" onclick="toggleJobBody(this)">
                         <div class="job-card__title-group">
-                            <i class="fa fa-chevron-right job-arrow job-card__arrow"></i>
+                            <i class="fa {% if job_form.errors %}fa-chevron-down{% else %}fa-chevron-right{% endif %} job-arrow job-card__arrow"></i>
                             <h4 class="job-card__title">
                                 <span class="job-name-display">{{ job_form.instance.name|default:"Novo Cargo"|upper }}</span>
                                 <small class="job-card__subtitle">
@@ -60,7 +60,8 @@
                         </div>
                     </div>
 
-                    <div class="job-body job-card__body" style="display: none;"> 
+                    {# Cargo com erro já abre expandido para o usuário ver o que corrigir #}
+                    <div class="job-body job-card__body"{% if not job_form.errors %} style="display: none;"{% endif %}> 
                         <div class="form-content job-card__fields">
                             
                             {% include 'partials/form_field.html' with field=job_form.name label="Nome do Cargo" grid_class="col-span-6 job-name-input" %}

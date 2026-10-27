@@ -9,6 +9,18 @@ from rhcontrol.models import Department, JobTitle
 from rhcontrol.pagination import paginate
 
 
+def _show_form_errors(request, form, formset):
+    """Avisa no topo da tela o que impediu o salvamento (os erros dos cargos ficam dentro dos cards)."""
+    problems = [f"{form.fields[name].label}: {' '.join(errors)}" for name, errors in form.errors.items() if name in form.fields]
+    for job_form in formset.forms:
+        job_name = job_form.data.get(job_form.add_prefix('name')) or 'Novo cargo'
+        for name, errors in job_form.errors.items():
+            label = job_form.fields[name].label if name in job_form.fields else 'Cargo'
+            problems.append(f"Cargo {job_name.upper()} – {label}: {' '.join(errors)}")
+    problems += list(form.non_field_errors()) + list(formset.non_form_errors())
+    messages.error(request, 'Não foi possível salvar o setor. ' + ' | '.join(problems))
+
+
 @login_required
 @permission_required('rhcontrol.view_department', raise_exception=True)
 def department_list(request):
@@ -46,6 +58,7 @@ def department_create(request):
 
             messages.success(request, 'Setor criado com sucesso!')
             return redirect('rhcontrol:department_list')
+        _show_form_errors(request, form, formset)
     else:
         form = DepartmentForm()
         formset = JobTitleFormSet()
@@ -72,6 +85,7 @@ def department_update(request, pk):
             formset.save()
             messages.success(request, 'Setor atualizado com sucesso!')
             return redirect('rhcontrol:department_list')
+        _show_form_errors(request, form, formset)
 
     else:
         form = DepartmentForm(instance=department)

@@ -68,7 +68,9 @@
                                             old_sal: '{{ h.old_salary|default_if_none:'' }}'.replace(',', '.'),
                                             new_sal: '{{ h.new_salary|default_if_none:'' }}'.replace(',', '.'),
                                             old_cipa: '{{ h.old_cipa_role|default_if_none:''|escapejs }}',
-                                            new_cipa: '{{ h.new_cipa_role|default_if_none:''|escapejs }}'
+                                            new_cipa: '{{ h.new_cipa_role|default_if_none:''|escapejs }}',
+                                            old_dept: '{{ h.old_department|default_if_none:''|escapejs }}',
+                                            new_dept: '{{ h.new_department|default_if_none:''|escapejs }}'
                                         })"
                                         class="history-item__action history-item__action--edit" title="Editar">
                                     <i class="fa fa-cog"></i>
@@ -101,6 +103,17 @@
                                         <i class="fa fa-arrow-right history-item__arrow"></i>
                                     {% endif %}
                                     <strong class="history-item__new-job">{{ h.new_job_title }}</strong>
+                                </div>
+                            {% endif %}
+
+                            {% if h.new_department %}
+                                <div class="history-item__change">
+                                    Setor: 
+                                    {% if h.old_department %}
+                                        <span class="history-item__old">{{ h.old_department }}</span> 
+                                        <i class="fa fa-arrow-right history-item__arrow"></i>
+                                    {% endif %}
+                                    <strong class="history-item__new-job">{{ h.new_department }}</strong>
                                 </div>
                             {% endif %}
 
@@ -221,6 +234,8 @@
                     <option value="Mérito">Mérito</option>
                     <option value="Dissídio">Dissídio</option>
                     <option value="CIPA">Alteração de CIPA</option>
+                    <option value="Mudança de Setor">Mudança de Setor</option>
+                    <option value="Mudança de Horário">Mudança de Horário</option>
                     <option value="Outros">Outros (Personalizado)</option>
                 </select>
             </div>
@@ -244,6 +259,27 @@
                     <option value="">---------</option>
                     {% for job in job_titles %}
                         <option value="{{ job.name }}" data-salary="{{ job.base_salary|stringformat:'f' }}">{{ job.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div id="row_setores" class="history-modal__row">
+            <div class="u-flex-1">
+                <label class="history-modal__label">Setor Anterior</label>
+                <select name="old_department" id="hist_old_dept" class="history-modal__input">
+                    <option value="">---------</option>
+                    {% for department in departments %}
+                        <option value="{{ department.name }}">{{ department.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="u-flex-1">
+                <label class="history-modal__label">Novo Setor</label>
+                <select name="new_department" id="hist_new_dept" class="history-modal__input">
+                    <option value="">---------</option>
+                    {% for department in departments %}
+                        <option value="{{ department.name }}">{{ department.name }}</option>
                     {% endfor %}
                 </select>
             </div>
@@ -303,6 +339,8 @@
         const colOldSal = document.getElementById('col_old_sal');
         
         const rowCipa = document.getElementById('row_cipa');
+        const rowSetores = document.getElementById('row_setores');
+        const isDepartmentChange = reason === 'Mudança de Setor' || reason === 'Mudança de Horário';
         
         // Labels
         const lblNewJob = document.getElementById('lbl_new_job');
@@ -314,6 +352,12 @@
         rowSalarios.style.display = 'flex';
         colOldSal.style.display = 'block';
         rowCipa.style.display = 'flex';
+        // Setores só aparecem nos motivos de mudança de setor/horário
+        rowSetores.style.display = isDepartmentChange ? 'flex' : 'none';
+        if (!isDepartmentChange) {
+            document.getElementById('hist_old_dept').value = '';
+            document.getElementById('hist_new_dept').value = '';
+        }
         lblNewJob.innerText = "Novo Cargo";
         lblNewSal.innerText = "Novo Salário (R$)";
 
@@ -342,6 +386,15 @@
         } else if (reason === 'CIPA') {
             rowCargos.style.display = 'none';
             rowSalarios.style.display = 'none';
+            document.getElementById('hist_old_job').value = '';
+            document.getElementById('hist_new_job').value = '';
+            document.getElementById('hist_old_sal').value = '';
+            document.getElementById('hist_new_sal').value = '';
+
+        } else if (isDepartmentChange) {
+            rowCargos.style.display = 'none';
+            rowSalarios.style.display = 'none';
+            rowCipa.style.display = 'none';
             document.getElementById('hist_old_job').value = '';
             document.getElementById('hist_new_job').value = '';
             document.getElementById('hist_old_sal').value = '';
@@ -376,6 +429,8 @@
             document.getElementById('hist_new_sal').value = data.new_sal && data.new_sal !== 'None' ? data.new_sal : '';
             document.getElementById('hist_old_cipa').value = data.old_cipa || '';
             document.getElementById('hist_new_cipa').value = data.new_cipa || '';
+            document.getElementById('hist_old_dept').value = data.old_dept || '';
+            document.getElementById('hist_new_dept').value = data.new_dept || '';
             
         } else {
             document.getElementById('historyModalTitle').innerText = "Adicionar Registro Antigo";

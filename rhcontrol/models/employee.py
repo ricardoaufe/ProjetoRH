@@ -19,6 +19,9 @@ class EmployeeHistory(models.Model):
 
     old_cipa_role = models.CharField(max_length=50, null=True, blank=True, verbose_name="CIPA Anterior")
     new_cipa_role = models.CharField(max_length=50, null=True, blank=True, verbose_name="CIPA Nova")
+
+    old_department = models.CharField(max_length=100, null=True, blank=True, verbose_name="Setor Anterior")
+    new_department = models.CharField(max_length=100, null=True, blank=True, verbose_name="Novo Setor")
     
     reason = models.CharField(max_length=200, blank=True, verbose_name="Motivo")
 

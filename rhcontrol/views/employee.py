@@ -10,7 +10,7 @@ from django.views.decorators.http import require_POST
 
 from rhcontrol.filters import filter_employees
 from rhcontrol.forms import DependentFormSet, EmployeeForm, EmployeeHistoryForm
-from rhcontrol.models import Employee, EmployeeHistory, JobTitle, Occurrence
+from rhcontrol.models import Department, Employee, EmployeeHistory, JobTitle, Occurrence
 from rhcontrol.pagination import paginate
 from rhcontrol.services import get_vacation_periods
 
@@ -89,6 +89,7 @@ def employee_update(request, pk):
     employee = get_object_or_404(Employee, pk=pk)
 
     old_job = employee.job_title
+    old_department = employee.department
     old_salary = employee.current_salary
     old_cipa_role = employee.cipa_role 
     job_titles = JobTitle.objects.all()
@@ -109,8 +110,9 @@ def employee_update(request, pk):
         has_job_change = str(old_job) != str(new_employee.job_title)
         has_salary_change = old_salary != new_employee.current_salary
         has_cipa_change = old_cipa_role != new_employee.cipa_role
-        
-        if has_job_change or has_salary_change or has_cipa_change:
+        has_department_change = old_department != new_employee.department
+
+        if has_job_change or has_salary_change or has_cipa_change or has_department_change:
             custom_date = form.cleaned_data.get('change_date')
             custom_reason = form.cleaned_data.get('change_reason')
 
@@ -131,6 +133,8 @@ def employee_update(request, pk):
                     auto_reason = "Fim de CIPA"
             elif has_job_change:
                 auto_reason = "Promoção"
+            elif has_department_change:
+                auto_reason = "Mudança de Setor"
             elif has_salary_change:
                 # Um dos lados pode ser None (salário definido/removido agora):
                 # comparar None com Decimal lança TypeError.
@@ -147,6 +151,9 @@ def employee_update(request, pk):
             h_old_salary = old_salary if has_salary_change else None
             h_new_salary = new_employee.current_salary if has_salary_change else None
 
+            h_old_department = old_department.name if (old_department and has_department_change) else None
+            h_new_department = new_employee.department.name if (new_employee.department and has_department_change) else None
+
             EmployeeHistory.objects.create(
                 employee=employee,
                 date_changed=final_date,
@@ -158,7 +165,10 @@ def employee_update(request, pk):
                 
                 old_cipa_role=old_cipa_role,
                 new_cipa_role=new_employee.cipa_role,
-                
+
+                old_department=h_old_department,
+                new_department=h_new_department,
+
                 reason=auto_reason
             )
 
@@ -220,6 +230,7 @@ def employee_update(request, pk):
         'total_hours': total_hours,
         'occurrences_top5': occurrences_top5,
         'job_titles': job_titles,
+        'departments': Department.objects.all(),
         'vacation_periods': vacation_periods,
         'next_vacation_period': next_vacation_period,
     })

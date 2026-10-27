@@ -21,7 +21,7 @@ class EmployeeForm(forms.ModelForm):
         label="Data da Alteração (Histórico)",
         required=False,
         widget=forms.DateInput(attrs={"type": "date", "class": "form-control"}),
-        help_text="Se houver mudança de cargo/salário, qual a data de vigência?",
+        help_text="Se houver mudança de cargo/setor/salário, qual a data de vigência?",
     )
 
     change_reason = forms.ChoiceField(
@@ -32,6 +32,8 @@ class EmployeeForm(forms.ModelForm):
             ("Promoção", "Promoção"),
             ("Mérito", "Mérito"),
             ("Dissídio", "Dissídio"),
+            ("Mudança de Setor", "Mudança de Setor"),
+            ("Mudança de Horário", "Mudança de Horário"),
             ("Erro de Cadastro", "Correção de Erro"),
         ],
         widget=forms.Select(attrs={"class": "form-select"}),
@@ -282,6 +284,8 @@ class EmployeeHistoryForm(forms.ModelForm):
             "new_salary",
             "old_cipa_role",
             "new_cipa_role",
+            "old_department",
+            "new_department",
         ]
 
     def __init__(self, *args, **kwargs):
@@ -294,6 +298,8 @@ class EmployeeHistoryForm(forms.ModelForm):
             "new_salary",
             "old_cipa_role",
             "new_cipa_role",
+            "old_department",
+            "new_department",
         ]
 
         for field_name in dynamic_fields:
