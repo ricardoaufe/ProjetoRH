@@ -192,6 +192,7 @@ class SystemUserUpdateForm(forms.ModelForm):
 
                     if receive_all:
                         recipient.subscribed_rules.clear()
+                    else:
                         recipient.subscribed_rules.set(alerts)
 
                 else:

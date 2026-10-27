@@ -191,6 +191,11 @@ LOGIN_REDIRECT_URL = 'rhcontrol:dashboard'
 
 LOGOUT_REDIRECT_URL = 'rhcontrol:login'
 
+# Endereço do painel do Django (admin). Em produção, use um caminho difícil
+# de adivinhar (ex.: ADMIN_URL='painel-x7k2/'): robôs vivem testando /admin/.
+ADMIN_URL = os.environ.get('ADMIN_URL', '').strip('/') or 'admin'
+ADMIN_URL += '/'
+
 LOGGING = {
     "version": 1,
     "disable_existing_loggers": False,

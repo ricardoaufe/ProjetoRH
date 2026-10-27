@@ -18,9 +18,13 @@ from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from django.views.generic import RedirectView
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
+    # O login do admin não tem a proteção contra força bruta do sistema, então
+    # quem tentar entrar pelo admin é mandado para a tela de login do sistema.
+    path(f'{settings.ADMIN_URL}login/', RedirectView.as_view(pattern_name='rhcontrol:login')),
+    path(settings.ADMIN_URL, admin.site.urls),
     path('', include('rhcontrol.urls')),
 ]
 if settings.DEBUG:

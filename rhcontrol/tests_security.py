@@ -173,3 +173,30 @@ class LoginRateLimitTests(TestCase):
         self.assertEqual(self._login('ana', 'senha-correta-123').status_code, 429)
         # Outro IP não é afetado.
         self.assertEqual(self._login('ana', 'senha-correta-123', ip='10.0.0.2').status_code, 302)
+
+
+class AdminAccessTests(TestCase):
+    """O admin usa o login do sistema (com bloqueio) e o endereço vem do .env."""
+
+    def tearDown(self):
+        importlib.reload(rh.urls)
+
+    def test_admin_login_redirects_to_system_login(self):
+        response = self.client.get('/admin/login/')
+        self.assertRedirects(response, reverse('rhcontrol:login'), fetch_redirect_response=False)
+
+    def test_admin_requires_login_through_system_login(self):
+        response = self.client.get('/admin/', follow=True)
+        self.assertEqual(response.redirect_chain[-1][0], reverse('rhcontrol:login'))
+
+    def test_staff_user_logged_in_by_system_can_use_admin(self):
+        user = User.objects.create_superuser('chefe', 'chefe@empresa.com', 'senha-forte-123')
+        self.client.force_login(user)
+        self.assertEqual(self.client.get('/admin/').status_code, 200)
+
+    @override_settings(ADMIN_URL='painel-x7k2/')
+    def test_admin_url_comes_from_settings(self):
+        resolver = URLResolver(RegexPattern(r'^/'), importlib.reload(rh.urls))
+        resolver.resolve('/painel-x7k2/')
+        with self.assertRaises(Resolver404):
+            resolver.resolve('/admin/')
