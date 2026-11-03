@@ -4,6 +4,7 @@
 # --- Aplicação ---
 Django==5.2.9
 weasyprint==68.0
+openpyxl==3.1.5
 holidays==0.86
 python-dotenv==1.2.1
 
@@ -18,6 +19,7 @@ brotli==1.2.0
 cffi==2.0.0
 colorama==0.4.6 ; sys_platform == "win32"
 cssselect2==0.8.0
+et_xmlfile==2.0.0
 fonttools==4.61.1
 iniconfig==2.3.0
 packaging==26.0

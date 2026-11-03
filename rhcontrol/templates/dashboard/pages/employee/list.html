@@ -13,6 +13,9 @@
             <a href="{% url 'rhcontrol:employee_list_pdf' %}?{{ request.GET.urlencode }}" class="btn btn-danger" target="_blank">
                 <i class="fa fa-file-pdf"></i> Gerar PDF
             </a>
+            <a href="{% url 'rhcontrol:employee_list_xlsx' %}?{{ request.GET.urlencode }}" class="btn btn-success">
+                <i class="fa fa-file-excel"></i> Gerar Excel
+            </a>
             <a href="{% url 'rhcontrol:employee_create' %}" class="btn btn-primary">
                 <i class="fa fa-plus"></i> Adicionar Funcionário
             </a>
