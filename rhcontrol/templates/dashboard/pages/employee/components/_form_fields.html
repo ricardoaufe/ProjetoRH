@@ -256,21 +256,6 @@
     {% include 'partials/form_field.html' with field=form.has_insalubrity_bonus grid_class="col-span-2"%}
     {% include 'partials/form_field.html' with field=form.has_danger_bonus grid_class="col-span-2"%}
 
-    <div class="col-span-8 integration-field">
-        <div class="callout callout--success">
-            <label class="callout__label">
-                {{ form.completed_integration_trainings }}
-                {{ form.completed_integration_trainings.label }}
-            </label>
-            
-            {% if form.completed_integration_trainings.help_text %}
-                <small class="callout__hint">
-                    {{ form.completed_integration_trainings.help_text }}
-                </small>
-            {% endif %}
-        </div>
-    </div>
-
 </div>
 
 </div>

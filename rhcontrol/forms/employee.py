@@ -3,7 +3,7 @@ from decimal import Decimal, InvalidOperation
 from django import forms
 from django.utils import timezone
 
-from rhcontrol.models import Dependent, Employee, EmployeeHistory, JobTitle, Training
+from rhcontrol.models import Dependent, Employee, EmployeeHistory, JobTitle
 
 from .validators import validate_cpf
 
@@ -48,12 +48,6 @@ class EmployeeForm(forms.ModelForm):
                 "placeholder": "Descreva o trabalho especial",
             }
         ),
-    )
-
-    completed_integration_trainings = forms.BooleanField(
-        label="Concluiu os Treinamentos de Integração?",
-        required=False,
-        help_text="Se marcado, os treinamentos padrão serão automaticamente registrados no histórico deste funcionário.",
     )
 
     class Meta:
@@ -214,16 +208,10 @@ class EmployeeForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        if self.instance and self.instance.pk:
-            fez_integracao = self.instance.attended_trainings.filter(
-                is_integration=True
-            ).exists()
-            self.fields["completed_integration_trainings"].initial = fez_integracao
-
-            if self.instance.current_salary:
-                self.initial["current_salary"] = (
-                    f"{self.instance.current_salary:.2f}".replace(".", ",")
-                )
+        if self.instance and self.instance.pk and self.instance.current_salary:
+            self.initial["current_salary"] = (
+                f"{self.instance.current_salary:.2f}".replace(".", ",")
+            )
 
         if "department" in self.data:
             try:
@@ -243,33 +231,6 @@ class EmployeeForm(forms.ModelForm):
         for field in self.fields.values():
             if isinstance(field.widget, forms.DateInput):
                 field.widget.attrs.update({"class": "form-control", "type": "date"})
-
-    def save(self, commit=True):
-        employee = super().save(commit=False)
-
-        old_save_m2m = self.save_m2m if hasattr(self, "save_m2m") else lambda: None
-
-        def custom_save_m2m():
-            old_save_m2m()
-
-            integration_trainings = Training.objects.filter(is_integration=True)
-
-            if self.cleaned_data.get("completed_integration_trainings"):
-                for training in integration_trainings:
-                    training.scheduled_employees.add(employee)
-                    training.attended_employees.add(employee)
-            else:
-                for training in integration_trainings:
-                    training.scheduled_employees.remove(employee)
-                    training.attended_employees.remove(employee)
-
-        self.save_m2m = custom_save_m2m
-
-        if commit:
-            employee.save()
-            self.save_m2m()
-
-        return employee
 
 
 class EmployeeHistoryForm(forms.ModelForm):
