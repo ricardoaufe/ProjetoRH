@@ -82,7 +82,14 @@
         <tbody>
             {% for training in object_list %}
             <tr>
-                <td><a href="{% url 'rhcontrol:training_update' training.pk %}">{{training.training_name}}</a></td>
+                <td>
+                    <a href="{% url 'rhcontrol:training_update' training.pk %}">{{training.training_name}}</a>
+                    {% if training.num_documents %}
+                        <a href="{% url 'rhcontrol:training_update' training.pk %}#documentos" class="training-docs-badge" title="{{ training.num_documents }} documento{{ training.num_documents|pluralize }} escaneado{{ training.num_documents|pluralize }}">
+                            <i class="fa fa-paperclip"></i> {{ training.num_documents }}
+                        </a>
+                    {% endif %}
+                </td>
                 <td>{{training.start_date|date:"d/m/Y"}}</td>
                 <td>{{training.end_date|date:"d/m/Y"|default:"-"}}</td>
                 <td>{{training.training_provider}}</td>
