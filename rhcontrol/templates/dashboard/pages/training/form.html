@@ -34,6 +34,16 @@
                     Marque esta opção para que este treinamento seja adicionado automaticamente no histórico de novos funcionários sem necessidade de informar datas.
                 </small>
             </div>
+
+            <div class="callout callout--info grid-full">
+                <label class="callout__label">
+                    {{ form.is_on_the_job }}
+                    Treinamento On The Job?
+                </label>
+                <small class="callout__hint">
+                    Treinamento prático, no posto de trabalho. A lista de presença sai com "On The Job: Sim" e com o verso para as anotações.
+                </small>
+            </div>
             
             <div class="grid-full">
                 {% include 'partials/form_field.html' with field=form.training_description label="Descrição" %}
@@ -128,6 +138,9 @@
         <div class="form-actions">
             <button type="submit" class="btn-save">Salvar Treinamento</button>
             {% if form.instance.pk %}
+                <a href="{% url 'rhcontrol:training_attendance_sheet' pk=form.instance.pk %}" class="btn btn-success" title="Baixa a lista de presença (Form40B) com os participantes salvos">
+                    <i class="fa fa-file-excel"></i> Lista de presença
+                </a>
                 <a href="{% url 'rhcontrol:training_delete' pk=form.instance.pk %}" class="btn-delete">
                     <i class="fa fa-trash"></i> Excluir Treinamento
                 </a>

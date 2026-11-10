@@ -873,6 +873,10 @@
 }
 .data-table .training-docs-badge:hover { color: #0d6efd; }
 
+/* Ícone da lista de presença (Excel) na lista de treinamentos */
+.data-table .training-sheet-link { margin-left: 8px; font-size: 1.3rem; color: #198754; }
+.data-table .training-sheet-link:hover { color: #146c43; }
+
 
 /* ================================================================
  * Cartões recolhíveis dos formsets (dependentes e cargos)

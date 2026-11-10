@@ -89,6 +89,9 @@
                             <i class="fa fa-paperclip"></i> {{ training.num_documents }}
                         </a>
                     {% endif %}
+                    <a href="{% url 'rhcontrol:training_attendance_sheet' training.pk %}" class="training-sheet-link" title="Lista de presença (Excel)">
+                        <i class="fa fa-file-excel"></i>
+                    </a>
                 </td>
                 <td>{{training.start_date|date:"d/m/Y"}}</td>
                 <td>{{training.end_date|date:"d/m/Y"|default:"-"}}</td>

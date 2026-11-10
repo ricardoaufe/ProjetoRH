@@ -189,6 +189,13 @@ MEDIA_ROOT = os.environ.get('MEDIA_ROOT') or BASE_DIR / 'media'
 # Tamanho máximo de cada documento anexado a um treinamento (10 MB)
 TRAINING_DOCUMENT_MAX_SIZE = 10 * 1024 * 1024
 
+# Modelo em Excel da lista de presença (Form40B). O do repositório é genérico;
+# na produção, aponte para o modelo real da empresa (com logo).
+ATTENDANCE_TEMPLATE_PATH = (
+    os.environ.get('ATTENDANCE_TEMPLATE_PATH')
+    or BASE_DIR / 'rhcontrol' / 'resources' / 'attendance_template.xlsx'
+)
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 

@@ -1,13 +1,20 @@
+import logging
 from io import BytesIO
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.http import HttpResponse
+from django.shortcuts import get_object_or_404, redirect
 from django.utils.http import content_disposition_header
+from django.utils.text import slugify
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
+from rhcontrol.attendance_sheet import AttendanceTemplateError, build_attendance_sheet
 from rhcontrol.filters import filter_employees
-from rhcontrol.models import Employee
+from rhcontrol.models import Employee, Training
+
+logger = logging.getLogger(__name__)
 
 XLSX_CONTENT_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
@@ -65,3 +72,31 @@ def create_employee_list_xlsx(request):
     sheet.auto_filter.ref = sheet.dimensions
 
     return render_xlsx(workbook, "lista_de_funcionarios.xlsx")
+
+
+@login_required
+@permission_required("rhcontrol.view_training", raise_exception=True)
+def training_attendance_sheet(request, pk):
+    """
+    Lista de presença (Form40B) do treinamento, já com tema, objetivo, datas,
+    local e os participantes previstos. O resto o RH completa no Excel.
+    """
+    training = get_object_or_404(Training, pk=pk)
+    try:
+        content = build_attendance_sheet(training)
+    except AttendanceTemplateError:
+        logger.exception("Falha ao gerar a lista de presença do treinamento %s", pk)
+        messages.error(
+            request,
+            "Não foi possível gerar a lista de presença: o modelo em Excel não foi "
+            "encontrado ou está diferente do Form40B. Avise o responsável pelo sistema.",
+        )
+        return redirect("rhcontrol:training_update", pk=pk)
+
+    day = training.start_date.strftime("%d-%m-%Y") if training.start_date else "sem-data"
+    filename = f"Lista_presenca_{slugify(training.training_name) or 'treinamento'}_{day}.xlsx"
+    response = HttpResponse(content, content_type=XLSX_CONTENT_TYPE)
+    response["Content-Disposition"] = content_disposition_header(
+        as_attachment=True, filename=filename
+    )
+    return response

@@ -31,7 +31,7 @@ from .employee import (
     history_create_view,
     history_edit_view,
 )
-from .excel import create_employee_list_xlsx
+from .excel import create_employee_list_xlsx, training_attendance_sheet
 from .pdf import (
     create_bank_presentation_pdf,
     create_benefits_acquisition_pdf,
