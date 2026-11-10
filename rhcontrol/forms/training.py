@@ -56,6 +56,7 @@ class TrainingForm(forms.ModelForm):
             "training_total_hours": forms.NumberInput(
                 attrs={"class": "form-control", "placeholder": "Ex: 8"}
             ),
+            "is_on_the_job": forms.CheckboxInput(attrs={"class": "form-check-input"}),
             "is_fundamental": forms.CheckboxInput(
                 attrs={"class": "form-check-input", "id": "id_is_fundamental"}
             ),

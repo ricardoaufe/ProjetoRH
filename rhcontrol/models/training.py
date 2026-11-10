@@ -32,6 +32,11 @@ class Training(models.Model):
         verbose_name="Treinamento de Integração (Onboarding)?",
         help_text="Marque se este treinamento é padrão para novos funcionários."
     )
+    is_on_the_job = models.BooleanField(
+        default=False,
+        verbose_name="Treinamento On The Job?",
+        help_text="Treinamento prático, no posto de trabalho.",
+    )
     target_department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Setor Alvo (Se Fundamental)")
     
     scheduled_employees = models.ManyToManyField('Employee', related_name='scheduled_trainings', blank=True, verbose_name="Funcionários Previstos")
