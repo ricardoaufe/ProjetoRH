@@ -3,6 +3,7 @@ from decimal import Decimal, InvalidOperation
 from django import forms
 from django.db.models import Q
 
+from rhcontrol.forms.widgets import MultipleFileInput
 from rhcontrol.models import Employee
 
 
@@ -79,3 +80,31 @@ class EmployeeMultipleChoiceField(forms.ModelMultipleChoiceField):
 
     def label_from_instance(self, obj):
         return _employee_label(obj)
+
+
+class MultipleFileField(forms.FileField):
+    """
+    Vários arquivos num campo só (padrão da documentação do Django 5.2).
+    Valida cada arquivo e junta os erros de todos, para o usuário ver de uma
+    vez quais precisam ser trocados. Devolve sempre uma lista.
+    """
+
+    def __init__(self, *args, **kwargs):
+        kwargs.setdefault("widget", MultipleFileInput())
+        super().__init__(*args, **kwargs)
+
+    def clean(self, data, initial=None):
+        files = data if isinstance(data, (list, tuple)) else [data] if data else []
+        if not files:
+            super().clean(None, initial)
+            return []
+
+        cleaned, errors = [], []
+        for uploaded in files:
+            try:
+                cleaned.append(super().clean(uploaded, initial))
+            except forms.ValidationError as error:
+                errors.extend(error.error_list)
+        if errors:
+            raise forms.ValidationError(errors)
+        return cleaned

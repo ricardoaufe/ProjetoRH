@@ -8,3 +8,7 @@ class DateInput(forms.DateInput):
         final_attrs = {"class": "form-control"}
         final_attrs.update(attrs or {})
         super().__init__(attrs=final_attrs, format=format)
+
+
+class MultipleFileInput(forms.ClearableFileInput):
+    allow_multiple_selected = True
