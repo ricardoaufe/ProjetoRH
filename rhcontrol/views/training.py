@@ -1,19 +1,50 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required, permission_required
 from django.db.models import Count
+from django.http import FileResponse, Http404
 from django.shortcuts import get_object_or_404, redirect, render
 
 from rhcontrol.filters import filter_trainings
 from rhcontrol.forms import TrainingForm
-from rhcontrol.models import Employee, Training
+from rhcontrol.models import Employee, Training, TrainingDocument
 from rhcontrol.pagination import paginate
+
+
+def _save_documents(request, form, training):
+    """Anexa os arquivos enviados e remove os marcados (só deste treinamento)."""
+    for uploaded in form.cleaned_data.get('documents') or []:
+        TrainingDocument.objects.create(
+            training=training,
+            file=uploaded,
+            original_name=uploaded.name,
+            uploaded_by=request.user,
+        )
+
+    to_remove = form.cleaned_data.get('remove_documents')
+    if to_remove:
+        # delete() pelo queryset também dispara o post_delete que apaga o arquivo.
+        training.documents.filter(pk__in=[doc.pk for doc in to_remove]).delete()
+
+
+def _show_form_errors(request, form):
+    """Mostra os erros no topo da página, como no cadastro de setor."""
+    problems = [
+        f"{form.fields[name].label}: {' '.join(errors)}"
+        for name, errors in form.errors.items() if name in form.fields
+    ]
+    problems += list(form.non_field_errors())
+    messages.error(request, 'Não foi possível salvar o treinamento. ' + ' | '.join(problems))
 
 
 @login_required
 @permission_required('rhcontrol.view_training', raise_exception=True)
 def training_view(request):
     training_list = filter_trainings(
-        Training.objects.annotate(num_attended=Count('attended_employees')),
+        # distinct=True: as duas junções (presentes e documentos) não se multiplicam.
+        Training.objects.annotate(
+            num_attended=Count('attended_employees', distinct=True),
+            num_documents=Count('documents', distinct=True),
+        ),
         request.GET,
     )
 
@@ -38,7 +69,7 @@ def training_view(request):
 @permission_required('rhcontrol.add_training', raise_exception=True)
 def training_create(request):
     if request.method == 'POST':
-        form = TrainingForm(request.POST)
+        form = TrainingForm(request.POST, request.FILES)
         if form.is_valid():
             training = form.save(commit=False)
             training.save() 
@@ -60,8 +91,11 @@ def training_create(request):
             else:
                 form.save_m2m() 
 
+            _save_documents(request, form, training)
+
             messages.success(request, 'Treinamento criado com sucesso!')
             return redirect('rhcontrol:training_list')
+        _show_form_errors(request, form)
     else:
         form = TrainingForm()
     
@@ -71,12 +105,15 @@ def training_create(request):
 @permission_required('rhcontrol.change_training', raise_exception=True)
 def training_update(request, pk):
     training = get_object_or_404(Training, pk=pk)
-    form = TrainingForm(request.POST or None, instance=training)
+    form = TrainingForm(request.POST or None, request.FILES or None, instance=training)
 
     if form.is_valid():
         form.save()
+        _save_documents(request, form, training)
         messages.success(request, 'Treinamento atualizado com sucesso!')
         return redirect('rhcontrol:training_list')
+    if form.is_bound:
+        _show_form_errors(request, form)
 
     return render(request, 'dashboard/pages/training/form.html', {
         'form': form,
@@ -96,3 +133,18 @@ def training_delete(request, pk):
     return render(request, 'dashboard/pages/training/delete.html', {
         'training': training
     })
+
+
+@login_required
+@permission_required('rhcontrol.view_training', raise_exception=True)
+def training_document_view(request, pk):
+    """
+    Abre um documento escaneado. Os arquivos não têm URL pública: só passam
+    por aqui, depois de conferir login e permissão.
+    """
+    document = get_object_or_404(TrainingDocument, pk=pk)
+    try:
+        handle = document.file.storage.open(document.file.name, 'rb')
+    except FileNotFoundError:
+        raise Http404('Arquivo não encontrado.') from None
+    return FileResponse(handle, filename=document.original_name, as_attachment=False)

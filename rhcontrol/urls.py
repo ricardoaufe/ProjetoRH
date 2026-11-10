@@ -54,6 +54,7 @@ urlpatterns = [
     path('trainings/create/', views.training_create, name='training_create'),
     path('trainings/<int:pk>/edit/', views.training_update, name='training_update'),
     path('trainings/<int:pk>/delete/', views.training_delete, name='training_delete'),
+    path('trainings/documents/<int:pk>/', views.training_document_view, name='training_document'),
 
     #DEPARTMENTS
     path('departments/', views.department_list, name='department_list'),

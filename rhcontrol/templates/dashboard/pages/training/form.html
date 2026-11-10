@@ -14,7 +14,7 @@
     </div>
     <h2>{{ title|default:"Registrar Treinamento" }}</h2>
 
-    <form method="POST" id="trainingForm">
+    <form method="POST" id="trainingForm" enctype="multipart/form-data">
         {% csrf_token %}
 
         <div class="form-content">  
@@ -97,6 +97,34 @@
 
         </div>
 
+        <div class="training-form__section training-docs" id="documentos">
+            <h4 class="training-docs__title">Documentos escaneados</h4>
+            <p class="training-docs__help">Lista de presença assinada, certificados etc. Os arquivos ficam guardados no sistema e só abrem para quem tem acesso aos treinamentos.</p>
+
+            {% with docs=form.remove_documents.subwidgets %}
+                {% if docs %}
+                    <ul class="training-docs__list">
+                        {% for checkbox in docs %}
+                            {% with doc=checkbox.data.value.instance %}
+                                <li class="training-docs__item">
+                                    <a href="{% url 'rhcontrol:training_document' doc.pk %}" target="_blank" rel="noopener" class="training-docs__link">
+                                        <i class="fa fa-paperclip"></i> {{ doc.original_name }}
+                                    </a>
+                                    <span class="training-docs__date">{{ doc.uploaded_at|date:"d/m/Y H:i" }}</span>
+                                    <label class="training-docs__remove">
+                                        {{ checkbox.tag }} Remover
+                                    </label>
+                                </li>
+                            {% endwith %}
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+
+            {% include 'partials/form_field.html' with field=form.documents label="Adicionar arquivos" %}
+            <ul id="pending-documents" class="training-docs__pending" hidden></ul>
+        </div>
+
         <div class="form-actions">
             <button type="submit" class="btn-save">Salvar Treinamento</button>
             {% if form.instance.pk %}
@@ -109,6 +137,7 @@
 </div>
 
 {% include 'partials/employee_select.html' %}
+<script src="{% static 'global/js/training-documents.js' %}?v=1"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {

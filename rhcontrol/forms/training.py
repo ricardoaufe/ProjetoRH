@@ -1,7 +1,13 @@
 from django import forms
 
-from rhcontrol.forms.fields import EmployeeMultipleChoiceField, employee_choices
-from rhcontrol.models import Training
+from rhcontrol.forms.fields import (
+    EmployeeMultipleChoiceField,
+    MultipleFileField,
+    employee_choices,
+)
+from rhcontrol.forms.validators import validate_training_document
+from rhcontrol.forms.widgets import MultipleFileInput
+from rhcontrol.models import Training, TrainingDocument
 
 
 class TrainingForm(forms.ModelForm):
@@ -17,6 +23,23 @@ class TrainingForm(forms.ModelForm):
             "class": "form-control js-employee-select",
             "data-placeholder": "Selecione quem realmente compareceu...",
         }),
+    )
+    documents = MultipleFileField(
+        required=False,
+        label="Documentos escaneados",
+        help_text="PDF, JPG ou PNG. Escolha vários de uma vez ou um por vez: todos vão juntos ao salvar.",
+        validators=[validate_training_document],
+        widget=MultipleFileInput(attrs={
+            "class": "form-control",
+            "accept": ".pdf,.jpg,.jpeg,.png",
+        }),
+    )
+    # Só documentos deste treinamento: o queryset é definido no __init__.
+    remove_documents = forms.ModelMultipleChoiceField(
+        queryset=TrainingDocument.objects.none(),
+        required=False,
+        label="Remover documentos",
+        widget=forms.CheckboxSelectMultiple,
     )
 
     class Meta:
@@ -70,3 +93,5 @@ class TrainingForm(forms.ModelForm):
             self.fields["attended_employees"].queryset = (
                 self.instance.scheduled_employees.select_related("department").order_by("name")
             )
+            # Só dá para remover documentos do próprio treinamento.
+            self.fields["remove_documents"].queryset = self.instance.documents.all()

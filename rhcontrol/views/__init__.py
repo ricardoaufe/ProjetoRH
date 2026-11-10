@@ -52,6 +52,12 @@ from .pdf import (
     employee_career_plan_pdf,
 )
 from .role import role_create_view, role_delete_view, role_list_view, role_update_view
-from .training import training_create, training_delete, training_update, training_view
+from .training import (
+    training_create,
+    training_delete,
+    training_document_view,
+    training_update,
+    training_view,
+)
 from .user import user_create_view, user_delete_view, user_list_view, user_update_view
 from .vacation import vacation_create, vacation_delete, vacation_update, vacation_view
