@@ -4,10 +4,13 @@ mexe mais nos treinamentos de integração; quem faz o vínculo é o RH, no
 próprio treinamento (inclusive para quem foi admitido antes de ele existir).
 """
 from datetime import date
+from io import BytesIO
 
 from django.test import TestCase
 from django.urls import reverse
+from openpyxl import load_workbook
 
+from rhcontrol.attendance_sheet import build_attendance_sheet
 from rhcontrol.forms import EmployeeForm, TrainingForm
 from rhcontrol.models import Department, Employee, JobTitle, Training
 from rhcontrol.tests_security import make_user
@@ -98,6 +101,66 @@ class IntegrationTrainingTests(TestCase):
         self.assertContains(response, 'id="btn_without_integration"')
         self.assertContains(response, 'id="employees-without-integration"')
         self.assertContains(response, 'id="div_scheduled_employees"')
+
+
+class IntegrationDatesTests(IntegrationTrainingTests):
+    """Na integração as datas são opcionais: servem só de registro."""
+
+    def test_saves_with_dates(self):
+        data = self._data([self.ana], start_date='2026-11-03', end_date='2026-11-04')
+
+        response = self.client.post(reverse('rhcontrol:training_create'), data)
+
+        self.assertEqual(response.status_code, 302)
+        training = Training.objects.get()
+        self.assertEqual((training.start_date, training.end_date), (date(2026, 11, 3), date(2026, 11, 4)))
+
+    def test_saves_without_dates(self):
+        response = self.client.post(reverse('rhcontrol:training_create'), self._data([self.ana]))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIsNone(Training.objects.get().start_date)
+
+    def test_end_before_start_is_rejected(self):
+        data = self._data([self.ana], start_date='2026-11-04', end_date='2026-11-03')
+
+        response = self.client.post(reverse('rhcontrol:training_create'), data)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Training.objects.exists())
+        self.assertContains(response, 'não pode ser anterior à data de início')
+
+    def test_attendance_sheet_uses_the_date(self):
+        training = Training.objects.create(
+            training_name='Integração', training_total_hours=4, is_integration=True,
+            start_date=date(2026, 11, 3),
+        )
+
+        sheet = load_workbook(BytesIO(build_attendance_sheet(training)))['FRENTE']
+
+        self.assertTrue(sheet['B37'].value.endswith('03/11/2026'))
+        self.assertEqual(sheet['J12'].value, '( X )Integração')
+
+    def test_period_filter_keeps_integrations_without_date(self):
+        no_date = Training.objects.create(training_name='Integração sem data', training_total_hours=4, is_integration=True)
+        inside = Training.objects.create(
+            training_name='Integração em novembro', training_total_hours=4, is_integration=True,
+            start_date=date(2026, 11, 3),
+        )
+        Training.objects.create(
+            training_name='Integração antiga', training_total_hours=4, is_integration=True,
+            start_date=date(2025, 1, 10),
+        )
+        normal_no_date = Training.objects.create(training_name='NR-12 sem data', training_total_hours=8)
+        period = {'date_from': '2026-11-01', 'date_to': '2026-11-30'}
+
+        integration = self.client.get(reverse('rhcontrol:training_list'), {**period, 'status': 'integracao'})
+        everything = self.client.get(reverse('rhcontrol:training_list'), period)
+
+        self.assertEqual(set(integration.context['object_list']), {no_date, inside})
+        # Fora do filtro "Integração", o período continua exigindo data.
+        self.assertNotIn(normal_no_date, everything.context['object_list'])
+        self.assertNotIn(no_date, everything.context['object_list'])
 
 
 class EmployeeFormIntegrationTests(TestCase):

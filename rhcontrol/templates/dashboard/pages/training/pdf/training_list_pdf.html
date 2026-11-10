@@ -58,7 +58,7 @@
                 </td>
                 
                 <td>
-                    {% if training.is_integration %}
+                    {% if training.is_integration and not training.start_date %}
                         <span style="color: #555; font-style: italic; font-size: 9px;">Automático</span>
                     {% else %}
                         {{ training.start_date|date:"d/m/Y" }}

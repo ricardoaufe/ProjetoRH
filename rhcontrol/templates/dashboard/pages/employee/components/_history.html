@@ -18,7 +18,11 @@
                         <li class="history-item">
                             <div class="history-item__line">
                                 {% if t.is_integration %}
-                                    <strong class="history-item__date" title="Treinamento de Integração">{{ form.instance.hire_date|date:"d/m/Y" }}</strong>  
+                                    {% if t.start_date %}
+                                        <strong class="history-item__date" title="Treinamento de Integração">{{ t.start_date|date:"d/m/Y" }}{% if t.end_date and t.end_date != t.start_date %} - {{ t.end_date|date:"d/m/Y" }}{% endif %}</strong>
+                                    {% else %}
+                                        <strong class="history-item__date" title="Treinamento de Integração (sem data registrada: mostra a admissão)">{{ form.instance.hire_date|date:"d/m/Y" }}</strong>
+                                    {% endif %}
                                     <span class="history-item__integration"><i class="fas fa-check-circle"></i> Integração</span>
                                 {% else %}
                                     {% if t.end_date %}

@@ -31,7 +31,7 @@
                     Treinamento de Integração (Onboarding)?
                 </label>
                 <small class="callout__hint">
-                    Marque esta opção para que este treinamento seja adicionado automaticamente no histórico de novos funcionários sem necessidade de informar datas.
+                    Marque esta opção para os treinamentos de integração (onboarding). As datas de início e término são opcionais: preencha só para registrar quando a integração foi feita.
                     Abaixo, você também pode vincular funcionários já cadastrados (ex.: quem entrou antes deste treinamento existir).
                 </small>
             </div>
@@ -242,11 +242,11 @@
             const isIntegration = checkIntegration && checkIntegration.checked;
             const isFundamental = checkFundamental && checkFundamental.checked;
 
-            if (isIntegration) {
-                // Trava as Datas
-                if(inputStartDate) { inputStartDate.disabled = true; inputStartDate.value = ''; }
-                if(inputEndDate) { inputEndDate.disabled = true; inputEndDate.value = ''; }
+            // As datas ficam sempre livres; na integração são opcionais (só registro).
+            if(inputStartDate) inputStartDate.disabled = false;
+            if(inputEndDate) inputEndDate.disabled = false;
 
+            if (isIntegration) {
                 // Trava o Local em "Interno"
                 if(selectLocation) {
                     selectLocation.value = 'Interno';
@@ -264,10 +264,6 @@
             } 
             else {
                 setIntegrationMode(false);
-
-                // Libera as Datas
-                if(inputStartDate) inputStartDate.disabled = false;
-                if(inputEndDate) inputEndDate.disabled = false;
 
                 // Libera o Local
                 if(selectLocation) {

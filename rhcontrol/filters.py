@@ -72,16 +72,22 @@ def filter_trainings(queryset, params):
             Q(training_provider__icontains=search_query)
         )
 
+    status = params.get('status', '')
     date_from = params.get('date_from', '')
-    if date_from:
-        queryset = queryset.filter(start_date__gte=date_from)
-
     date_to = params.get('date_to', '')
+    period = Q()
+    if date_from:
+        period &= Q(start_date__gte=date_from)
     if date_to:
-        queryset = queryset.filter(start_date__lte=date_to)
+        period &= Q(start_date__lte=date_to)
+    if period:
+        # A data da integração é opcional: as que não têm data não podem
+        # sumir do filtro "Integração" só porque há um período preenchido.
+        if status == 'integracao':
+            period |= Q(start_date__isnull=True)
+        queryset = queryset.filter(period)
 
     today = timezone.localdate()
-    status = params.get('status', '')
     if status == 'proximos':
         queryset = queryset.filter(start_date__gte=today)
     elif status == 'pendentes':
