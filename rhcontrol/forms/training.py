@@ -7,7 +7,7 @@ from rhcontrol.forms.fields import (
 )
 from rhcontrol.forms.validators import validate_training_document
 from rhcontrol.forms.widgets import MultipleFileInput
-from rhcontrol.models import Training, TrainingDocument
+from rhcontrol.models import Employee, Training, TrainingDocument
 
 
 class TrainingForm(forms.ModelForm):
@@ -77,7 +77,10 @@ class TrainingForm(forms.ModelForm):
 
         scheduled = cleaned_data.get("scheduled_employees")
         attended = cleaned_data.get("attended_employees")
-        if scheduled is not None and attended is not None:
+        if cleaned_data.get("is_integration") and scheduled is not None:
+            # Na integração não há confirmação de presença: vinculou, fez.
+            cleaned_data["attended_employees"] = scheduled
+        elif scheduled is not None and attended is not None:
             cleaned_data["attended_employees"] = attended.filter(pk__in=scheduled)
 
         return cleaned_data
@@ -88,6 +91,14 @@ class TrainingForm(forms.ModelForm):
         for name in ("scheduled_employees", "attended_employees"):
             current = self.instance.pk and getattr(self.instance, name).values_list("pk", flat=True)
             self.fields[name].queryset = employee_choices(keep=current or [])
+
+        # Ativos que não estão em nenhuma integração (ex.: admitidos antes de o
+        # treinamento de integração existir), para o botão que os adiciona.
+        self.employees_without_integration = list(
+            Employee.objects.filter(termination_date__isnull=True)
+            .exclude(scheduled_trainings__is_integration=True)
+            .values_list("pk", flat=True)
+        )
 
         # A confirmação oferece só os participantes salvos ("Destes previstos, quem veio?").
         if self.instance.pk:
