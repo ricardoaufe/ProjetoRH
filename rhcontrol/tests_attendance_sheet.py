@@ -15,7 +15,11 @@ from django.test import TestCase
 from django.urls import reverse
 from openpyxl import load_workbook
 
-from rhcontrol.attendance_sheet import _fill_participants, build_attendance_sheet
+from rhcontrol.attendance_sheet import (
+    _fill_participants,
+    build_attendance_sheet,
+    build_on_the_job_sheet,
+)
 from rhcontrol.models import Department, Employee, JobTitle, Training
 from rhcontrol.tests_security import make_user
 
@@ -139,12 +143,35 @@ class SheetsTests(AttendanceSheetTestCase):
         self.assertNotIn('VERSO', app)
         self.assertNotIn('Plan3', app)
 
-    def test_on_the_job_keeps_back_sheet(self):
+    def test_on_the_job_list_still_has_only_front(self):
         workbook = load_workbook(BytesIO(self.build(self.training(is_on_the_job=True))))
 
-        self.assertEqual(workbook.sheetnames, ['FRENTE', 'VERSO'])
+        self.assertEqual(workbook.sheetnames, ['FRENTE'])
         self.assertIn('☒ Sim', workbook['FRENTE']['B25'].value)
         self.assertIn('☐ Não', workbook['FRENTE']['B25'].value)
+
+    def test_on_the_job_sheet_has_only_back(self):
+        content = build_on_the_job_sheet()
+
+        with zipfile.ZipFile(BytesIO(content)) as package:
+            names = set(package.namelist())
+            for name in names:
+                if name.endswith(('.xml', '.rels')):
+                    minidom.parseString(package.read(name))
+            types = package.read('[Content_Types].xml').decode()
+            workbook = package.read('xl/workbook.xml').decode()
+            app = package.read('docProps/app.xml').decode()
+        for part in re.findall(r'PartName="/([^"]+)"', types):
+            self.assertIn(part, names)
+        # VERSO virou a primeira (e única) aba: a área de impressão é renumerada para 0.
+        self.assertIn('<definedName name="_xlnm.Print_Area" localSheetId="0">VERSO!', workbook)
+        self.assertNotIn('FRENTE', workbook)
+        self.assertNotIn('localSheetId="1"', workbook)
+        self.assertNotIn('FRENTE', app)
+        self.assertIn('VERSO!Print_Area', app)
+        sheet = load_workbook(BytesIO(content))
+        self.assertEqual(sheet.sheetnames, ['VERSO'])
+        self.assertIn('$A$1:$L$47', str(sheet['VERSO'].print_area))
 
 
 class ParticipantsTests(AttendanceSheetTestCase):
@@ -251,8 +278,54 @@ class ViewTests(AttendanceSheetTestCase):
         self.client.force_login(make_user(
             'rh', 'rhcontrol.view_training', 'rhcontrol.change_training',
         ))
+        otj_url = reverse('rhcontrol:training_on_the_job_sheet', args=[self.item.pk])
+        edit_url = reverse('rhcontrol:training_update', args=[self.item.pk])
+        list_url = reverse('rhcontrol:training_list')
 
-        self.assertContains(self.client.get(reverse('rhcontrol:training_list')), self.url)
-        self.assertContains(
-            self.client.get(reverse('rhcontrol:training_update', args=[self.item.pk])), self.url
+        self.assertContains(self.client.get(list_url), self.url)
+        self.assertContains(self.client.get(edit_url), self.url)
+        # Sem On The Job, o botão da ficha não aparece.
+        self.assertNotContains(self.client.get(list_url), otj_url)
+        self.assertNotContains(self.client.get(edit_url), otj_url)
+
+        Training.objects.filter(pk=self.item.pk).update(is_on_the_job=True)
+        self.assertContains(self.client.get(list_url), otj_url)
+        self.assertContains(self.client.get(edit_url), otj_url)
+
+
+class OnTheJobViewTests(AttendanceSheetTestCase):
+    def setUp(self):
+        super().setUp()
+        self.item = self.training(is_on_the_job=True)
+        self.url = reverse('rhcontrol:training_on_the_job_sheet', args=[self.item.pk])
+
+    def test_requires_login(self):
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse('rhcontrol:login'), response['Location'])
+
+    def test_requires_permission(self):
+        self.client.force_login(make_user('sem_acesso'))
+
+        self.assertEqual(self.client.get(self.url).status_code, 403)
+
+    def test_downloads_back_sheet(self):
+        self.client.force_login(make_user('rh', 'rhcontrol.view_training'))
+
+        response = self.client.get(self.url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('On_the_job_nr-12-seguranca-em-maquinas_10-11-2026.xlsx', response['Content-Disposition'])
+        self.assertEqual(load_workbook(BytesIO(response.content)).sheetnames, ['VERSO'])
+
+    def test_not_on_the_job_redirects_with_message(self):
+        self.client.force_login(make_user('rh', 'rhcontrol.view_training'))
+        Training.objects.filter(pk=self.item.pk).update(is_on_the_job=False)
+
+        response = self.client.get(self.url)
+
+        self.assertRedirects(
+            response, reverse('rhcontrol:training_update', args=[self.item.pk]),
+            fetch_redirect_response=False,
         )

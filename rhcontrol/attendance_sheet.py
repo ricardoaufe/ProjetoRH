@@ -7,7 +7,7 @@ preenchido aqui é copiado byte a byte do modelo.
 
 O sistema preenche só o que já sabe (tema, objetivo, datas, local,
 integração, On The Job e os participantes previstos); o resto o RH completa
-no Excel.
+no Excel. A ficha do On The Job (aba VERSO) é um arquivo separado, em branco.
 """
 import math
 import re
@@ -20,7 +20,7 @@ from django.conf import settings
 
 # --- Mapa de células do Form40B Rev.18 -------------------------------------
 FRONT_SHEET = "FRENTE"
-BACK_SHEET = "VERSO"  # fica só no On The Job, em branco
+BACK_SHEET = "VERSO"  # ficha do On The Job, baixada à parte e em branco
 
 CELL_THEME = "B5"            # "Tema/ Treinamento: "
 CELL_GOAL = "B15"            # "Objetivo do Treinamento: "
@@ -309,13 +309,27 @@ def _drop_sheets(parts, keep):
 
     workbook = parts[WORKBOOK]
     rels = parts[WORKBOOK_RELS]
-    for index, name, rid, _ in dropped:
+    for _, name, rid, _ in dropped:
         workbook = re.sub(r'<sheet [^>]*r:id="%s"[^>]*/>' % re.escape(rid), "", workbook)
         rels = re.sub(r'<Relationship [^>]*Id="%s"[^>]*/>' % re.escape(rid), "", rels)
-        workbook = re.sub(r'<definedName [^>]*localSheetId="%d"[^>]*>.*?</definedName>' % index, "", workbook, flags=re.S)
         workbook = re.sub(
             r"<definedName [^>]*>[^<]*'?%s'?![^<]*</definedName>" % re.escape(name), "", workbook
         )
+    # localSheetId é a posição da aba: as que ficam são renumeradas (VERSO
+    # sozinho passa de 1 para 0) e os nomes das que saem são apagados.
+    new_index = {old: new for new, old in enumerate(
+        i for i, (name, _, _) in enumerate(sheets) if name in keep
+    )}
+
+    def renumber(match):
+        old = int(match.group(2))
+        if old not in new_index:
+            return ""
+        return match.group(0).replace(f'localSheetId="{old}"', f'localSheetId="{new_index[old]}"', 1)
+
+    workbook = re.sub(
+        r'<definedName ([^>]*)localSheetId="(\d+)"[^>]*>.*?</definedName>', renumber, workbook, flags=re.S
+    )
     workbook = re.sub(r'\s(activeTab|firstSheet)="\d+"', "", workbook)
     workbook = re.sub(r"<definedNames>\s*</definedNames>", "", workbook)
 
@@ -370,8 +384,7 @@ def _extend_print_area(workbook, last_row):
 
 # --- Entrada -----------------------------------------------------------------
 
-def build_attendance_sheet(training, template_path=None):
-    """Devolve os bytes do .xlsx da lista de presença deste treinamento."""
+def _load_template(template_path):
     path = template_path or settings.ATTENDANCE_TEMPLATE_PATH
     try:
         with zipfile.ZipFile(path) as source:
@@ -385,21 +398,19 @@ def build_attendance_sheet(training, template_path=None):
         name: data.decode("utf-8") if name.endswith((".xml", ".rels")) else data
         for name, data in original.items()
     }
-    front = next((p for name, _, p in _sheet_targets(parts) if name == FRONT_SHEET), None)
-    if front is None:
-        raise AttendanceTemplateError(f'Aba "{FRONT_SHEET}" não encontrada no modelo.')
+    return infos, parts
 
-    employees = list(
-        training.scheduled_employees.select_related("department").order_by("name")
-    )
-    sheet = _fill_header(parts[front], training)
-    sheet, last_row = _fill_participants(sheet, employees)
-    parts[front], parts[STYLES] = _shrink_wide_numbers(sheet, parts[STYLES], last_row)
-    parts[WORKBOOK] = _extend_print_area(parts[WORKBOOK], last_row)
 
-    keep = {FRONT_SHEET, BACK_SHEET} if training.is_on_the_job else {FRONT_SHEET}
+def _sheet_path(parts, sheet_name):
+    path = next((p for name, _, p in _sheet_targets(parts) if name == sheet_name), None)
+    if path is None:
+        raise AttendanceTemplateError(f'Aba "{sheet_name}" não encontrada no modelo.')
+    return path
+
+
+def _save(infos, parts, keep):
+    """Deixa só as abas de `keep` e monta o .xlsx, na ordem original do modelo."""
     parts = _update_app_props(_drop_sheets(parts, keep))
-
     output = BytesIO()
     with zipfile.ZipFile(output, "w") as target:
         for info in infos:
@@ -410,3 +421,25 @@ def build_attendance_sheet(training, template_path=None):
                 data = data.encode("utf-8")
             target.writestr(info, data, compress_type=info.compress_type)
     return output.getvalue()
+
+
+def build_attendance_sheet(training, template_path=None):
+    """Lista de presença (aba FRENTE) preenchida com os dados do treinamento."""
+    infos, parts = _load_template(template_path)
+    front = _sheet_path(parts, FRONT_SHEET)
+
+    employees = list(
+        training.scheduled_employees.select_related("department").order_by("name")
+    )
+    sheet = _fill_header(parts[front], training)
+    sheet, last_row = _fill_participants(sheet, employees)
+    parts[front], parts[STYLES] = _shrink_wide_numbers(sheet, parts[STYLES], last_row)
+    parts[WORKBOOK] = _extend_print_area(parts[WORKBOOK], last_row)
+    return _save(infos, parts, {FRONT_SHEET})
+
+
+def build_on_the_job_sheet(template_path=None):
+    """Ficha do On The Job (aba VERSO), em branco: é preenchida no posto de trabalho."""
+    infos, parts = _load_template(template_path)
+    _sheet_path(parts, BACK_SHEET)
+    return _save(infos, parts, {BACK_SHEET})

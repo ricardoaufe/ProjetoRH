@@ -92,6 +92,11 @@
                     <a href="{% url 'rhcontrol:training_attendance_sheet' training.pk %}" class="training-sheet-link" title="Lista de presença (Excel)">
                         <i class="fa fa-file-excel"></i>
                     </a>
+                    {% if training.is_on_the_job %}
+                        <a href="{% url 'rhcontrol:training_on_the_job_sheet' training.pk %}" class="training-sheet-link training-sheet-link--otj" title="Ficha On The Job (Excel)">
+                            <i class="fa fa-helmet-safety"></i>
+                        </a>
+                    {% endif %}
                 </td>
                 <td>{{training.start_date|date:"d/m/Y"}}</td>
                 <td>{{training.end_date|date:"d/m/Y"|default:"-"}}</td>

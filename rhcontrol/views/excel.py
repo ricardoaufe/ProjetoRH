@@ -10,7 +10,11 @@ from django.utils.text import slugify
 from openpyxl import Workbook
 from openpyxl.styles import Font
 
-from rhcontrol.attendance_sheet import AttendanceTemplateError, build_attendance_sheet
+from rhcontrol.attendance_sheet import (
+    AttendanceTemplateError,
+    build_attendance_sheet,
+    build_on_the_job_sheet,
+)
 from rhcontrol.filters import filter_employees
 from rhcontrol.models import Employee, Training
 
@@ -82,19 +86,35 @@ def training_attendance_sheet(request, pk):
     local e os participantes previstos. O resto o RH completa no Excel.
     """
     training = get_object_or_404(Training, pk=pk)
+    return _form40b_download(request, training, "Lista_presenca", lambda: build_attendance_sheet(training))
+
+
+@login_required
+@permission_required("rhcontrol.view_training", raise_exception=True)
+def training_on_the_job_sheet(request, pk):
+    """Ficha do On The Job (verso do Form40B), só para treinamentos On The Job."""
+    training = get_object_or_404(Training, pk=pk)
+    if not training.is_on_the_job:
+        messages.error(request, "Este treinamento não está marcado como On The Job.")
+        return redirect("rhcontrol:training_update", pk=pk)
+    return _form40b_download(request, training, "On_the_job", build_on_the_job_sheet)
+
+
+def _form40b_download(request, training, prefix, build):
+    """Gera um arquivo do Form40B e devolve como download (ou avisa se o modelo falhar)."""
     try:
-        content = build_attendance_sheet(training)
+        content = build()
     except AttendanceTemplateError:
-        logger.exception("Falha ao gerar a lista de presença do treinamento %s", pk)
+        logger.exception("Falha ao gerar o Form40B (%s) do treinamento %s", prefix, training.pk)
         messages.error(
             request,
-            "Não foi possível gerar a lista de presença: o modelo em Excel não foi "
-            "encontrado ou está diferente do Form40B. Avise o responsável pelo sistema.",
+            "Não foi possível gerar o arquivo: o modelo em Excel não foi encontrado "
+            "ou está diferente do Form40B. Avise o responsável pelo sistema.",
         )
-        return redirect("rhcontrol:training_update", pk=pk)
+        return redirect("rhcontrol:training_update", pk=training.pk)
 
     day = training.start_date.strftime("%d-%m-%Y") if training.start_date else "sem-data"
-    filename = f"Lista_presenca_{slugify(training.training_name) or 'treinamento'}_{day}.xlsx"
+    filename = f"{prefix}_{slugify(training.training_name) or 'treinamento'}_{day}.xlsx"
     response = HttpResponse(content, content_type=XLSX_CONTENT_TYPE)
     response["Content-Disposition"] = content_disposition_header(
         as_attachment=True, filename=filename

@@ -876,6 +876,13 @@
 /* Ícone da lista de presença (Excel) na lista de treinamentos */
 .data-table .training-sheet-link { margin-left: 8px; font-size: 1.3rem; color: #198754; }
 .data-table .training-sheet-link:hover { color: #146c43; }
+.data-table .training-sheet-link--otj { color: #b45309; }
+.data-table .training-sheet-link--otj:hover { color: #92400e; }
+
+/* Botões de download do Form40B na edição do treinamento */
+.training-form__downloads { display: flex; gap: 10px; flex-wrap: wrap; }
+.btn.training-form__otj-button { background-color: #b45309; color: #fff; }
+.btn.training-form__otj-button:hover { background-color: #92400e; }
 
 
 /* ================================================================
@@ -1008,7 +1015,6 @@
 .change-panel .change-panel__date { flex: 1; min-width: 8.125rem; }
 .change-panel .change-panel__reason { flex: 2; min-width: 9.375rem; }
 
-.integration-field { margin-top: 15px; margin-bottom: 20px; }
 
 
 /* ================================================================
