@@ -56,6 +56,7 @@ urlpatterns = [
     path('trainings/<int:pk>/delete/', views.training_delete, name='training_delete'),
     path('trainings/documents/<int:pk>/', views.training_document_view, name='training_document'),
     path('trainings/<int:pk>/attendance-sheet/', views.training_attendance_sheet, name='training_attendance_sheet'),
+    path('trainings/<int:pk>/on-the-job-sheet/', views.training_on_the_job_sheet, name='training_on_the_job_sheet'),
 
     #DEPARTMENTS
     path('departments/', views.department_list, name='department_list'),
