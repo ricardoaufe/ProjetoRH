@@ -180,6 +180,15 @@ STATICFILES_FINDERS = [
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
 ]
+
+# Arquivos enviados pelo sistema (ex.: listas de presença escaneadas).
+# São privados: não há MEDIA_URL público; o download passa por uma view
+# que confere login e permissão.
+MEDIA_ROOT = os.environ.get('MEDIA_ROOT') or BASE_DIR / 'media'
+
+# Tamanho máximo de cada documento anexado a um treinamento (10 MB)
+TRAINING_DOCUMENT_MAX_SIZE = 10 * 1024 * 1024
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
