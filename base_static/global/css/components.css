@@ -873,6 +873,9 @@
 }
 .data-table .training-docs-badge:hover { color: #0d6efd; }
 
+/* Linha inteira da tabela leva ao registro (global/js/clickable-rows.js) */
+.data-table .clickable-row { cursor: pointer; }
+
 /* Ícone da lista de presença (Excel) na lista de treinamentos */
 .data-table .training-sheet-link { margin-left: 8px; font-size: 1.3rem; color: #198754; }
 .data-table .training-sheet-link:hover { color: #146c43; }

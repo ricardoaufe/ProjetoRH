@@ -81,7 +81,7 @@
 
         <tbody>
             {% for training in object_list %}
-            <tr>
+            <tr class="clickable-row" data-href="{% url 'rhcontrol:training_update' training.pk %}">
                 <td>
                     <a href="{% url 'rhcontrol:training_update' training.pk %}">{{training.training_name}}</a>
                     {% if training.num_documents %}
@@ -112,4 +112,5 @@
     </table>
     {% include 'partials/pagination.html' %}
 </div> 
+<script src="{% static 'global/js/clickable-rows.js' %}?v=1"></script>
 {% endblock content %}
