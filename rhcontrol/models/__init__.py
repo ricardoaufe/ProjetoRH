@@ -9,7 +9,7 @@ from .notification import (
 )
 from .occurrence import CID, Occurrence
 from .organization import Department, JobTitle
-from .training import Training
+from .training import Training, TrainingDocument
 from .vacation import Vacation
 
 __all__ = [
@@ -26,6 +26,7 @@ __all__ = [
         "NotificationRule",
         "Occurrence",
         "Training",
+        "TrainingDocument",
         "UserAlertPreference",
         "Vacation",
 ]

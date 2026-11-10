@@ -1,5 +1,10 @@
+import os
+from uuid import uuid4
+
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
+from django.utils import timezone
 
 
 class Training(models.Model):
@@ -41,3 +46,36 @@ class Training(models.Model):
 
     def __str__(self):
         return f'Treinamento: {self.training_name} em {self.start_date}'
+
+
+def training_document_path(instance, filename):
+    """Guarda com nome aleatório: o nome original fica só no banco."""
+    ext = os.path.splitext(filename)[1].lower()
+    return f"trainings/{timezone.localdate():%Y/%m}/{uuid4().hex}{ext}"
+
+
+class TrainingDocument(models.Model):
+    training = models.ForeignKey(
+        Training,
+        on_delete=models.CASCADE,
+        related_name='documents',
+        verbose_name="Treinamento",
+    )
+    file = models.FileField(upload_to=training_document_path, verbose_name="Arquivo")
+    original_name = models.CharField(max_length=255, verbose_name="Nome Original")
+    uploaded_at = models.DateTimeField(auto_now_add=True, verbose_name="Enviado em")
+    uploaded_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Enviado por",
+    )
+
+    class Meta:
+        verbose_name = "Documento do Treinamento"
+        verbose_name_plural = "Documentos do Treinamento"
+        ordering = ['uploaded_at']
+
+    def __str__(self):
+        return self.original_name
