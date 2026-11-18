@@ -3,16 +3,18 @@ Integração centralizada na aba Treinamentos: o cadastro de funcionário não
 mexe mais nos treinamentos de integração; quem faz o vínculo é o RH, no
 próprio treinamento (inclusive para quem foi admitido antes de ele existir).
 """
-from datetime import date
+from datetime import date, timedelta
 from io import BytesIO
 
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from openpyxl import load_workbook
 
 from rhcontrol.attendance_sheet import build_attendance_sheet
 from rhcontrol.forms import EmployeeForm, TrainingForm
 from rhcontrol.models import Department, Employee, JobTitle, Training
+from rhcontrol.services import get_upcoming_events
 from rhcontrol.tests_security import make_user
 
 
@@ -161,6 +163,46 @@ class IntegrationDatesTests(IntegrationTrainingTests):
         # Fora do filtro "Integração", o período continua exigindo data.
         self.assertNotIn(normal_no_date, everything.context['object_list'])
         self.assertNotIn(no_date, everything.context['object_list'])
+
+
+class IntegrationOutsideStatusAndEventsTests(IntegrationTrainingTests):
+    """A data da integração é só registro: não entra em status nem no painel."""
+
+    def _list(self, status):
+        response = self.client.get(reverse('rhcontrol:training_list'), {'status': status})
+        return set(response.context['object_list'])
+
+    def test_future_integration_is_not_upcoming_nor_an_event(self):
+        future = timezone.localdate() + timedelta(days=5)
+        integration = Training.objects.create(
+            training_name='Integração', training_total_hours=4, is_integration=True, start_date=future,
+        )
+        normal = Training.objects.create(training_name='NR-12', training_total_hours=8, start_date=future)
+
+        self.assertEqual(self._list('proximos'), {normal})
+        self.assertIn(integration, self._list('integracao'))
+        titles = [e['title'] for e in get_upcoming_events(start_date=future, end_date=future)]
+        self.assertIn('Treinamento: NR-12', titles)
+        self.assertNotIn('Treinamento: Integração', titles)
+        email_titles = [
+            e['title'] for e in get_upcoming_events(start_date=future, end_date=future, only_email_events=True)
+        ]
+        self.assertNotIn('Treinamento: Integração', email_titles)
+
+    def test_past_integration_is_not_done_nor_pending(self):
+        past = timezone.localdate() - timedelta(days=5)
+        with_people = Training.objects.create(
+            training_name='Integração A', training_total_hours=4, is_integration=True, start_date=past,
+        )
+        with_people.scheduled_employees.set([self.ana])
+        with_people.attended_employees.set([self.ana])
+        Training.objects.create(
+            training_name='Integração B', training_total_hours=4, is_integration=True, start_date=past,
+        )
+
+        self.assertEqual(self._list('realizados'), set())
+        self.assertEqual(self._list('pendentes'), set())
+        self.assertEqual(len(self._list('integracao')), 2)
 
 
 class EmployeeFormIntegrationTests(TestCase):

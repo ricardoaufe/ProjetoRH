@@ -88,12 +88,13 @@ def filter_trainings(queryset, params):
         queryset = queryset.filter(period)
 
     today = timezone.localdate()
+    # Integração aparece só na aba "Integração": a data dela é apenas registro.
     if status == 'proximos':
-        queryset = queryset.filter(start_date__gte=today)
+        queryset = queryset.filter(start_date__gte=today, is_integration=False)
     elif status == 'pendentes':
-        queryset = queryset.filter(start_date__lt=today, num_attended=0)
+        queryset = queryset.filter(start_date__lt=today, num_attended=0, is_integration=False)
     elif status == 'realizados':
-        queryset = queryset.filter(start_date__lt=today, num_attended__gt=0)
+        queryset = queryset.filter(start_date__lt=today, num_attended__gt=0, is_integration=False)
     elif status == 'integracao':
         queryset = queryset.filter(is_integration=True)
 

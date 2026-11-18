@@ -897,7 +897,8 @@ def _ue_generate_vacations(start: date, end: date, filters: dict) -> list[dict]:
 
 def _ue_generate_trainings(start: date, end: date, filters: dict) -> list[dict]:
     events: list[dict] = []
-    qs = Training.objects.filter(start_date__range=(start, end))
+    # Integração fica de fora: a data dela é só registro, não um evento a avisar.
+    qs = Training.objects.filter(start_date__range=(start, end), is_integration=False)
 
     if filters.get("department_id"):
         qs = qs.filter(target_department_id=filters["department_id"])
