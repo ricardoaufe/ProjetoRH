@@ -5,16 +5,18 @@ O arquivo é montado editando o XML de dentro do .xlsx (um .zip): o openpyxl,
 ao salvar, apagaria o logo (WMF) do modelo real da empresa. Tudo o que não é
 preenchido aqui é copiado byte a byte do modelo.
 
-O sistema preenche só o que já sabe (tema, objetivo, datas, local,
-integração, On The Job e os participantes previstos); o resto o RH completa
-no Excel. A ficha do On The Job (aba VERSO) é um arquivo separado, em branco.
+O sistema preenche o cabeçalho com o que foi cadastrado no treinamento
+(tema, responsável, aprovação, levantamento da necessidade, objetivo, local,
+tipo, eficácia, equipamentos, documentos de apoio, datas, horário, instrutor,
+integração, On The Job) e a lista com os participantes previstos; o que ficar
+em branco o RH completa no Excel. A ficha do On The Job (aba VERSO) é um arquivo separado, em branco.
 """
 import math
 import re
 import zipfile
 from io import BytesIO
 from posixpath import dirname, join, normpath
-from xml.sax.saxutils import escape
+from xml.sax.saxutils import escape, unescape
 
 from django.conf import settings
 
@@ -28,6 +30,45 @@ CELL_LOCATION = "B17"        # "☐ Interno ... ☐ Externo"
 CELL_ON_THE_JOB = "B25"      # "☐ Sim        ☐ Não"
 CELL_DATE = "B37"            # " Data Realização: "
 CELL_INTEGRATION = "J12"     # "(   )Integração"
+
+CELL_REQUESTING_AREA = "B6"  # "Área Solicitante: " (sempre "Treinamento")
+CELL_REQUESTED_BY = "G6"     # "Resp.: "
+CELL_APPROVED_BY = "B7"      # "Aprovado por: "
+CELLS_REQUEST_DATE = ("J6", "I7")  # as duas "Data Solicitação: "
+CELL_VENUES = "B18"          # "☐ Sala de Treinamento ... ☐ Outros: "
+CELL_EFFECTIVENESS = "F25"   # "☐ Sim        ☐ Não"
+CELL_EQUIPMENT = "B28"       # "☐ Não        ☐ Sim - Qual?"
+CELL_TIME = "H37"            # "Horário: "
+CELL_INSTRUCTOR = "B38"      # "Instrutor: "
+REQUESTING_AREA = "Treinamento"
+
+# Levantamento da Necessidade: "(    ) Rótulo" vira "( X ) Rótulo".
+NEED_REASON_CELLS = {
+    "job_description": "B10",
+    "superior_review": "F10",
+    "recycling": "J10",
+    "nonconformity": "B11",
+    "employee_request": "F11",
+    "customer_requirements": "J11",
+    "audits": "B12",
+    "job_change": "F12",
+    "other": "B13",
+}
+VENUE_LABELS = {
+    "training_room": "Sala de Treinamento",
+    "workstation": "Posto de Serviço",
+    "supplier": "Fornecedor",
+    "other": "Outros:",
+}
+FORMAT_CELLS = {"lecture": "B22", "meeting": "E22", "notice": "H22", "training": "K22"}
+AUDIENCE_CELLS = {"individual": "J25", "group": "L25"}
+SUPPORT_DOCUMENT_CELLS = {
+    "quality_procedures": ("B31", "Procedimentos da Qualidade"),
+    "work_instruction": ("B32", "Instrução de Trabalho"),
+    "quality_policy": ("B33", "Politica da Qualidade"),
+    "quality_manual": ("B34", "Manual da Qualidade"),
+    "other": ("B35", "Outros"),
+}
 
 LIST_FIRST_ROW = 41          # a linha 40 é o cabeçalho da lista
 LIST_PAGE_ROWS = 51          # linhas por página (41 a 91 no modelo)
@@ -111,6 +152,9 @@ def _append_value(xml, ref, value):
     cell = _get_cell(xml, ref).group(0)
     if "<is>" not in cell:
         raise AttendanceTemplateError(f"Célula {ref} deveria ter texto no modelo.")
+    texts = re.findall(r"<t(?:\s[^>]*)?>(.*?)</t>", cell, re.S)
+    if texts and texts[-1] and not texts[-1][-1].isspace():
+        value = f" {value}"  # rótulo sem espaço no fim ("Revisão:")
     if "<r>" not in cell:
         # Texto simples (<is><t>...</t></is>) vira um trecho, para somar o valor.
         cell = re.sub(
@@ -120,6 +164,39 @@ def _append_value(xml, ref, value):
         )
     cell = cell.replace("</is>", VALUE_RUN.format(_text(value)) + "</is>")
     return _replace_cell(xml, ref, cell)
+
+
+def _tick_box(xml, ref):
+    """Marca a caixinha sozinha na célula (☐ -> ☒)."""
+    cell = _get_cell(xml, ref).group(0)
+    if UNCHECKED not in cell:
+        raise AttendanceTemplateError(f"Caixinha não encontrada na célula {ref}.")
+    return _replace_cell(xml, ref, cell.replace(UNCHECKED, CHECKED, 1))
+
+
+def _cell_text(xml, ref, shared_strings):
+    """Texto da célula, venha ele de sharedStrings (t="s") ou do próprio XML."""
+    cell = _get_cell(xml, ref).group(0)
+    if 't="s"' in cell:
+        return shared_strings[int(re.search(r"<v>(\d+)</v>", cell).group(1))]
+    return unescape("".join(re.findall(r"<t(?:\s[^>]*)?>(.*?)</t>", cell, re.S)))
+
+
+def _mark_parentheses(xml, ref, shared_strings):
+    """"(    ) Reciclagem" -> "( X ) Reciclagem", mantendo o estilo da célula."""
+    text = _cell_text(xml, ref, shared_strings)
+    marked, found = re.subn(r"\(\s*\)", "( X )", text, count=1)
+    if not found:
+        raise AttendanceTemplateError(f'"( )" não encontrado na célula {ref}.')
+    return _set_text(xml, ref, marked)
+
+
+def _shared_strings(parts):
+    xml = parts.get("xl/sharedStrings.xml", "")
+    return [
+        unescape("".join(re.findall(r"<t(?:\s[^>]*)?>(.*?)</t>", item, re.S)))
+        for item in re.findall(r"<si>(.*?)</si>", xml, re.S)
+    ]
 
 
 def _tick(xml, ref, label):
@@ -142,14 +219,73 @@ def _date_text(training):
     return text
 
 
-def _fill_header(xml, training):
+def _time_text(training):
+    times = [t.strftime("%H:%Mh") for t in (training.start_time, training.end_time) if t]
+    return " - ".join(times)
+
+
+def _fill_header(xml, training, shared_strings):
     xml = _append_value(xml, CELL_THEME, training.training_name)
-    xml = _append_value(xml, CELL_GOAL, training.training_description)
+    xml = _append_value(xml, CELL_REQUESTING_AREA, REQUESTING_AREA)
+    xml = _append_value(xml, CELL_REQUESTED_BY, training.requested_by)
+    xml = _append_value(xml, CELL_APPROVED_BY, training.approved_by)
+    if training.request_date:
+        for ref in CELLS_REQUEST_DATE:
+            xml = _append_value(xml, ref, training.request_date.strftime("%d/%m/%Y"))
+    xml = _fill_need_reasons(xml, training, shared_strings)
+    # Objetivo curto; nos treinamentos antigos (sem objetivo) segue a Descrição.
+    xml = _append_value(xml, CELL_GOAL, training.objective or training.training_description)
+    xml = _fill_options(xml, training)
     xml = _append_value(xml, CELL_DATE, _date_text(training))
-    xml = _tick(xml, CELL_LOCATION, "Externo" if training.training_location_type == "Externo" else "Interno")
-    xml = _tick(xml, CELL_ON_THE_JOB, "Sim" if training.is_on_the_job else "Não")
+    xml = _append_value(xml, CELL_TIME, _time_text(training))
+    xml = _append_value(xml, CELL_INSTRUCTOR, training.instructor or training.training_provider)
+    return xml
+
+
+def _fill_need_reasons(xml, training, shared_strings):
+    reasons = training.need_reasons or []
+    for code, ref in NEED_REASON_CELLS.items():
+        if code in reasons:
+            xml = _mark_parentheses(xml, ref, shared_strings)
+    if "nonconformity" in reasons:
+        xml = _append_value(xml, NEED_REASON_CELLS["nonconformity"], training.nonconformity_number)
+    if "other" in reasons:
+        xml = _append_value(xml, NEED_REASON_CELLS["other"], training.need_other)
     if training.is_integration:
         xml = _set_text(xml, CELL_INTEGRATION, INTEGRATION_MARKED)
+    return xml
+
+
+def _fill_options(xml, training):
+    """Caixinhas ☐ -> ☒: local, tipo, eficácia, público, equipamentos, documentos."""
+    xml = _tick(xml, CELL_LOCATION, "Externo" if training.training_location_type == "Externo" else "Interno")
+    for code in training.venues or []:
+        if code in VENUE_LABELS:
+            xml = _tick(xml, CELL_VENUES, VENUE_LABELS[code])
+    if "other" in (training.venues or []):
+        xml = _append_value(xml, CELL_VENUES, training.venue_other)
+
+    for code in training.formats or []:
+        if code in FORMAT_CELLS:
+            xml = _tick_box(xml, FORMAT_CELLS[code])
+
+    xml = _tick(xml, CELL_ON_THE_JOB, "Sim" if training.is_on_the_job else "Não")
+    if training.needs_effectiveness_check:
+        xml = _tick(xml, CELL_EFFECTIVENESS, "Sim" if training.needs_effectiveness_check == "yes" else "Não")
+    if training.audience in AUDIENCE_CELLS:
+        xml = _tick_box(xml, AUDIENCE_CELLS[training.audience])
+
+    if training.uses_equipment == "yes":
+        xml = _tick(xml, CELL_EQUIPMENT, "Sim")
+        xml = _append_value(xml, CELL_EQUIPMENT, training.equipment_description)
+    elif training.uses_equipment == "no":
+        xml = _tick(xml, CELL_EQUIPMENT, "Não")
+
+    for code, detail in (training.support_documents or {}).items():
+        if code in SUPPORT_DOCUMENT_CELLS:
+            ref, label = SUPPORT_DOCUMENT_CELLS[code]
+            xml = _tick(xml, ref, label)
+            xml = _append_value(xml, ref, detail)
     return xml
 
 
@@ -431,7 +567,7 @@ def build_attendance_sheet(training, template_path=None):
     employees = list(
         training.scheduled_employees.select_related("department").order_by("name")
     )
-    sheet = _fill_header(parts[front], training)
+    sheet = _fill_header(parts[front], training, _shared_strings(parts))
     sheet, last_row = _fill_participants(sheet, employees)
     parts[front], parts[STYLES] = _shrink_wide_numbers(sheet, parts[STYLES], last_row)
     parts[WORKBOOK] = _extend_print_area(parts[WORKBOOK], last_row)

@@ -6,6 +6,44 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 
+# --- Opções do cabeçalho do Form40B (lista de presença) ----------------------
+# Os códigos ficam em inglês no banco; o texto é o que aparece na tela/no papel.
+NEED_REASON_CHOICES = [
+    ("job_description", "Descrição de Cargo"),
+    ("superior_review", "Avaliação do Superior"),
+    ("recycling", "Reciclagem"),
+    ("nonconformity", "Não Conformidade Nº"),
+    ("employee_request", "Solicitação do Colaborador"),
+    ("customer_requirements", "Requisitos de Clientes"),
+    ("audits", "Auditorias"),
+    ("job_change", "Mudança de Cargo"),
+    ("other", "Outros"),
+]
+VENUE_CHOICES = [
+    ("training_room", "Sala de Treinamento"),
+    ("workstation", "Posto de Serviço"),
+    ("supplier", "Fornecedor"),
+    ("other", "Outros"),
+]
+FORMAT_CHOICES = [
+    ("lecture", "Palestra"),
+    ("meeting", "Reunião"),
+    ("notice", "Comunicado"),
+    ("training", "Treinamento"),
+]
+SUPPORT_DOCUMENT_CHOICES = [
+    ("quality_procedures", "Procedimentos da Qualidade"),
+    ("work_instruction", "Instrução de Trabalho"),
+    ("quality_policy", "Política da Qualidade"),
+    ("quality_manual", "Manual da Qualidade"),
+    ("other", "Outros"),
+]
+YES_NO_CHOICES = [("yes", "Sim"), ("no", "Não")]
+AUDIENCE_CHOICES = [("individual", "Individual"), ("group", "Grupo")]
+
+DEFAULT_REQUESTED_BY = "Tauana"
+DEFAULT_APPROVED_BY = "Cássio"
+
 
 class Training(models.Model):
     training_name = models.CharField(max_length=200, verbose_name="Nome do Treinamento")
@@ -38,6 +76,26 @@ class Training(models.Model):
         help_text="Treinamento prático, no posto de trabalho.",
     )
     target_department = models.ForeignKey('Department', on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Setor Alvo (Se Fundamental)")
+
+    # Cabeçalho do Form40B: só vai para a lista de presença em Excel.
+    requested_by = models.CharField(max_length=100, blank=True, default=DEFAULT_REQUESTED_BY, verbose_name="Responsável (Resp.)")
+    approved_by = models.CharField(max_length=100, blank=True, default=DEFAULT_APPROVED_BY, verbose_name="Aprovado por")
+    request_date = models.DateField(blank=True, null=True, verbose_name="Data da Solicitação")
+    need_reasons = models.JSONField(default=list, blank=True, verbose_name="Levantamento da Necessidade")
+    need_other = models.CharField(max_length=100, blank=True, verbose_name="Outra necessidade")
+    nonconformity_number = models.CharField(max_length=50, blank=True, verbose_name="Nº da Não Conformidade")
+    objective = models.CharField(max_length=200, blank=True, verbose_name="Objetivo do Treinamento")
+    venues = models.JSONField(default=list, blank=True, verbose_name="Local do Treinamento")
+    venue_other = models.CharField(max_length=100, blank=True, verbose_name="Outro local")
+    formats = models.JSONField(default=list, blank=True, verbose_name="Tipo")
+    needs_effectiveness_check = models.CharField(max_length=3, choices=YES_NO_CHOICES, blank=True, verbose_name="Necessita verificação de eficácia")
+    audience = models.CharField(max_length=10, choices=AUDIENCE_CHOICES, blank=True, verbose_name="Individual ou Grupo")
+    uses_equipment = models.CharField(max_length=3, choices=YES_NO_CHOICES, blank=True, verbose_name="Utilizado Equipamentos")
+    equipment_description = models.CharField(max_length=150, blank=True, verbose_name="Qual equipamento")
+    support_documents = models.JSONField(default=dict, blank=True, verbose_name="Documentos de Apoio")
+    start_time = models.TimeField(blank=True, null=True, verbose_name="Horário de início")
+    end_time = models.TimeField(blank=True, null=True, verbose_name="Horário de fim")
+    instructor = models.CharField(max_length=150, blank=True, verbose_name="Instrutor")
     
     scheduled_employees = models.ManyToManyField('Employee', related_name='scheduled_trainings', blank=True, verbose_name="Funcionários Previstos")
     attended_employees = models.ManyToManyField('Employee', related_name='attended_trainings', blank=True, verbose_name="Funcionários Que Compareceram")
