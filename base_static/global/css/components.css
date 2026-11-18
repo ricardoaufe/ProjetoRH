@@ -799,6 +799,34 @@
 
 .training-form__divider { margin: 30px 0; border-color: #dee2e6; }
 
+/* Dados da Lista de Presença (Form40B) no cadastro do treinamento */
+.form40b .form40b__title { margin-top: 0; font-size: 1.6rem; color: #495057; margin-bottom: 5px; }
+.form40b .form40b__help { font-size: 1.3rem; color: #6c757d; margin: 0 0 15px; }
+.form40b .form40b__group { margin-bottom: 20px; }
+.form40b .form40b__group-title { display: block; font-weight: 600; font-size: 1.4rem; color: #495057; margin-bottom: 8px; }
+.form40b .form40b__hint { display: block; font-size: 1.2rem; color: #6c757d; margin-top: 4px; }
+.form40b .form40b__row { display: flex; flex-wrap: wrap; gap: 10px 40px; }
+
+/* Grupo de caixinhas/opções vindo do Django (div > div > label > input) */
+.form40b .form40b__options > div {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 6px 20px;
+}
+.form40b .form40b__options label,
+.form40b .form40b__check {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: normal;
+    font-size: 1.4rem;
+    cursor: pointer;
+}
+.form40b .form40b__conditional { margin-top: 10px; max-width: 480px; }
+.form40b .form40b__doc { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 15px; margin-bottom: 8px; }
+.form40b .form40b__doc .form40b__check { min-width: 250px; }
+.form40b .form40b__doc-detail { flex: 1; min-width: 240px; margin-top: 0; }
+
 /* Documentos escaneados do treinamento (lista de presença etc.) */
 .training-docs .training-docs__title { margin-top: 0; font-size: 1.6rem; color: #495057; margin-bottom: 5px; }
 .training-docs .training-docs__help { font-size: 1.3rem; color: #6c757d; margin: 0 0 15px; }

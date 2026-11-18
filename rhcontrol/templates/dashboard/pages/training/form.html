@@ -51,6 +51,87 @@
             </div>
         </div>
 
+        <div class="training-form__section form40b" id="form40b">
+            <h4 class="form40b__title">Dados da Lista de Presença (Form40B)</h4>
+            <p class="form40b__help">Tudo opcional. O que for preenchido aqui já sai pronto no Excel da lista de presença; a Área Solicitante sai sempre como "Treinamento".</p>
+
+            <div class="form-content">
+                {% include 'partials/form_field.html' with field=form.requested_by label="Resp." grid_class="col-span-3" %}
+                {% include 'partials/form_field.html' with field=form.approved_by label="Aprovado por" grid_class="col-span-3" %}
+                {% include 'partials/form_field.html' with field=form.request_date label="Data da Solicitação" grid_class="col-span-2" %}
+            </div>
+
+            <div class="form40b__group">
+                <span class="form40b__group-title">Levantamento da Necessidade</span>
+                <div class="form40b__options">{{ form.need_reasons }}</div>
+                <small class="form40b__hint">"Integração" é marcada sozinha pela caixa de Integração, lá em cima.</small>
+                {% for error in form.need_reasons.errors %}<div class="form-field__error"><i class="fa fa-exclamation-circle"></i> {{ error }}</div>{% endfor %}
+                <div class="form40b__conditional" data-show-if-name="need_reasons" data-show-if-value="nonconformity">
+                    {% include 'partials/form_field.html' with field=form.nonconformity_number label="Nº da Não Conformidade" %}
+                </div>
+                <div class="form40b__conditional" data-show-if-name="need_reasons" data-show-if-value="other">
+                    {% include 'partials/form_field.html' with field=form.need_other label="Outros: qual?" %}
+                </div>
+            </div>
+
+            <div class="form40b__group">
+                {% include 'partials/form_field.html' with field=form.objective label="Objetivo do Treinamento" grid_class="col-span-8" %}
+                <small class="form40b__hint">Se ficar vazio, a lista de presença usa a Descrição.</small>
+            </div>
+
+            <div class="form40b__group">
+                <span class="form40b__group-title">Local do Treinamento (onde)</span>
+                <div class="form40b__options">{{ form.venues }}</div>
+                <small class="form40b__hint">Interno/Externo vem do campo "Local do Treinamento", lá em cima.</small>
+                <div class="form40b__conditional" data-show-if-name="venues" data-show-if-value="other">
+                    {% include 'partials/form_field.html' with field=form.venue_other label="Outros: qual local?" %}
+                </div>
+            </div>
+
+            <div class="form40b__row">
+                <div class="form40b__group">
+                    <span class="form40b__group-title">Tipo</span>
+                    <div class="form40b__options">{{ form.formats }}</div>
+                </div>
+                <div class="form40b__group">
+                    <span class="form40b__group-title">Necessita verificação de eficácia</span>
+                    <div class="form40b__options">{{ form.needs_effectiveness_check }}</div>
+                </div>
+                <div class="form40b__group">
+                    <span class="form40b__group-title">Individual ou Grupo</span>
+                    <div class="form40b__options">{{ form.audience }}</div>
+                </div>
+            </div>
+
+            <div class="form40b__group">
+                <span class="form40b__group-title">Utilizado Equipamentos</span>
+                <div class="form40b__options">{{ form.uses_equipment }}</div>
+                <div class="form40b__conditional" data-show-if-name="uses_equipment" data-show-if-value="yes">
+                    {% include 'partials/form_field.html' with field=form.equipment_description label="Qual?" %}
+                </div>
+            </div>
+
+            <div class="form40b__group">
+                <span class="form40b__group-title">Documentos de Apoio</span>
+                {% for check, detail in form.support_document_fields %}
+                    <div class="form40b__doc">
+                        <label class="form40b__check">{{ check }} {{ check.label }}</label>
+                        <div class="form40b__doc-detail form40b__conditional" data-show-if-name="{{ check.html_name }}" data-show-if-value="on">
+                            {{ detail }}
+                            {% for error in detail.errors %}<div class="form-field__error"><i class="fa fa-exclamation-circle"></i> {{ error }}</div>{% endfor %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="form-content">
+                {% include 'partials/form_field.html' with field=form.start_time label="Horário: início" grid_class="col-span-2" %}
+                {% include 'partials/form_field.html' with field=form.end_time label="Horário: fim" grid_class="col-span-2" %}
+                {% include 'partials/form_field.html' with field=form.instructor label="Instrutor" grid_class="col-span-4" %}
+            </div>
+            <small class="form40b__hint">A Data de Realização usa as datas de início e término do treinamento.</small>
+        </div>
+
         <div class="training-form__section">
             
             <div class="training-form__fundamental">
@@ -171,6 +252,7 @@
 
 {% include 'partials/employee_select.html' %}
 <script src="{% static 'global/js/training-documents.js' %}?v=1"></script>
+<script src="{% static 'global/js/conditional-fields.js' %}?v=1"></script>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
